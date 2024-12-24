@@ -6,6 +6,8 @@ import { useDispatch, useSelector } from "react-redux";
 
 const Navbar = () => {
 
+  const {view} = useSelector( (state) => state.navbar );
+
   const {activeLeftTab, activeRightTab} = useSelector( (state) => state.navbar);
   const dispatch = useDispatch();
 
@@ -29,23 +31,24 @@ const Navbar = () => {
       </div>
 
       {/* Middle Navbar Section */}
-      {/* <div className="flex items-center gap-8 border-r border-l border-gray-300 px-12">
-        {[
-          { view: "desktop", icon: <FaDesktop /> },
-          { view: "tablet", icon: <FaTabletAlt /> },
-          { view: "mobile", icon: <FaMobileAlt /> },
-        ].map(({ view: tabView, icon }) => (
-          <div
-            key={tabView}
-            className={`text-2xl cursor-pointer ${
-              view === tabView ? "text-blue-600" : "text-gray-400"
-            } hover:text-blue-600 transition-all`}
-            onClick={() => setView(tabView)}
-          >
-            {icon}
-          </div>
-        ))}
-      </div> */}
+      <div className="flex items-center gap-8 border-gray-300 px-12">
+      {[
+        { view: "desktop", icon: <FaDesktop /> },
+        { view: "tablet", icon: <FaTabletAlt /> },
+        { view: "mobile", icon: <FaMobileAlt /> },
+      ].map(({ view: tabView, icon }) => (
+        <div
+          key={tabView}
+          className={`text-2xl cursor-pointer ${
+            view === tabView ? "text-blue-600" : "text-gray-400"
+          } hover:text-blue-600 transition-all`}
+          onClick={() => dispatch(setView(tabView))}
+        >
+          {icon}
+        </div>
+      ))}
+    </div>
+      
 
       {/* Right Navbar Section */}
       <div className="flex items-center gap-6 pl-8 border-l border-gray-300 pr-8">

@@ -17,12 +17,12 @@ const SourceCode = () => {
       {/* Toggle Button */}
       <div className="flex justify-between items-center p-1 bg-gray-100 border-b">
         <h3 className="text-lg font-semibold text-gray-800">Source Code Panel</h3>
-        {/* <button
+        <button
           onClick={() => setShowSourceCode(!showSourceCode)}
           className="px-4 py-2 bg-blue-500 text-white rounded-md shadow hover:bg-blue-600"
         >
           {showSourceCode ? "Hide Source Code" : "Show Source Code"}
-        </button> */}
+        </button>
       </div>
 
       {/* Source Code Display */}
