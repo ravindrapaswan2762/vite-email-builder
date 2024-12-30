@@ -1,8 +1,8 @@
-import React from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setShowDropingArea } from "../redux/cardDragableSlice";
+// import React from "react";
+// import { useDispatch, useSelector } from "react-redux";
+// import { setShowDropingArea } from "../redux/cardDragableSlice";
 
-const DropingArea = () => {
+// const DropingArea = () => {
 //   const dispatch = useDispatch();
 //   const { showDropingArea } = useSelector((state) => state.cardDragable);
 
@@ -44,6 +44,6 @@ const DropingArea = () => {
 //       </section>
 //     )
 //   );
-};
+// };
 
-export default DropingArea;
+// export default DropingArea;

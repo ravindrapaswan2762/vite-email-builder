@@ -1,63 +1,77 @@
 import React, { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
-import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
-
-import { setActiveWidgetName } from "../../redux/cardDragableSlice";
+import { deleteDroppedItemById, setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
-import { setActiveWidgetId } from "../../redux/cardDragableSlice";
-import { useSelector } from "react-redux";
 
 const Button = ({ id }) => {
-
+  const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
-
   const dispatch = useDispatch();
- 
-  const [text, setText] = useState("Submit");
 
-  const currentStyles = droppedItems.find((item) => item.id === id)?.styles || {};
+  // const currentStyles = droppedItems.find((item) => item.id === id)?.styles || {};
+  // console.log("currentStyles: ", currentStyles);
 
-  const handleClick = (e) => {
+  const findStylesById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === id) {
+        return item.styles || {};
+      }
+
+      // Check for children arrays (children, childrenA, childrenB, etc.)
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const styles = findStylesById(item[key], widgetId);
+        if (styles) {
+          console.log("findStylesById: ", styles);
+          return styles;
+        }
+      }
+    }
+    
+    return null;
+  };
+  const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
+
+  const onclickHandle = (e) => {
     e.stopPropagation();
     dispatch(setActiveWidgetName("Button"));
     dispatch(setActiveEditor("Button"));
     dispatch(setActiveWidgetId(id));
-
-    console.log("updated state: ", droppedItems)
-
-    // window.open(`${currentStyles.href}`, `${currentStyles.target}`, "noopener,noreferrer")
+    console.log("droppedItems: ", droppedItems);
   };
 
-
+  const onMouseEnterHandler = () => setHoveredElement(true);
+  const onMouseLeaveHandler = () => setHoveredElement(false);
 
   return (
-    <div className="flex justify-center w-full"  style={{backgroundColor: `${currentStyles.backgroundColor}`}}>
+    <div
+      className="flex justify-center w-full"
+      style={{ backgroundColor: `${currentStyles.backgroundColor || "transparent"}` }}
+      onMouseEnter={onMouseEnterHandler}
+      onMouseLeave={onMouseLeaveHandler}
+    >
       {/* Outer Container with Dashed Border */}
-      <div className="relative w-full h-[50px] border border-2 border-gray-300 flex items-center p-1" 
-              style={{ display: "flex", alignItems: "center", justifyContent: `${currentStyles.textAlign}`, height: "auto"}}
+      <div
+        className={`relative w-full h-[50px] border ${
+          hoveredElement ? "border-dashed border-blue-500" : "border-gray-300"
+        } flex items-center p-1`}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: `${currentStyles.textAlign || "center"}`,
+          height: "auto",
+        }}
+      >
+        {/* Button Content */}
+        <button
+          onClick={onclickHandle}
+          style={{ ...currentStyles, backgroundColor: `${currentStyles.buttonColor || "#1d4ed8"}` }}
+          className="relative bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 text-center"
+        >
+          {currentStyles.content || "Submit"}
+        </button>
 
-              >
-        {/* Editable Text Button */}
-        {(
-          <button
-            onClick={handleClick}
-            style={{...currentStyles, backgroundColor: `${currentStyles.buttonColor}`}}
-            className="relative bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 text-center"
-          >
-            {/* Delete Button Inside the Button */}
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(deleteDroppedItemById(id));
-              }}
-              className="absolute -top-3 -right-3 bg-grey-500 text-black p-1 rounded-full hover:bg-grey-600 cursor-pointer"
-            >
-              <RxCross2 size={14} />
-            </span>
-            {currentStyles.content ? currentStyles.content : "Submit"}
-          </button>
-        )}
       </div>
     </div>
   );

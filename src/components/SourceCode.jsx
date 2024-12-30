@@ -27,11 +27,23 @@ const SourceCode = () => {
 
       {/* Source Code Display */}
       {showSourceCode && (
-        <div className="flex-1 p-1 bg-gray-50">
+        <div>
           {sourceCode ? (
-            <pre className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 relative hover:border-blue-500 transition-all pb-[50px] mt-4 bg-gray-800 text-white p-4 rounded overflow-x-auto">
-              <code>{sourceCode}</code>
-            </pre>
+            
+                <pre className="bg-gray-800 text-white p-4 rounded overflow-x-auto h-auto">
+                  <code>
+                    {`
+                      <div className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 relative hover:border-blue-500 transition-all pb-[50px]
+                        h-auto">
+                          <div className="mb-2">
+                              ${sourceCode}
+                        </div>
+                      </div>
+                    `}
+                  </code>
+                </pre>
+
+              
           ) : (
             <p className="text-gray-500">No source code to display.</p>
           )}

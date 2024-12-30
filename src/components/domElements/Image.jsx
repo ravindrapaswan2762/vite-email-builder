@@ -1,21 +1,41 @@
 import React, { useState } from "react";
 import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
-import { useSelector } from "react-redux";
 
-const Image = ({id}) => {
+const Image = ({ id }) => {
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
+  const [hoveredElement, setHoveredElement] = useState(false); // State for hover
 
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
 
-  const currentStyles = droppedItems.find((item) => item.id === id)?.styles || {};
+  // const currentStyles = droppedItems.find((item) => item.id === id)?.styles || {};
+  const findStylesById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === id) {
+        return item.styles || {};
+      }
+
+      // Check for children arrays (children, childrenA, childrenB, etc.)
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const styles = findStylesById(item[key], widgetId);
+        if (styles) {
+          console.log("findStylesById: ", styles);
+          return styles;
+        }
+      }
+    }
+    
+    return null;
+  };
+  const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
   const dispatch = useDispatch();
 
   // New and improved placeholder image URL
   const placeholderImage =
-    "https://dummyimage.com/300x300/ccc/000.png&text=Upload+Image";
+    "https://www.gstatic.com/webp/gallery/5.webp";
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0]; // Get the selected file
@@ -28,19 +48,19 @@ const Image = ({id}) => {
     }
   };
 
+  const onMouseEnterHandler = () => setHoveredElement(true);
+  const onMouseLeaveHandler = () => setHoveredElement(false);
+
   return (
     <div
-      className="border-2 border-gray-300 p-2 rounded-md text-center w-full h-[300px] bg-gray-50 flex items-center justify-center relative overflow-hidden hover:border-blue-400 transition-all duration-300 shadow-sm"
+      className={`border-2 rounded-md text-center w-full h-[300px] bg-gray-50 flex items-center justify-center relative overflow-hidden transition-all duration-300 shadow-sm 
+        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
+      onMouseEnter={onMouseEnterHandler}
+      onMouseLeave={onMouseLeaveHandler}
       onClick={(e) => e.stopPropagation()}
     >
 
-      <button
-          onClick={()=>dispatch(deleteDroppedItemById(id))}
-          className="absolute -top-1 -right-1 text-white p-1 rounded-full transition-all duration-200 z-10"
-          >
-          <div className="text-black mb-2 ml-2"><RxCross2 size={18} /></div>
-      </button>
-
+      {/* Image or Placeholder */}
       {imageSrc ? (
         <img
           src={imageSrc}

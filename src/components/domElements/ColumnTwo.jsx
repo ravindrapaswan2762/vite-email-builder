@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { RxCross2 } from "react-icons/rx";
 import Text from "./Text";
@@ -5,14 +6,14 @@ import Image from "./Image";
 import Button from "./Button";
 import TextArea from "./TextArea";
 import { useDispatch, useSelector } from "react-redux";
-import { setDroppedItems, deleteDroppedItemById } from "../../redux/cardDragableSlice";
+import { setDroppedItems, setActiveWidgetId, deleteDroppedItemById, setActiveParentId, setActiveColumn} from "../../redux/cardDragableSlice";
 
 // Component Mapping
 const componentMap = {
-  Text: () => <Text />,
-  Image: () => <Image />,
-  Button: () => <Button />,
-  TextArea: () => <TextArea />,
+  Text: (props) => <Text {...props} />,
+  Image: (props) => <Image {...props} />,
+  Button: (props) => <Button {...props} />,
+  TextArea: (props) => <TextArea {...props} />,
 };
 
 const ColumnTwo = ({ handleDelete, id }) => {
@@ -21,6 +22,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
 
   const [childrenA, setChildrenA] = useState([]);
   const [childrenB, setChildrenB] = useState([]);
+  const [hoveredChildA, setHoveredChildA] = useState(null); // Track hovered child in Column A
+  const [hoveredChildB, setHoveredChildB] = useState(null); // Track hovered child in Column B
 
   useEffect(() => {
     // Fetch column data from Redux store
@@ -38,8 +41,6 @@ const ColumnTwo = ({ handleDelete, id }) => {
   const handleDrop = (column) => (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("column: ", column);
-
     if (!activeWidgetName) return;
 
     dispatch(
@@ -59,81 +60,105 @@ const ColumnTwo = ({ handleDelete, id }) => {
   };
 
   const handleDeleteChild = (column, childId) => {
+    console.log(`parentId: ${id}, childId: ${childId}, columnName: ${column} from handleDeleteChild ColumnTwo`);
     dispatch(
-      setDroppedItems({
+      deleteDroppedItemById({
         parentId: id,
-        column,
-        deleteChildId: childId, // Pass the ID of the child to be deleted
+        columnName: column,
+        childId: childId, // Pass the ID of the child to be deleted
       })
     );
   };
 
-  return (
-    <div className="relative grid grid-cols-2 gap-1 border p-1 rounded-md bg-white shadow-md hover:shadow-lg transition-all duration-300">
-      {/* Delete Button for Parent Column */}
-      <button
-        onClick={handleDelete}
-        className="absolute top-2 right-2 text-white p-1 rounded-full transition-all duration-200 z-10"
-      >
-        <div className="text-black mb-2 ml-2">
-          <RxCross2 size={18} />
-        </div>
-      </button>
+  const onclickHandler = (id, childId, column) => {
+    console.log("Parent Column clicked, ID:", id);
+    dispatch(setActiveParentId(id));
+    dispatch(setActiveWidgetId(childId));
+    dispatch(setActiveColumn(column));
+  };
 
+  return (
+    <div className="relative grid grid-cols-2 gap-1 border rounded-md shadow-md hover:shadow-lg transition-all duration-300 group">
       {/* Column A */}
       <div
         onDrop={handleDrop("columnA")}
         onDragOver={handleDragOver}
-        className="border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]"
+        className="border border-dashed p-1 bg-gray-50 rounded-md text-center hover:border-blue-500 min-h-[150px]"
       >
-        <p className="text-gray-500 font-medium mb-2">Column A</p>
         {childrenA.map((child) => (
           <div
             key={child.id}
-            className="w-full bg-white p-2 border rounded-md mb-2 relative"
+            className="w-full bg-white border rounded-md mb-1 relative"
+            onMouseEnter={() => setHoveredChildA(child.id)} 
+            onMouseLeave={() => setHoveredChildA(null)}   
+            onClick={(e) => {
+              e.stopPropagation();
+              onclickHandler(id, child.id, "childrenA");
+            }}
           >
-            {componentMap[child.name] ? componentMap[child.name]() : <div>Unknown Component</div>}
-            {/* Delete Button for Child */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteChild("childrenA", child.id);
-              }}
-              className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-all duration-200"
-            >
-              <RxCross2 size={18} />
-            </button>
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, onParentClick: onclickHandler, column: "childrenA"}) : <div>Unknown Component</div>}
+       
+            {hoveredChildA === child.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteChild("childrenA", child.id);
+                }}
+                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+              >
+                <RxCross2 size={14} />
+              </button>
+            )}
           </div>
         ))}
-        {childrenA.length === 0 && <p className="text-gray-400">Drop elements here</p>}
+
+        
+        {childrenA.length === 0 && (
+          <>
+            <p className="text-gray-400">Column A</p>
+            <p className="text-gray-400">Drop elements here</p>
+          </>
+        )}
       </div>
 
       {/* Column B */}
       <div
         onDrop={handleDrop("columnB")}
         onDragOver={handleDragOver}
-        className="border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]"
+        className="border border-dashed p-1 bg-gray-50 rounded-md text-center hover:border-blue-500 min-h-[150px]"
       >
-        <p className="text-gray-500 font-medium mb-2">Column B</p>
         {childrenB.map((child) => (
           <div
             key={child.id}
-            className="w-full bg-white p-2 border rounded-md mb-2 relative"
+            className="w-full bg-white border rounded-md mb-1 relative"
+            onMouseEnter={() => setHoveredChildB(child.id)}  // Set hover state for the child
+            onMouseLeave={() => setHoveredChildB(null)}    // Reset hover state when mouse leaves
+            onClick={(e) => {
+              e.stopPropagation();
+              onclickHandler(id, child.id, "childrenB");
+            }}
           >
-            {componentMap[child.name] ? componentMap[child.name]() : <div>Unknown Component</div>}
-            {/* Delete Button for Child */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteChild("childrenB", child.id);
-              }}
-              className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-all duration-200"
-            >
-              <RxCross2 size={18} />
-            </button>
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, onParentClick: onclickHandler, column: "childrenA"}) : <div>Unknown Component</div>}
+            {/* Delete Button for Child in Column B */}
+            {hoveredChildB === child.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteChild("childrenB", child.id);
+                }}
+                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+              >
+                <RxCross2 size={14} />
+              </button>
+            )}
           </div>
         ))}
-        {childrenB.length === 0 && <p className="text-gray-400">Drop elements here</p>}
+        {childrenB.length === 0 && (
+          <>
+            <p className="text-gray-400">Column B</p>
+            <p className="text-gray-400">Drop elements here</p>
+          </>
+        )}
       </div>
     </div>
   );

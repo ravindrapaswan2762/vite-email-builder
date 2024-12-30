@@ -14,8 +14,8 @@ const Navbar = () => {
   return (
     <div className="flex justify-between items-center bg-gray-100 text-gray-700 p-6 shadow-lg">
       {/* Left Navbar Section */}
-      <div className="flex items-center gap-6 border-r border-gray-300 pr-8">
-        {["contents", "elements"].map((tab) => (
+      <div className="flex items-center gap-6 pr-8">
+        {["Contents", "Elements"].map((tab) => (
           <div
             key={tab}
             className={`cursor-pointer px-6 py-2 font-semibold ${
@@ -51,8 +51,8 @@ const Navbar = () => {
       
 
       {/* Right Navbar Section */}
-      <div className="flex items-center gap-6 pl-8 border-l border-gray-300 pr-8">
-        {["editor", "Source Code"].map((tab) => (
+      <div className="flex items-center gap-6 pl-8 pr-8">
+        {["Editor", "Source Code"].map((tab) => (
           <div
             key={tab}
             className={`cursor-pointer px-6 py-2 font-semibold ${

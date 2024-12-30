@@ -12,7 +12,7 @@ const ButtonEditOption = () => {
   const [isExtraOpen, setIsExtraOpen] = useState(true);
 
   const dispatch = useDispatch();
-  const { activeWidgetId, droppedItems } = useSelector(
+  const { activeWidgetId, activeParentId, activeColumn, droppedItems } = useSelector(
     (state) => state.cardDragable
   );
 
@@ -44,7 +44,7 @@ const ButtonEditOption = () => {
     lineHeight: "120%",
     textDecoration: "none",
     letterSpacing: "",
-    textAlign: "left",
+    textAlign: "center",
     fontStyle: "normal",
     border: "none",
     borderRadius: "3px",
@@ -97,10 +97,19 @@ const ButtonEditOption = () => {
     }));
 
     // Dispatch updated styles to Redux
+    // dispatch(
+    //   updateElementStyles({
+    //     id: activeWidgetId,
+    //     styles: { [name]: updatedValue },
+    //   })
+    // );
+
     dispatch(
       updateElementStyles({
         id: activeWidgetId,
         styles: { [name]: updatedValue },
+        ...(activeParentId && { parentId: activeParentId }), // Include parentId if activeParentId is valid
+        ...(activeColumn && { column: activeColumn }),
       })
     );
   };

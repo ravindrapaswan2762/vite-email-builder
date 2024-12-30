@@ -13,6 +13,7 @@ export const generateInlineStyles = (styles) => {
   
         // Generate inline styles
         const inlineStyles = generateInlineStyles(styles);
+        console.log("inlineStyles: ", inlineStyles);
   
         // Base case for individual widgets
         let html = "";
@@ -43,16 +44,16 @@ export const generateInlineStyles = (styles) => {
           break;
           case "Button":
             html = `
-              <div className=\"flex justify-center w-full\"  style={{backgroundColor: \"${inlineStyles.backgroundColor}\"}}>
+              <div className=\"flex justify-center w-full\"  style="backgroundColor: \"${inlineStyles.backgroundColor}\">
                 {/* Outer Container with Dashed Border */}
                 <div className=\"relative w-full h-[50px] border border-2 border-gray-300 flex items-center p-1\" 
-                        style={{ display: \"flex\", alignItems: \"center\", justifyContent: \"${inlineStyles.textAlign}\", height: \"auto\"}}
+                          style={{ display: "flex", alignItems: "center", justifyContent: ${inlineStyles.textAlign}, height: "auto" }}>
                         >
                   {/* Editable Text Button */}
                   {(
                     <button
                       onClick={handleClick}
-                      style={{...currentStyles, backgroundColor: \"${inlineStyles.buttonColor}\"}}
+                      style=\"${inlineStyles}\ ${inlineStyles.buttonColor}\" 
                       className=\"relative bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 text-center\"
                     >
                       {/* Delete Button Inside the Button */}

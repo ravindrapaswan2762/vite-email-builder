@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  activeLeftTab: "contents",
-  activeRightTab: "editor",
+  activeLeftTab: "Contents",
+  activeRightTab: "Editor",
   view: "desktop",
 };
 

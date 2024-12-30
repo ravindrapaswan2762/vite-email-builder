@@ -10,7 +10,7 @@ const TextEditOption = () => {
   const [isExtraOpen, setIsExtraOpen] = useState(true);
 
   const dispatch = useDispatch();
-  const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
 
   // Find the currently selected element from Redux state
   const selectedElement =
@@ -49,6 +49,7 @@ const TextEditOption = () => {
 
   // Handle input changes dynamically
   const handleInputChange = (e) => {
+    console.log(`name: ${e.target.name}, value: ${e.target.value}`);
     const { name, value } = e.target;
   
     // Append 'px' for padding and other dimension-related fields
@@ -72,6 +73,8 @@ const TextEditOption = () => {
       updateElementStyles({
         id: activeWidgetId,
         styles: { [name]: updatedValue },
+        ...(activeParentId && { parentId: activeParentId }), // Include parentId if activeParentId is valid
+        ...(activeColumn && { column: activeColumn }),
       })
     );
   };

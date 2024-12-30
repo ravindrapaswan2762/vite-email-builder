@@ -3,9 +3,75 @@ import { useSelector } from "react-redux";
 import { FaFolder, FaFolderOpen } from "react-icons/fa";
 import { MdOutlineInsertDriveFile } from "react-icons/md";
 
+// const TreeNode = ({ node }) => {
+//   const [isExpanded, setIsExpanded] = useState(false);
+
+//   const hasChildren =
+//     node.children?.length > 0 ||
+//     node.childrenA?.length > 0 ||
+//     node.childrenB?.length > 0 ||
+//     node.childrenC?.length > 0;
+
+//   const toggleExpand = () => setIsExpanded(!isExpanded);
+
+//   return (
+//     <div className="pl-4">
+//       {/* Node Header */}
+//       <div
+//         className={`flex items-center cursor-pointer p-2 rounded transition-all ${
+//           hasChildren
+//             ? "hover:bg-blue-50"
+//             : "hover:bg-gray-100"
+//         }`}
+//         onClick={toggleExpand}
+//       >
+//         {/* Icon */}
+//         <span className="mr-2 text-blue-500">
+//           {hasChildren ? (
+//             isExpanded ? (
+//               <FaFolderOpen size={16} />
+//             ) : (
+//               <FaFolder size={16} />
+//             )
+//           ) : (
+//             <MdOutlineInsertDriveFile size={16} />
+//           )}
+//         </span>
+
+//         {/* Node Name */}
+//         <span className="font-medium text-gray-700">{node.name}</span>
+//       </div>
+
+//       {/* Children */}
+//       {isExpanded && (
+//         <div className="pl-4 border-l-2 border-blue-200">
+//           {/* Standard children */}
+//           {node.children?.map((child) => (
+//             <TreeNode key={child.id} node={child} />
+//           ))}
+
+//           {/* Column-specific children */}
+//           {node.childrenA?.map((child) => (
+//             <TreeNode key={child.id} node={child} />
+//           ))}
+//           {node.childrenB?.map((child) => (
+//             <TreeNode key={child.id} node={child} />
+//           ))}
+//           {node.childrenC?.map((child) => (
+//             <TreeNode key={child.id} node={child} />
+//           ))}
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+
+
 const TreeNode = ({ node }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Check if node has children
   const hasChildren =
     node.children?.length > 0 ||
     node.childrenA?.length > 0 ||
@@ -19,9 +85,7 @@ const TreeNode = ({ node }) => {
       {/* Node Header */}
       <div
         className={`flex items-center cursor-pointer p-2 rounded transition-all ${
-          hasChildren
-            ? "hover:bg-blue-50"
-            : "hover:bg-gray-100"
+          hasChildren ? "hover:bg-blue-50" : "hover:bg-gray-100"
         }`}
         onClick={toggleExpand}
       >
@@ -42,29 +106,63 @@ const TreeNode = ({ node }) => {
         <span className="font-medium text-gray-700">{node.name}</span>
       </div>
 
-      {/* Children */}
+      {/* Render Children */}
       {isExpanded && (
         <div className="pl-4 border-l-2 border-blue-200">
-          {/* Standard children */}
-          {node.children?.map((child) => (
-            <TreeNode key={child.id} node={child} />
-          ))}
+          {/* Standard Children */}
+          {node.children?.length > 0 && (
+            <div className="pt-2">
+              <h4 className="text-sm font-semibold text-gray-600 mb-1">
+                Standard
+              </h4>
+              {node.children.map((child) => (
+                <TreeNode key={child.id} node={child} />
+              ))}
+            </div>
+          )}
 
-          {/* Column-specific children */}
-          {node.childrenA?.map((child) => (
-            <TreeNode key={child.id} node={child} />
-          ))}
-          {node.childrenB?.map((child) => (
-            <TreeNode key={child.id} node={child} />
-          ))}
-          {node.childrenC?.map((child) => (
-            <TreeNode key={child.id} node={child} />
-          ))}
+          {/* Column A Children */}
+          {node.childrenA?.length > 0 && (
+            <div className="pt-2">
+              <h4 className="text-sm font-semibold text-gray-600 mb-1">
+                Column A
+              </h4>
+              {node.childrenA.map((child) => (
+                <TreeNode key={child.id} node={child} />
+              ))}
+            </div>
+          )}
+
+          {/* Column B Children */}
+          {node.childrenB?.length > 0 && (
+            <div className="pt-2">
+              <h4 className="text-sm font-semibold text-gray-600 mb-1">
+                Column B
+              </h4>
+              {node.childrenB.map((child) => (
+                <TreeNode key={child.id} node={child} />
+              ))}
+            </div>
+          )}
+
+          {/* Column C Children */}
+          {node.childrenC?.length > 0 && (
+            <div className="pt-2">
+              <h4 className="text-sm font-semibold text-gray-600 mb-1">
+                Column C
+              </h4>
+              {node.childrenC.map((child) => (
+                <TreeNode key={child.id} node={child} />
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 };
+
+
 
 const TreeView = () => {
   const droppedItems = useSelector((state) => state.cardDragable.droppedItems);

@@ -51,13 +51,13 @@ const Builder = () => {
       <div style={{ display: 'flex', gap: '5px', padding: '10px' }}>
 
         {/* Sidebar for draggable items */}
-        {activeLeftTab==='contents' ? <Sidebar /> : <TreeView />}
+        {activeLeftTab==='Contents' ? <Sidebar /> : <TreeView />}
 
         {/* Drop zone for placing items */}
         <PageAttribute />
 
         {/* Render Editor Conditionally */}
-        {activeRightTab === 'editor' ? renderEditor(): <SourceCode />}
+        {activeRightTab === 'Editor' ? renderEditor(): <SourceCode />}
       </div>
     </DndProvider>
   );

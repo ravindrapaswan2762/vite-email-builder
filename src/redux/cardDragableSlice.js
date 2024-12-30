@@ -3,6 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   activeWidgetId: null,
   activeWidgetName: "",
+  activeParentId: "",
+  activeColumn: "",
   showDropingArea: false,
   droppedItems: [], // This will store the dropped items
 };
@@ -22,45 +24,14 @@ const cardDragableSlice = createSlice({
       console.log("activeWidgetName: ", action.payload);
       state.activeWidgetName = action.payload;
     },
-    // setDroppedItems: (state, action) => {
-    //   const { id, name, type, parentId, styles, children} = action.payload;
-    
-    //   console.log("Payload: ", action.payload); // Debug log to check payload
-    
-    //   if (!parentId) {
-    //     // Add top-level item
-    //     state.droppedItems.push({ id, name, type, children: children, styles: styles || {} });
-    //     console.log("Top-level item added: ", state.droppedItems[state.droppedItems.length - 1]);
-    //   } else {
-    //     // Add child to the appropriate parent
-    //     const addToParent = (items) => {
-    //       for (const item of items) {
-    //         console.log("Checking item: ", item); // Debug each item being checked
-    
-    //         if (item.id === parentId) {
-    //           item.children.push({ id, name, type, children: children });
-    //           console.log("Child added to parent: ", JSON.parse(JSON.stringify(item)));
-    //           return true;
-    //         }
-    //         if (item.children.length > 0) {
-    //           const added = addToParent(item.children);
-    //           if (added) return true;
-    //         }
-    //       }
-    //       return false;
-    //     };
-    
-    //     const success = addToParent(state.droppedItems);
-    //     if (!success) {
-    //       console.warn("Parent ID not found for: ", parentId); // Warn if parent ID does not match
-    //     }
-    //   }
-
-    //   console.log("Current State: ", JSON.parse(JSON.stringify(state.droppedItems)));
-
-    // },
-
-
+    setActiveParentId: (state, action) => {
+      console.log("seted activeParent: ", action.payload);
+      state.activeParentId = action.payload;
+    },
+    setActiveColumn: (state, action) => {
+      console.log("seted activeColumn: ", action.payload);
+      state.activeColumn = action.payload;
+    },
 
     setDroppedItems: (state, action) => {
       const { id, name, type, parentId, styles, columnName, children } = action.payload;
@@ -135,34 +106,133 @@ const cardDragableSlice = createSlice({
     },
     
     
-    
 
-    
+    // updateElementStyles: (state, action) => {
+    //   const { id, styles } = action.payload;
+    //   const element = state.droppedItems.find((item) => item.id === id);
+    //   if (element) {
+    //     element.styles = { ...element.styles, ...styles };
+    //   }
+    //   console.log(`stype applied to element ${id}: `, JSON.parse(JSON.stringify(state.droppedItems)));
+    // },
 
     updateElementStyles: (state, action) => {
-      const { id, styles } = action.payload;
-      const element = state.droppedItems.find((item) => item.id === id);
-      if (element) {
-        element.styles = { ...element.styles, ...styles };
+      console.log("action.payload in updateElementStyles: ", action.payload);
+      const { id, parentId, column, styles } = action.payload;
+    
+      console.log("parentId:", parentId, "childId:", id, "columnName:", column, "styles: ", styles, "in redux action");
+    
+      if (id && !parentId) {
+        // Case 1: Update styles for the parent item
+        state.droppedItems = state.droppedItems.map((item) => {
+          if (item.id === id) {
+            return {
+              ...item,
+              styles: { ...item.styles, ...styles },
+            };
+          }
+          return item;
+        });
+        console.log(`Parent item styles updated, updated droppedItems: `, JSON.parse(JSON.stringify(state.droppedItems)));
+      } else if (id && parentId && column) {
+        
+        // Case 2: Update styles for a child in a specific column
+        state.droppedItems = state.droppedItems.map((item) => {
+          if (item.id === parentId) {
+            return {
+              ...item,
+              [column]: item[column].map((child) => {
+                if (child.id === id) {
+                  return {
+                    ...child,
+                    styles: { ...child.styles, ...styles },
+                  };
+                }
+                return child;
+              }),
+            };
+          }
+          return item;
+        });
+        console.log(`Child item styles updated in column, updated droppedItems: `, JSON.parse(JSON.stringify(state.droppedItems)));
+      } else if (id && parentId) {
+        // Case 3: Update styles for a child without specifying a column
+        state.droppedItems = state.droppedItems.map((item) => {
+          if (item.id === parentId) {
+            return {
+              ...item,
+              children: item.children.map((child) => {
+                if (child.id === id) {
+                  return {
+                    ...child,
+                    styles: { ...child.styles, ...styles },
+                  };
+                }
+                return child;
+              }),
+            };
+          }
+          return item;
+        });
+        console.log(`Child item styles updated without column, updated droppedItems: `, JSON.parse(JSON.stringify(state.droppedItems)));
       }
-      console.log(`stype applied to element ${id}: `, JSON.parse(JSON.stringify(state.droppedItems)));
     },
+    
+    
+
 
     deleteDroppedItemById: (state, action) => {
-      console.log("deleteDroppedItemById called", state.droppedItems);
-      const idToDelete = action.payload;
-      state.droppedItems = state.droppedItems.filter(
-        (item) => item.id !== idToDelete
-      );
-      console.log("Item deleted, updated droppedItems: ", state.droppedItems);
-    },
+
+      const { parentId, childId, columnName } = action.payload;
+      console.log("parentId:", parentId, "childId:", childId, "columnName:", columnName, "in redux action");
+    
+      if (!childId && parentId) {
+        // Case 1: Delete the parent item
+        state.droppedItems = state.droppedItems.filter((item) => item.id !== parentId);
+        console.log(`Parent item deleted, updated droppedItems: `, JSON.parse(JSON.stringify(state.droppedItems)));
+        
+      } else if (childId && parentId && columnName) {
+        // Case 2: Delete the child from the specified parent and column
+        state.droppedItems = state.droppedItems.map((item) => {
+          if (item.id === parentId) {
+            return {
+              ...item,
+              [columnName]: item[columnName].filter((child) => child.id !== childId),
+            };
+          }
+          return item;
+        });
+        console.log(`Child item deleted, updated droppedItems: `, JSON.parse(JSON.stringify(state.droppedItems)));
+      } else if (childId && parentId) {
+        // Case 3: Delete the child from the specified parent, without column
+        state.droppedItems = state.droppedItems.map((item) => {
+          if (item.id === parentId) {
+            return {
+              ...item,
+              children: item.children.filter((child) => child.id !== childId),
+            };
+          }
+          return item;
+        });
+        console.log(`Child item deleted without column, updated droppedItems: `, JSON.parse(JSON.stringify(state.droppedItems)));
+      }
+    }
+    
 
 
   },
 });
 
-export const { setActiveWidgetId, setShowDropingArea, setActiveWidgetName, setDroppedItems, deleteDroppedItemById, updateElementStyles } =
-  cardDragableSlice.actions;
+export const { 
+  setActiveWidgetId, 
+  setShowDropingArea, 
+  setActiveWidgetName, 
+  setDroppedItems, 
+  deleteDroppedItemById, 
+  updateElementStyles,
+  setActiveParentId,
+  setActiveColumn } = cardDragableSlice.actions;
+
 export default cardDragableSlice.reducer;
 
 
