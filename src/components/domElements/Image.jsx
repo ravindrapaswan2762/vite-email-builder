@@ -1,15 +1,17 @@
 import React, { useState } from "react";
-import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
+import { setActiveEditor } from "../../redux/cardToggleSlice";
+import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
 
 const Image = ({ id }) => {
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
   const [hoveredElement, setHoveredElement] = useState(false); // State for hover
+  const [isFocused, setIsFocused] = useState(false); // State for focus
 
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
 
-  // const currentStyles = droppedItems.find((item) => item.id === id)?.styles || {};
+  // Find the styles associated with the widget by its ID
   const findStylesById = (items, widgetId) => {
     for (const item of items) {
       if (item.id === id) {
@@ -51,14 +53,29 @@ const Image = ({ id }) => {
   const onMouseEnterHandler = () => setHoveredElement(true);
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
+  const onClickHandler = (e) => {
+    e.stopPropagation();
+    dispatch(setActiveWidgetName("Image"));
+    dispatch(setActiveEditor("Image"));
+    dispatch(setActiveWidgetId(id));
+    setIsFocused(true); // Set focus state
+  };
+
   return (
     <div
       className={`border-2 rounded-md text-center w-full h-[300px] bg-gray-50 flex items-center justify-center relative overflow-hidden transition-all duration-300 shadow-sm 
         ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
-      onClick={(e) => e.stopPropagation()}
+      onClick={onClickHandler}
     >
+      {/* Label for Image Upload */}
+      <label
+        htmlFor="image-upload"
+        className="absolute top-2 left-2 text-sm text-gray-700"
+      >
+        Upload Image
+      </label>
 
       {/* Image or Placeholder */}
       {imageSrc ? (
@@ -66,6 +83,7 @@ const Image = ({ id }) => {
           src={imageSrc}
           alt="Uploaded"
           className="w-full h-full object-contain rounded"
+          style={currentStyles}
         />
       ) : (
         <div className="flex flex-col items-center justify-center text-gray-500">
@@ -81,6 +99,7 @@ const Image = ({ id }) => {
       {/* Hidden File Input */}
       <input
         type="file"
+        id="image-upload"
         accept="image/*"
         className="absolute inset-0 opacity-0 cursor-pointer"
         onChange={handleImageUpload}

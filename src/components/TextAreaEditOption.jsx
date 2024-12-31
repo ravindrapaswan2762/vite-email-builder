@@ -3,11 +3,11 @@ import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementStyles } from "../redux/cardDragableSlice";
 
-const TextEditOption = () => {
+const TextAreaEditOption = () => {
   const [isDimensionOpen, setIsDimensionOpen] = useState(true);
   const [isColorOpen, setIsColorOpen] = useState(true);
   const [isTypographyOpen, setIsTypographyOpen] = useState(true);
-  const [isExtraOpen, setIsExtraOpen] = useState(true);
+  const [isExtraOpen, setIsExtraOpen] = useState(true); // State to toggle the "Extra" section
 
   const dispatch = useDispatch();
   const { activeWidgetId, activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
@@ -25,16 +25,19 @@ const TextEditOption = () => {
     color: "#000000",
     backgroundColor: "#ffffff",
     fontFamily: "",
-    fontSize: "25", // Default value in px
+    fontSize: "25",
     lineHeight: "",
     letterSpacing: "",
     textDecoration: "none",
     fontWeight: "normal",
     textAlign: "left",
     fontStyle: "normal",
-    className: "",
+    border: "1px solid #000000", // Border property
+    borderRadius: "4px", // Border radius
+    boxShadow: "none", // Box shadow property
   });
 
+  // Update local fields state when the selected element changes
   useEffect(() => {
     if (selectedElement.styles) {
       setFields((prev) => ({
@@ -42,15 +45,18 @@ const TextEditOption = () => {
         ...selectedElement.styles,
       }));
     }
+    console.log("activeWidgetId and droppedItems: ", activeWidgetId, droppedItems);
   }, [selectedElement]);
 
+  // Handle input changes dynamically
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
+    // Append 'px' for padding and other dimension-related fields
     let updatedValue = value;
 
     if (
-      ["paddingTop", "paddingLeft", "paddingBottom", "paddingRight", "height", "fontSize", "lineHeight", "letterSpacing"].includes(name)
+      ["paddingTop", "paddingLeft", "paddingBottom", "paddingRight", "height", "fontSize", "letterSpacing"].includes(name)
     ) {
       updatedValue = value && !value.includes("px") ? `${value}px` : value;
     }
@@ -60,11 +66,14 @@ const TextEditOption = () => {
       [name]: updatedValue,
     }));
 
+    console.log("Updated Style:", name, updatedValue);
+
+    // Dispatch updated styles to Redux
     dispatch(
       updateElementStyles({
         id: activeWidgetId,
         styles: { [name]: updatedValue },
-        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeParentId && { parentId: activeParentId }), // Include parentId if activeParentId is valid
         ...(activeColumn && { column: activeColumn }),
       })
     );
@@ -72,7 +81,7 @@ const TextEditOption = () => {
 
   return (
     <div className="w-full max-w-md p-6 bg-white border rounded-lg shadow-lg h-screen overflow-y-auto">
-      <h2 className="text-lg font-bold text-gray-800 mb-4">Text Attributes</h2>
+      <h2 className="text-lg font-bold text-gray-800 mb-4">Text Area Attributes</h2>
 
       {/* Dimension Section */}
       <div className="p-4 m-1 bg-gray-100 rounded-lg">
@@ -89,15 +98,13 @@ const TextEditOption = () => {
           <div className="mt-3 space-y-4">
             <div>
               <label className="block text-sm font-bold text-gray-600 mb-1">Height</label>
-              <div className="flex items-center">
-                <input
-                  type="text"
-                  name="height"
-                  value={fields.height.replace("px", "")}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-              </div>
+              <input
+                type="text"
+                name="height"
+                value={fields.height}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
             </div>
             <div>
               <label className="block text-sm font-bold text-gray-600 mb-1">Padding</label>
@@ -110,15 +117,13 @@ const TextEditOption = () => {
                 ].map(({ name, label }) => (
                   <div key={name}>
                     <label className="block text-xs font-bold text-gray-600 mb-1">{label}</label>
-                    <div className="flex items-center">
-                      <input
-                        type="number"
-                        name={name}
-                        value={fields[name]?.replace("px", "")}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                      />
-                    </div>
+                    <input
+                      type="number"
+                      name={name}
+                      value={fields[name]?.replace("px", "")} // Strip 'px' for display
+                      onChange={handleInputChange}
+                      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    />
                   </div>
                 ))}
               </div>
@@ -181,6 +186,7 @@ const TextEditOption = () => {
         </div>
         {isTypographyOpen && (
           <div className="mt-3 space-y-4">
+            {/* Font Family */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-bold text-gray-600 mb-1">Font Family</label>
@@ -192,37 +198,45 @@ const TextEditOption = () => {
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
               </div>
+
+              {/* Font Size */}
               <div>
                 <label className="block text-sm font-bold text-gray-600 mb-1">Font Size (px)</label>
                 <input
                   type="number"
                   name="fontSize"
-                  value={fields.fontSize.replace("px", "")}
+                  value={fields.fontSize?.replace("px", "")}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />
               </div>
             </div>
+
+            {/* Line Height */}
             <div>
-              <label className="block text-sm font-bold text-gray-600 mb-1">Line Height (px)</label>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Line Height</label>
               <input
-                type="number"
+                type="text"
                 name="lineHeight"
-                value={fields.lineHeight.replace("px", "")}
+                value={fields.lineHeight}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
             </div>
+
+            {/* Letter Spacing */}
             <div>
-              <label className="block text-sm font-bold text-gray-600 mb-1">Letter Spacing (px)</label>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Letter Spacing</label>
               <input
-                type="number"
+                type="text"
                 name="letterSpacing"
-                value={fields.letterSpacing.replace("px", "")}
+                value={fields.letterSpacing}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
             </div>
+
+            {/* Text Decoration */}
             <div>
               <label className="block text-sm font-bold text-gray-600 mb-1">Text Decoration</label>
               <select
@@ -233,68 +247,9 @@ const TextEditOption = () => {
               >
                 <option value="none">None</option>
                 <option value="underline">Underline</option>
-                <option value="line-through">Line Through</option>
+                <option value="line-through">Line-through</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-600 mb-1">Text Alignment</label>
-              <div className="flex space-x-4">
-                {["left", "center", "right"].map((align) => (
-                  <label key={align} className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="textAlign"
-                      value={align}
-                      checked={fields.textAlign === align}
-                      onChange={handleInputChange}
-                      className="form-radio text-blue-600 focus:ring-blue-300"
-                    />
-                    <span className="text-sm text-gray-600">{align.charAt(0).toUpperCase() + align.slice(1)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-600 mb-1">Font Style</label>
-              <div className="flex space-x-4">
-                {["normal", "italic"].map((style) => (
-                  <label key={style} className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="fontStyle"
-                      value={style}
-                      checked={fields.fontStyle === style}
-                      onChange={handleInputChange}
-                      className="form-radio text-blue-600 focus:ring-blue-300"
-                    />
-                    <span className="text-sm text-gray-600">{style.charAt(0).toUpperCase() + style.slice(1)}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div>
-            <label className="block text-sm font-bold text-gray-600 mb-1">Font Weight</label>
-            <div className="flex space-x-4">
-              {[{ label: "Normal", value: "400" }, { label: "Bold", value: "700" }, { label: "Bolder", value: "900" }].map(
-                ({ label, value }) => (
-                  <label key={value} className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="fontWeight"
-                      value={value}
-                      checked={fields.fontWeight === value}
-                      onChange={handleInputChange}
-                      className="form-radio text-blue-600 focus:ring-blue-300"
-                    />
-                    <span className="text-sm text-gray-600">{label}</span>
-                  </label>
-                )
-              )}
-            </div>
-          </div>
-
-
           </div>
         )}
       </div>
@@ -311,15 +266,82 @@ const TextEditOption = () => {
           </button>
         </div>
         {isExtraOpen && (
-          <div className="mt-3">
-            <label className="block text-sm font-bold text-gray-600 mb-1">Class Name</label>
-            <input
-              type="text"
-              name="className"
-              value={fields.className}
-              onChange={handleInputChange}
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
+          <div className="mt-3 space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Font Weight</label>
+              <select
+                name="fontWeight"
+                value={fields.fontWeight}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                <option value="normal">Normal</option>
+                <option value="bold">Bold</option>
+                <option value="bolder">Bolder</option>
+                <option value="lighter">Lighter</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Text Align</label>
+              <select
+                name="textAlign"
+                value={fields.textAlign}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Font Style</label>
+              <select
+                name="fontStyle"
+                value={fields.fontStyle}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                <option value="normal">Normal</option>
+                <option value="italic">Italic</option>
+              </select>
+            </div>
+
+            {/* Border */}
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Border</label>
+              <input
+                type="text"
+                name="border"
+                value={fields.border}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
+            {/* Border Radius */}
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Border Radius</label>
+              <input
+                type="text"
+                name="borderRadius"
+                value={fields.borderRadius}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
+            {/* Box Shadow */}
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Box Shadow</label>
+              <input
+                type="text"
+                name="boxShadow"
+                value={fields.boxShadow}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
           </div>
         )}
       </div>
@@ -327,4 +349,4 @@ const TextEditOption = () => {
   );
 };
 
-export default TextEditOption;
+export default TextAreaEditOption;

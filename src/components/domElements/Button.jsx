@@ -53,9 +53,10 @@ const Button = ({ id }) => {
     >
       {/* Outer Container with Dashed Border */}
       <div
-        className={`relative w-full h-[50px] border ${
+        className={`relative w-full h-[50px] border-none bg-transparent ${
           hoveredElement ? "border-dashed border-blue-500" : "border-gray-300"
         } flex items-center p-1`}
+
         style={{
           display: "flex",
           alignItems: "center",

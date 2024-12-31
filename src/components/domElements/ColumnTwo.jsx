@@ -96,7 +96,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
               onclickHandler(id, child.id, "childrenA");
             }}
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, onParentClick: onclickHandler, column: "childrenA"}) : <div>Unknown Component</div>}
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
        
             {hoveredChildA === child.id && (
               <button
@@ -138,7 +138,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
               onclickHandler(id, child.id, "childrenB");
             }}
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, onParentClick: onclickHandler, column: "childrenA"}) : <div>Unknown Component</div>}
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
             {/* Delete Button for Child in Column B */}
             {hoveredChildB === child.id && (
               <button

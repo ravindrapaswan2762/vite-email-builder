@@ -18,8 +18,8 @@ const Sidebar = () => {
     { id: uuidv4(), name: "Image", icon: CiImageOn },
     { id: uuidv4(), name: "TextArea", icon: BsTextareaResize },
     { id: uuidv4(), name: "Divider", icon: MdOutlineHorizontalRule },
-    { id: uuidv4(), name: "Spacebar", icon: MdSpaceBar },
-    { id: uuidv4(), name: "SocialButtons", icon: IoShareSocialOutline },
+    { id: uuidv4(), name: "Space", icon: MdSpaceBar },
+    { id: uuidv4(), name: "SocialMedia", icon: IoShareSocialOutline },
   ];
 
   return (

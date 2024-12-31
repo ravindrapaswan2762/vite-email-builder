@@ -5,6 +5,7 @@ import Text from "./Text";
 import Image from "./Image";
 import Button from "./Button";
 import TextArea from "./TextArea";
+
 import { useDispatch, useSelector } from "react-redux";
 import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId } from "../../redux/cardDragableSlice";
 
@@ -86,7 +87,7 @@ const ColumnOne = ({ handleDelete, id }) => {
               }}
               className="w-full bg-white border rounded-md relative group"
             >
-              {componentMap[child.name] ? componentMap[child.name]({ id: child.id, onParentClick: onclickHandler }) : <div>Unknown Component</div>}
+              {componentMap[child.name] ? componentMap[child.name]({ id: child.id}) : <div>Unknown Component</div>}
 
               {/* Delete Button for Each Child */}
               {hoveredChild === child.id && (

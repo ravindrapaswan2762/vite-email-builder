@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
-import { setActiveWidgetName } from "../../redux/cardDragableSlice";
-import { setActiveEditor } from "../../redux/cardToggleSlice";
-import { setActiveWidgetId } from "../../redux/cardDragableSlice";
-
 import { useDispatch, useSelector } from "react-redux";
+import { setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
+import { setActiveEditor } from "../../redux/cardToggleSlice";
 
-const Text = ({ id }) => {
-  const [val, setVal] = useState("Make it easy for everyone to compose emails!");
-  const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
+const Space = ({ id }) => {
+  const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const [isFocused, setIsFocused] = useState(false); // Track focus state
-  const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
+  const containerRef = useRef(null); // Ref for detecting outside clicks
 
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
-
   const dispatch = useDispatch();
 
   // Recursive function to find the styles based on activeWidgetId
@@ -22,7 +18,6 @@ const Text = ({ id }) => {
         return item.styles || {};
       }
 
-      // Check for children arrays (children, childrenA, childrenB, etc.)
       const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
       for (const key of nestedKeys) {
         const styles = findStylesById(item[key], widgetId);
@@ -38,22 +33,17 @@ const Text = ({ id }) => {
 
   const onClickHandle = (e) => {
     e.preventDefault();
-    dispatch(setActiveWidgetName("Text"));
-    dispatch(setActiveEditor("Text"));
+    dispatch(setActiveWidgetName("Space"));
+    dispatch(setActiveEditor("Space"));
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
-  };
-
-  const onChangeHandle = (e) => {
-    setVal(e.target.value);
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
-
   const handleClickOutside = (e) => {
-    if (inputRef.current && !inputRef.current.contains(e.target)) {
+    if (containerRef.current && !containerRef.current.contains(e.target)) {
       setIsFocused(false); // Remove focus
     }
   };
@@ -65,35 +55,22 @@ const Text = ({ id }) => {
     };
   }, []);
 
-
   return (
     <div
-      style={{ position: "relative" }}
-      className={`group ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
+      ref={containerRef}
+      className={`w-full h-4 ${ // Adjust height (h-4) to match the spacing shown in the image
+        isFocused
+          ? "border-2 border-blue-500 bg-gray-100"
+          : hoveredElement
+          ? "border-dashed border-2 border-blue-500"
+          : "border-transparent"
+      }`}
+      style={currentStyles}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
-    >
-      {/* Input Field */}
-      <input
-        ref={inputRef}
-        onClick={onClickHandle}
-        onChange={onChangeHandle}
-        type="text"
-        className={`p-2 w-full transition-all duration-300 ${
-          isFocused ? "border rounded bg-white border-gray-300" : "border-none bg-transparent"
-        }`}
-        placeholder="Text Field"
-        value={val}
-        style={{
-          ...currentStyles,
-          overflow: "hidden",
-          resize: "none",
-          whiteSpace: "pre-wrap",
-
-        }} // Apply dynamic styles
-      />
-    </div>
+      onClick={onClickHandle}
+    ></div>
   );
 };
 
-export default Text;
+export default Space;

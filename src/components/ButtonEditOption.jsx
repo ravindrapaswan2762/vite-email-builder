@@ -39,7 +39,7 @@ const ButtonEditOption = () => {
     buttonColor: "#414141",
     backgroundColor: "#ffffff",
     fontFamily: "",
-    fontSize: "",
+    fontSize: "13px",
     fontWeight: "normal",
     lineHeight: "120%",
     textDecoration: "none",

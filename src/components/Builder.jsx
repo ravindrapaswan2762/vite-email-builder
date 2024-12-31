@@ -10,11 +10,15 @@ import { useState, useEffect } from 'react';
 
 // Multiple card editors
 import TextEditOption from './TextEditOption';
+import TextAreaEditOption from './TextAreaEditOption';
 import ImageEditOption from './ImageEditOption';
 import ButtonEditOption from './ButtonEditOption';
 import PageAttributes from './PageAttributesEditOption';
 import WrapperAttributeEditOption from './WrapperAttributeEditOption';
 import SectionEditOption from './SectionEditOption';
+import SocialMediaEditOption from './SocialMediaEditOption';
+import DividerEditOption from './DividerEditOption';
+import SpacerEditOption from './SpacerEditOption';
 
 import PageAttribute from './PageAttribute';
 import TreeView from './TreeView';
@@ -37,10 +41,18 @@ const Builder = () => {
         return <SectionEditOption />;
       case 'Text':
         return <TextEditOption />;
+      case 'TextArea':
+        return <TextAreaEditOption />;
       case 'Button':
         return <ButtonEditOption />;
       case 'Image':
         return <ImageEditOption />;
+      case 'Divider':
+        return <DividerEditOption />;
+      case 'Space':
+        return <SpacerEditOption />;
+      case 'SocialMedia':
+        return <SocialMediaEditOption />;
       default:
         return <PageAttributes />;
     }
