@@ -5,6 +5,10 @@ import Text from "./Text";
 import Image from "./Image";
 import Button from "./Button";
 import TextArea from "./TextArea";
+import Divider from "./Divider";
+import SocialMedia from "./SocialMedia";
+import Space from "./Space";
+
 import { useDispatch, useSelector } from "react-redux";
 import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId, setActiveColumn} from "../../redux/cardDragableSlice";
 
@@ -14,6 +18,9 @@ const componentMap = {
   Image: (props) => <Image {...props} />,
   Button: (props) => <Button {...props} />,
   TextArea: (props) => <TextArea {...props} />,
+  Divider: (props) => <Divider {...props} />,
+  SocialMedia: (props) => <SocialMedia {...props} />,
+  Space: (props) => <Space {...props} />,
 };
 
 const ColumnThree = ({ handleDelete, id }) => {
@@ -23,6 +30,11 @@ const ColumnThree = ({ handleDelete, id }) => {
   const [childrenA, setChildrenA] = useState([]);
   const [childrenB, setChildrenB] = useState([]);
   const [childrenC, setChildrenC] = useState([]);
+
+  const [hoveredChildA, setHoveredChildA] = useState(null);
+  const [hoveredChildB, setHoveredChildB] = useState(null);
+  const [hoveredChildC, setHoveredChildC] = useState(null); 
+  
 
   useEffect(() => {
     // Fetch column data from Redux store
@@ -86,28 +98,33 @@ const ColumnThree = ({ handleDelete, id }) => {
       <div
         onDrop={handleDrop("columnA")}
         onDragOver={handleDragOver}
-        className="border border-dashed p-1 bg-gray-50 rounded-md text-center hover:border-blue-500 min-h-[150px]"
+        className="border border-dashed p-1 bg-gray-50 rounded-md text-center hover:border-blue-500"
       >
         {childrenA.map((child) => (
           <div
             key={child.id}
             className="w-full bg-white border rounded-md mb-2 relative"
+            onMouseEnter={() => setHoveredChildA(child.id)} 
+            onMouseLeave={() => setHoveredChildA(null)}   
             onClick={(e) => {
               e.stopPropagation();
               onclickHandler(id, child.id, "childrenA");
             }}
           >
             {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
-            {/* Delete Button for Child */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteChild("childrenA", child.id);
-              }}
-              className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-            >
-              <RxCross2 size={12} />
-            </button>
+
+            {hoveredChildA === child.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteChild("childrenA", child.id);
+                }}
+                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+              >
+                <RxCross2 size={12} />
+              </button>
+            )}
+            
           </div>
         ))}
         {childrenA.length === 0 && 
@@ -128,22 +145,28 @@ const ColumnThree = ({ handleDelete, id }) => {
           <div
             key={child.id}
             className="w-full bg-whiteborder rounded-md mb-2 relative"
+            onMouseEnter={() => setHoveredChildB(child.id)} 
+            onMouseLeave={() => setHoveredChildB(null)}   
             onClick={(e) => {
               e.stopPropagation();
               onclickHandler(id, child.id, "childrenB");
             }}
           >
             {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+
             {/* Delete Button for Child */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteChild("childrenB", child.id);
-              }}
-              className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-            >
-              <RxCross2 size={12} />
-            </button>
+            {hoveredChildB === child.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteChild("childrenB", child.id);
+                }}
+                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+              >
+                <RxCross2 size={12} />
+              </button>
+            )}
+            
           </div>
         ))}
         {childrenB.length === 0 && <>
@@ -163,22 +186,29 @@ const ColumnThree = ({ handleDelete, id }) => {
           <div
             key={child.id}
             className="w-full bg-white border rounded-md mb-2 relative"
+            onMouseEnter={() => setHoveredChildC(child.id)} 
+            onMouseLeave={() => setHoveredChildC(null)}   
             onClick={(e) => {
               e.stopPropagation();
               onclickHandler(id, child.id, "childrenC");
             }}
           >
             {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+
             {/* Delete Button for Child */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteChild("childrenC", child.id);
-              }}
-              className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-            >
-              <RxCross2 size={12} />
-            </button>
+            {hoveredChildC === child.id && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteChild("childrenC", child.id);
+                }}
+                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+              >
+                <RxCross2 size={12} />
+              </button>
+            )}
+            
+            
           </div>
         ))}
         {childrenC.length === 0 && <>

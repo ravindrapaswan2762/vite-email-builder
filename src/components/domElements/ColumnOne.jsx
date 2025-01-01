@@ -5,6 +5,9 @@ import Text from "./Text";
 import Image from "./Image";
 import Button from "./Button";
 import TextArea from "./TextArea";
+import Divider from "./Divider";
+import SocialMedia from "./SocialMedia";
+import Space from "./Space";
 
 import { useDispatch, useSelector } from "react-redux";
 import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId } from "../../redux/cardDragableSlice";
@@ -15,6 +18,9 @@ const componentMap = {
   Image: (props) => <Image {...props} />,
   Button: (props) => <Button {...props} />,
   TextArea: (props) => <TextArea {...props} />,
+  Divider: (props) => <Divider {...props} />,
+  SocialMedia: (props) => <SocialMedia {...props} />,
+  Space: (props) => <Space {...props} />,
 };
 
 const ColumnOne = ({ handleDelete, id }) => {
@@ -23,6 +29,7 @@ const ColumnOne = ({ handleDelete, id }) => {
 
   const [hoveredColumn, setHoveredColumn] = useState(false); // Track hover state for the column
   const [hoveredChild, setHoveredChild] = useState(null); // Track hover state for children
+
 
   const parent = droppedItems.find((item) => item.id === id);
   const children = parent?.children || [];
@@ -73,7 +80,7 @@ const ColumnOne = ({ handleDelete, id }) => {
       onMouseLeave={() => setHoveredColumn(false)}
       className="border rounded-md text-center min-h-[150px] relative group"
     >
-      <div className="border border-dashed bg-gray-50 rounded-md text-center hover:border-blue-500 min-h-[150px]">
+      <div className="border border-dashed bg-gray-50 rounded-md text-center hover:border-blue-500 min-h-[150px] pb-4">
         {/* Render Children */}
         {children.length > 0 ? (
           children.map((child) => (

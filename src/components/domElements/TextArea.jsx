@@ -39,7 +39,8 @@ const TextArea = ({ id }) => {
   };
 
   const onclickHandle = (e) => {
-    e.stopPropagation();
+    // e.stopPropagation();
+    e.preventDefault();
     dispatch(setActiveWidgetName("TextArea"));
     dispatch(setActiveEditor("TextArea"));
     dispatch(setActiveWidgetId(id));
@@ -67,7 +68,6 @@ const TextArea = ({ id }) => {
       className={`group flex`}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
-      onClick={(e) => e.stopPropagation()}
       ref={inputRef} // Add the ref to the parent div to detect clicks outside
     >
       {/* Text Area */}

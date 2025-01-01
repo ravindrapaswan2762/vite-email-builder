@@ -12,6 +12,7 @@ const Button = ({ id }) => {
   // const currentStyles = droppedItems.find((item) => item.id === id)?.styles || {};
   // console.log("currentStyles: ", currentStyles);
 
+  // Recursive function to find the styles based on activeWidgetId
   const findStylesById = (items, widgetId) => {
     for (const item of items) {
       if (item.id === id) {
@@ -23,18 +24,17 @@ const Button = ({ id }) => {
       for (const key of nestedKeys) {
         const styles = findStylesById(item[key], widgetId);
         if (styles) {
-          console.log("findStylesById: ", styles);
           return styles;
         }
       }
     }
-    
     return null;
   };
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
   const onclickHandle = (e) => {
-    e.stopPropagation();
+    // e.stopPropagation();
+    e.preventDefault();
     dispatch(setActiveWidgetName("Button"));
     dispatch(setActiveEditor("Button"));
     dispatch(setActiveWidgetId(id));

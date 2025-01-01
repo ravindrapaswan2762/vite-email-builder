@@ -7,7 +7,6 @@ import Sidebar from './Sidebar';
 import { useSelector } from 'react-redux';
 import { useState, useEffect } from 'react';
 
-
 // Multiple card editors
 import TextEditOption from './TextEditOption';
 import TextAreaEditOption from './TextAreaEditOption';

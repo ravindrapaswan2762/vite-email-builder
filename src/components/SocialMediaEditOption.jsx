@@ -11,7 +11,7 @@ const SocialMediaEditOption = () => {
   const [isExtraOpen, setIsExtraOpen] = useState(true);
 
   const dispatch = useDispatch();
-  const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId,activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
 
   const selectedElement =
     droppedItems.find((item) => item.id === activeWidgetId) || {};
@@ -74,6 +74,8 @@ const SocialMediaEditOption = () => {
       updateElementStyles({
         id: activeWidgetId,
         styles: { [name]: updatedValue },
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
       })
     );
   };

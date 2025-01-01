@@ -4,6 +4,8 @@ import { RxCross2 } from "react-icons/rx";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
 
+import img from '../../assets/placeholder.png';
+
 const Image = ({ id }) => {
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
   const [hoveredElement, setHoveredElement] = useState(false); // State for hover
@@ -17,8 +19,7 @@ const Image = ({ id }) => {
       if (item.id === id) {
         return item.styles || {};
       }
-
-      // Check for children arrays (children, childrenA, childrenB, etc.)
+      // Check for nested children arrays
       const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
       for (const key of nestedKeys) {
         const styles = findStylesById(item[key], widgetId);
@@ -28,16 +29,15 @@ const Image = ({ id }) => {
         }
       }
     }
-    
     return null;
   };
+
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
   const dispatch = useDispatch();
 
-  // New and improved placeholder image URL
-  const placeholderImage =
-    "https://www.gstatic.com/webp/gallery/5.webp";
+  // Placeholder image URL
+  const placeholderImage = img;
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0]; // Get the selected file
@@ -58,30 +58,24 @@ const Image = ({ id }) => {
     dispatch(setActiveWidgetName("Image"));
     dispatch(setActiveEditor("Image"));
     dispatch(setActiveWidgetId(id));
-    setIsFocused(true); // Set focus state
+    setIsFocused(true);
   };
 
   return (
     <div
-      className={`border-2 rounded-md text-center w-full h-[300px] bg-gray-50 flex items-center justify-center relative overflow-hidden transition-all duration-300 shadow-sm 
+      // Removed "flex items-center justify-center" so the image can span the full width
+      className={`border-2 rounded-md text-center w-full h-auto bg-gray-50 relative overflow-hidden transition-all duration-300 shadow-sm
         ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandler}
     >
-      {/* Label for Image Upload */}
-      <label
-        htmlFor="image-upload"
-        className="absolute top-2 left-2 text-sm text-gray-700"
-      >
-        Upload Image
-      </label>
-
       {/* Image or Placeholder */}
       {imageSrc ? (
         <img
           src={imageSrc}
           alt="Uploaded"
+          // Ensures the image takes the full width, auto height, and retains aspect ratio
           className="w-full h-full object-contain rounded"
           style={currentStyles}
         />
@@ -90,13 +84,14 @@ const Image = ({ id }) => {
           <img
             src={placeholderImage}
             alt="Placeholder"
-            className="w-full h-full object-cover rounded opacity-90"
+            className="w-full h-auto object-contain rounded opacity-90"
             style={currentStyles}
           />
         </div>
       )}
 
       {/* Hidden File Input */}
+      
       <input
         type="file"
         id="image-upload"
@@ -104,6 +99,7 @@ const Image = ({ id }) => {
         className="absolute inset-0 opacity-0 cursor-pointer"
         onChange={handleImageUpload}
       />
+     
     </div>
   );
 };

@@ -134,6 +134,68 @@ export const generateInlineStyles = (styles) => {
               </div>
             `;
             break;
+          case "Divider":
+            html = `
+              <div
+                style={{ position: "relative" }}
+                onMouseEnter={onMouseEnterHandler}
+                onMouseLeave={onMouseLeaveHandler}
+                onClick={onClickHandle}
+              >
+                {/* Divider Element */}
+                <hr
+                  ref={dividerRef}
+                  style={{
+                    ...currentStyles,
+                  }}
+                  className="w-full"
+                  style=\"${inlineStyles}\" 
+                />
+              </div>
+            `;
+            break;
+          case "Space":
+            html = `
+              <div
+                style={{ width: "100%", height: "1rem" }}
+                ref={containerRef}
+                onMouseEnter={onMouseEnterHandler}
+                onMouseLeave={onMouseLeaveHandler}
+                onClick={onClickHandle}
+                style=\"${inlineStyles}\" 
+              ></div>
+            `;
+            break;
+          case "SocialMedia":
+            html = `
+                <div
+                  style=\"${inlineStyles}\" 
+                  onMouseEnter={onMouseEnterHandler}
+                  onMouseLeave={onMouseLeaveHandler}
+                  onClick={onClickHandle}
+                  >
+      
+                  {/* Facebook */}
+                  <div style={{display: "flex",alignItems: "center",gap: "0.5rem",cursor: "pointer"}} >
+                    <FaFacebook style={{fontSize: "1.25rem",color: "#2563EB"}} />
+                    <span style={{ fontSize: "0.875rem" }}> Facebook </span>
+                  </div>
+
+                  {/* Google */}
+                  <div style={{ display: "flex", alignItems: "center",gap: "0.5rem",cursor: "pointer"}}>
+                    <FaGoogle style={{ fontSize: "1.25rem", color: "#DC2626"}} />
+                    <span style={{ fontSize: "0.875rem" }}>Google</span>
+                  </div>
+
+                  {/* Twitter */}
+                  <div
+                    style={{ display: "flex", alignItems: "center",  gap: "0.5rem", cursor: "pointer"}} >
+                    <FaTwitter style={{ fontSize: "1.25rem",  color: "#60A5FA"  }} />
+                    <span style={{ fontSize: "0.875rem" }}>Twitter</span>
+                  </div>
+                </div>
+            `;
+            break;
           case "1-column":
             html = `
               <div
@@ -151,7 +213,7 @@ export const generateInlineStyles = (styles) => {
               </div>
             `;
             break;
-            case "2-columns":
+          case "2-columns":
               html = `
                 <div className=\"relative grid grid-cols-2 gap-1 border p-1 rounded-md bg-white shadow-md hover:shadow-lg transition-all duration-300\">
                   {/* Delete Button for Parent Column */}
@@ -184,7 +246,7 @@ export const generateInlineStyles = (styles) => {
                 </div>
               `;
               break;
-              case "3-columns":
+          case "3-columns":
                 html = `
                   <div className=\"relative grid grid-cols-3 gap-1 border p-1 rounded-md bg-white shadow-md hover:shadow-lg transition-all duration-300\">
                     <div

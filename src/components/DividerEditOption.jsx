@@ -10,7 +10,7 @@ const DividerEditOption = () => {
   const [isExtraOpen, setIsExtraOpen] = useState(true);
 
   const dispatch = useDispatch();
-  const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
 
   const selectedElement =
     droppedItems.find((item) => item.id === activeWidgetId) || {};
@@ -57,6 +57,8 @@ const DividerEditOption = () => {
       updateElementStyles({
         id: activeWidgetId,
         styles: { [name]: updatedValue },
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
       })
     );
   };

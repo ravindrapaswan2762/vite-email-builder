@@ -5,6 +5,10 @@ import Text from "./Text";
 import Image from "./Image";
 import Button from "./Button";
 import TextArea from "./TextArea";
+import Divider from "./Divider";
+import SocialMedia from "./SocialMedia";
+import Space from "./Space";
+
 import { useDispatch, useSelector } from "react-redux";
 import { setDroppedItems, setActiveWidgetId, deleteDroppedItemById, setActiveParentId, setActiveColumn} from "../../redux/cardDragableSlice";
 
@@ -14,6 +18,9 @@ const componentMap = {
   Image: (props) => <Image {...props} />,
   Button: (props) => <Button {...props} />,
   TextArea: (props) => <TextArea {...props} />,
+  Divider: (props) => <Divider {...props} />,
+  SocialMedia: (props) => <SocialMedia {...props} />,
+  Space: (props) => <Space {...props} />,
 };
 
 const ColumnTwo = ({ handleDelete, id }) => {
