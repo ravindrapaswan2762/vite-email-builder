@@ -21,10 +21,18 @@ import SocialMedia from "./domElements/SocialMedia";
 import { RxCross2 } from "react-icons/rx";
 import { generateSourceCode } from "./generateSourceCode";
 
+import { data } from "./domElements/data";
+import { saveState } from "../redux/cardDragableSlice";
+
 const WrapperAttribute = () => {
   const { activeWidgetName, droppedItems, activeWidgetId } = useSelector((state) => state.cardDragable);
   const dispatch = useDispatch();
   const [sourceCode, setSourceCode] = useState("");
+
+
+  useEffect( ()=> {
+    dispatch(saveState(data));
+  }, []);
 
   useEffect(() => {
     renderWidget(activeWidgetName);
@@ -99,11 +107,12 @@ const WrapperAttribute = () => {
     }
   
     return (
-      <div key={id} className="relative group border rounded mb-2"
+      <div key={id} className="relative group mb-2"
       onClick={(e) => {
         e.stopPropagation();
         dispatch(setActiveColumn(null));
         dispatch(setActiveParentId(null));
+        console.log("WrapperAttributes called");
       }}
       >
         {WidgetComponent}

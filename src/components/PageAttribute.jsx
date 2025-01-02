@@ -16,13 +16,13 @@ const PageAttribute = () => {
   };
 
   const togglePopup = (e) => {
-    e.stopPropagation(); // Prevent triggering the parent's onClick
+    // e.stopPropagation(); // Prevent triggering the parent's onClick
     setShowPopup(!showPopup);
     dispatch(setColumnPopUp(!showPopup)); // Update column popup state
   };
 
   const onClickHandle = (e) => {
-    e.stopPropagation();
+    // e.stopPropagation();
     dispatch(setActiveWidgetName("pageAttribute"))
     dispatch(setActiveEditor("pageAttribute"))
   }

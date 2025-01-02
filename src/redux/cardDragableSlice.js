@@ -9,10 +9,15 @@ const initialState = {
   droppedItems: [], // This will store the dropped items
 };
 
+
 const cardDragableSlice = createSlice({
   name: "cardDragable",
   initialState,
   reducers: {
+    saveState: (state, action) => {
+      console.log("saveState called: ", action.payload);
+      state.droppedItems = [...action.payload];
+    },
     setActiveWidgetId: (state, action) => {
       state.activeWidgetId = action.payload;
       console.log("activeWidgetId: ", action.payload);
@@ -106,15 +111,6 @@ const cardDragableSlice = createSlice({
     },
     
     
-
-    // updateElementStyles: (state, action) => {
-    //   const { id, styles } = action.payload;
-    //   const element = state.droppedItems.find((item) => item.id === id);
-    //   if (element) {
-    //     element.styles = { ...element.styles, ...styles };
-    //   }
-    //   console.log(`stype applied to element ${id}: `, JSON.parse(JSON.stringify(state.droppedItems)));
-    // },
 
     updateElementStyles: (state, action) => {
       console.log("action.payload in updateElementStyles: ", action.payload);
@@ -231,7 +227,9 @@ export const {
   deleteDroppedItemById, 
   updateElementStyles,
   setActiveParentId,
-  setActiveColumn } = cardDragableSlice.actions;
+  setActiveColumn,
+  saveState
+} = cardDragableSlice.actions;
 
 export default cardDragableSlice.reducer;
 

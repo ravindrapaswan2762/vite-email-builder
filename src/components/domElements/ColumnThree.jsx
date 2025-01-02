@@ -10,7 +10,15 @@ import SocialMedia from "./SocialMedia";
 import Space from "./Space";
 
 import { useDispatch, useSelector } from "react-redux";
-import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId, setActiveColumn} from "../../redux/cardDragableSlice";
+import { setActiveEditor } from "../../redux/cardToggleSlice";
+import {
+   setDroppedItems, 
+   setActiveWidgetName, 
+   deleteDroppedItemById, 
+   setActiveParentId, 
+   setActiveWidgetId,
+   setActiveColumn
+} from "../../redux/cardDragableSlice";
 
 // Component Mapping
 const componentMap = {
@@ -24,7 +32,7 @@ const componentMap = {
 };
 
 const ColumnThree = ({ handleDelete, id }) => {
-  const { activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
   const dispatch = useDispatch();
 
   const [childrenA, setChildrenA] = useState([]);
@@ -85,25 +93,69 @@ const ColumnThree = ({ handleDelete, id }) => {
   };
 
   const onclickHandler = (id, childId, column) => {
-      console.log("Parent Column clicked, ID:", id);
-      dispatch(setActiveParentId(id));
-      dispatch(setActiveWidgetId(childId));
-      dispatch(setActiveColumn(column));
-    };
+    console.log("Parent Column clicked, ID:", id);
+    dispatch(setActiveParentId(id));
+    dispatch(setActiveWidgetId(childId));
+    dispatch(setActiveColumn(column));
+  };
+
+  // Recursive function to find the styles based on activeWidgetId
+  const findStylesById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === id) {
+        return item.styles || {};
+      }
+
+      // Check for children arrays (children, childrenA, childrenB, etc.)
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const styles = findStylesById(item[key], widgetId);
+        if (styles) {
+          return styles;
+        }
+      }
+    }
+    return null;
+  };
+
+  const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
+  console.log("currentStyles: ", currentStyles);
+
+  const styleWithBackground = {
+    ...currentStyles,
+    // If backgroundImage is just a URL, wrap it in `url("...")`
+    backgroundImage: currentStyles.backgroundImage
+      ? `url("${currentStyles.backgroundImage}")`
+      : undefined,
+    // If you want the user to set `borderType`, map it to `border`
+    ...(currentStyles.borderType && { border: currentStyles.borderType }),
+  };
+
 
   return (
-    <div className="relative grid grid-cols-3 gap-1 border rounded-md shadow-md hover:shadow-lg transition-all duration-300">
+    <div className="relative grid grid-cols-3 gap-1 rounded-md shadow-md transition-all duration-300 hover:border hover:border-dashed hover:border-blue-500 bg-transparent"
+      onClick={(e) => {
+        e.stopPropagation();
+        dispatch(setActiveWidgetId(id));
+        dispatch(setActiveWidgetName("3-column"));
+        dispatch(setActiveEditor("sectionEditor"));
+      }}
+      style={{
+        ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
+        backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
+      }}
+    >
       
       {/* Column A */}
       <div
         onDrop={handleDrop("columnA")}
         onDragOver={handleDragOver}
-        className="border border-dashed p-1 bg-gray-50 rounded-md text-center hover:border-blue-500"
+        className="p-1 bg-gray-50 rounded-md text-center min-h-[150px] hover:border hover:border-dashed hover:border-blue-500 bg-transparent hover:m-1"
       >
         {childrenA.map((child) => (
           <div
             key={child.id}
-            className="w-full bg-white border rounded-md mb-2 relative"
+            className="w-full mb-1 relative"
             onMouseEnter={() => setHoveredChildA(child.id)} 
             onMouseLeave={() => setHoveredChildA(null)}   
             onClick={(e) => {
@@ -138,13 +190,13 @@ const ColumnThree = ({ handleDelete, id }) => {
       <div
         onDrop={handleDrop("columnB")}
         onDragOver={handleDragOver}
-        className="border border-dashed p-1 bg-gray-50 rounded-md text-center hover:border-blue-500 min-h-[150px]"
+        className="p-1 bg-gray-50 rounded-md text-center min-h-[150px] hover:border hover:border-dashed hover:border-blue-500 bg-transparent hover:m-1"
       >
   
         {childrenB.map((child) => (
           <div
             key={child.id}
-            className="w-full bg-whiteborder rounded-md mb-2 relative"
+            className="w-full mb-1 relative"
             onMouseEnter={() => setHoveredChildB(child.id)} 
             onMouseLeave={() => setHoveredChildB(null)}   
             onClick={(e) => {
@@ -179,13 +231,13 @@ const ColumnThree = ({ handleDelete, id }) => {
       <div
         onDrop={handleDrop("columnC")}
         onDragOver={handleDragOver}
-        className="border border-dashed p-1 bg-gray-50 rounded-md text-center hover:border-blue-500 min-h-[150px]"
+        className="p-1 bg-gray-50 rounded-md text-center min-h-[150px] hover:border hover:border-dashed hover:border-blue-500 bg-transparent hover:m-1"
       >
       
         {childrenC.map((child) => (
           <div
             key={child.id}
-            className="w-full bg-white border rounded-md mb-2 relative"
+            className="w-full mb-1 relative"
             onMouseEnter={() => setHoveredChildC(child.id)} 
             onMouseLeave={() => setHoveredChildC(null)}   
             onClick={(e) => {
