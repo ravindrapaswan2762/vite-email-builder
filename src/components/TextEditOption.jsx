@@ -35,6 +35,7 @@ const TextEditOption = () => {
     className: "",
   });
 
+
   useEffect(() => {
     if (selectedElement.styles) {
       setFields((prev) => ({

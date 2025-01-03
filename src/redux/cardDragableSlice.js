@@ -18,6 +18,9 @@ const cardDragableSlice = createSlice({
       console.log("saveState called: ", action.payload);
       state.droppedItems = [...action.payload];
     },
+    clearState: (state, action) => {
+      state.droppedItems = [];
+    },
     setActiveWidgetId: (state, action) => {
       state.activeWidgetId = action.payload;
       console.log("activeWidgetId: ", action.payload);
@@ -228,7 +231,8 @@ export const {
   updateElementStyles,
   setActiveParentId,
   setActiveColumn,
-  saveState
+  saveState,
+  clearState,
 } = cardDragableSlice.actions;
 
 export default cardDragableSlice.reducer;

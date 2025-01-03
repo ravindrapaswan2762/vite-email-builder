@@ -4,6 +4,10 @@ import { FaDesktop, FaTabletAlt, FaMobileAlt } from "react-icons/fa";
 import { setLeftTab, setRightTab, setView} from "../redux/navbarSlice";
 import { useDispatch, useSelector } from "react-redux";
 
+import SaveButton from "./SaveButton";
+import ExitButton from "./ExitButton";
+import ClearElements from "./ClearElements";
+
 const Navbar = () => {
 
   const {view} = useSelector( (state) => state.navbar );
@@ -32,6 +36,7 @@ const Navbar = () => {
 
       {/* Middle Navbar Section */}
       <div className="flex items-center gap-8 border-gray-300 px-12">
+      <ExitButton />
       {[
         { view: "desktop", icon: <FaDesktop /> },
         { view: "tablet", icon: <FaTabletAlt /> },
@@ -47,6 +52,10 @@ const Navbar = () => {
           {icon}
         </div>
       ))}
+
+       <ClearElements />
+       <SaveButton />
+
     </div>
       
 

@@ -30,9 +30,9 @@ const WrapperAttribute = () => {
   const [sourceCode, setSourceCode] = useState("");
 
 
-  useEffect( ()=> {
-    dispatch(saveState(data));
-  }, []);
+  // useEffect( ()=> {
+  //   dispatch(saveState(data));
+  // }, []);
 
   useEffect(() => {
     renderWidget(activeWidgetName);

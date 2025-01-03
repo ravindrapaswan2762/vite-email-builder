@@ -5,7 +5,7 @@ import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
 
 const TextArea = ({ id }) => {
-  const [val, setVal] = useState("Make it easy for everyone to compose emails!");
+  const [val, setVal] = useState("Make it easy for everyone to compose emails Make it easy for everyone to compose emails!");
   const [hoveredElement, setHoveredElement] = useState(false); // Hover state
   const [isFocused, setIsFocused] = useState(false); // Focus state
   const inputRef = useRef(null); // Ref for detecting clicks outside
