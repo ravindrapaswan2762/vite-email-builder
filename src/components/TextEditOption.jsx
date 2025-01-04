@@ -34,7 +34,7 @@ const TextEditOption = () => {
     fontStyle: "normal",
     className: "",
   });
-
+  
 
   useEffect(() => {
     if (selectedElement.styles) {

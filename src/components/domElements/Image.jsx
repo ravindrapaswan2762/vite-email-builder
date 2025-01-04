@@ -71,7 +71,15 @@ const Image = ({ id }) => {
       onClick={onClickHandler}
     >
       {/* Image or Placeholder */}
-      {imageSrc ? (
+      {currentStyles.imageUrl ? (
+        <img
+          src={currentStyles.imageUrl}
+          alt="Uploaded"
+          // Ensures the image takes the full width, auto height, and retains aspect ratio
+          className="w-full h-full object-contain rounded"
+          style={currentStyles}
+        />
+      ) : imageSrc ? (
         <img
           src={imageSrc}
           alt="Uploaded"
@@ -90,15 +98,16 @@ const Image = ({ id }) => {
         </div>
       )}
 
+
       {/* Hidden File Input */}
       
-      <input
+      {/* <input
         type="file"
         id="image-upload"
         accept="image/*"
         className="absolute inset-0 opacity-0 cursor-pointer"
         onChange={handleImageUpload}
-      />
+      /> */}
      
     </div>
   );
