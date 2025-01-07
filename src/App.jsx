@@ -28,31 +28,32 @@ import MenuBarLandingPage from './landingpage/MenuBarLandingPage';
 import RightSidePanel from './landingpage/RightSidePanel';
 import { useSelector } from 'react-redux';
 
-import Builder from './components/Builder';
-import Navbar from './components/Navbar';
-import { ToastContainer, toast } from 'react-toastify';
+import Email_builder from './components/email_builder';
 
 function App() {
 
   const { selectedTemplate } = useSelector( (state) => state.menubar );
+  const { isBuilder, isEditer, isViewClick} = useSelector( (state) => state.addTemplate );
+
 
   return (
  
       <Router>
-        {selectedTemplate ? (
-          <div className="App">
-            <Navbar />
-            <Builder />
-            <ToastContainer />
-          </div>
-        ) : 
-          (
-          <div className="flex h-screen">
-            <MenuBarLandingPage />
-            <RightSidePanel />
-          </div>
-          )
-        }
+
+      {selectedTemplate && <Email_builder />}
+
+      {isBuilder && <Email_builder />}
+
+      {isViewClick && <Email_builder />}
+
+
+      {!selectedTemplate && !isBuilder && !isViewClick && (
+        <div className="flex h-screen">
+          <MenuBarLandingPage />
+          <RightSidePanel />
+        </div>
+      )}
+      
       </Router>
 
   );

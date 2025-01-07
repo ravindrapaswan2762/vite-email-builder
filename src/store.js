@@ -5,6 +5,7 @@ import cardToggleSlice from './redux/cardToggleSlice';
 import cardDragableSlice from './redux/cardDragableSlice';
 import navbarSlice from './redux/navbarSlice';
 import menubarSlice from './redux/menubarSlice';
+import addTemplateSlice from './redux/addTemplateSlice';
 
 
 export const store = configureStore({
@@ -12,7 +13,8 @@ export const store = configureStore({
     cardToggle: cardToggleSlice,
     cardDragable: cardDragableSlice,
     navbar: navbarSlice,
-    menubar: menubarSlice
+    menubar: menubarSlice,
+    addTemplate: addTemplateSlice,
   },
 });
 

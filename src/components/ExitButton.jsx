@@ -1,6 +1,9 @@
 import React from "react";
-import { setSelectTeplate } from "../redux/menubarSlice";
 import { useDispatch } from "react-redux";
+
+import { setSelectTeplate } from "../redux/menubarSlice";
+import { setBuilder } from "../redux/addTemplateSlice";
+import { setViewClick } from "../redux/addTemplateSlice";
 
 function ExitButton() {
 
@@ -13,6 +16,8 @@ function ExitButton() {
 
     if (confirmExit) {
       dispatch(setSelectTeplate(null));
+      dispatch(setBuilder(null));
+      dispatch(setViewClick(null));
     }
   };
 

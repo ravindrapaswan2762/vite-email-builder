@@ -52,7 +52,7 @@ function ModulePage () {
                 alt="Demo"
                 className="w-full h-40 object-cover rounded-md mb-4"
               />
-              <h3 className="text-xl font-semibold text-gray-800">{item.name}</h3>
+              <h3 className="text-xl font-semibold text-gray-800">{item.templateName}</h3>
               <p className="text-gray-500 text-sm mt-2">Saved on {new Date(item.createdAt).toLocaleString()}</p>
             </div>
           ))}
