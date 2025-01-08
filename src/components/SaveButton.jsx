@@ -1,25 +1,39 @@
 
 import React from "react";
-import { useSelector } from "react-redux";
 import { toast } from 'react-toastify';
+import { useDispatch, useSelector } from "react-redux";
+
+import { setSelectTeplate } from "../redux/menubarSlice";
+import { setBuilder, setViewClick } from "../redux/addTemplateSlice";
+
 
 function SaveButton() {
 
   const droppedItems = useSelector((state) => state.cardDragable.droppedItems);
 
-  const {templateName, category, subject, language, version, status, activeTemplateId} = useSelector((state) => state.addTemplate);
+  const {templateName, category, subject, language, version, activeTemplateId} = useSelector((state) => state.addTemplate);
+
+    const dispatch = useDispatch();
 
 
   const handleSave = async () => {
-    console.log("droppedItems in ButtonSave: ",droppedItems);
+    console.log("handleSave called: ");
     const saveData = {
+      user_id: null,
       templateName: templateName,
       category: category,
       subject: subject,
       language: language,
       data: droppedItems,
       version: version,
-      status: status,
+      status: "Pending",
+
+      last_modified: new Date(),
+      last_modified_by: null,
+      module_id: null,
+      template_structure: null,
+      project_id: null,
+      business_id: null
     };
 
     console.log("fetched template data from state: ", saveData);
@@ -44,45 +58,52 @@ function SaveButton() {
     }
   };
 
-  // const updateData = async () => {
-  //   console.log("updatedItem: ");
-
-  //   const updatedData = {
-  //     data: droppedItems
-  //   };
-
-  //   try {
-  //     const response = await fetch(`http://localhost:5000/api/update/${activeTemplateId}`, {
-  //       method: "PUT",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(updatedItem),
-  //     });
-
-  //     console.log("response: ", response);
+  const updateDropedItems = async () => {
+    console.log("Updating data for template with ID:", activeTemplateId);
   
-  //     if (response.ok) {
-  //       setData((prevData) =>
-  //         prevData.map((item) => (item.id === updatedItem.id ? updatedItem : item))
-  //       );
-  //       console.log("Item updated successfully");
-  //     } else {
-  //       console.error("Failed to update item");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating item:", error);
-  //   }
+    try {
+      const response = await fetch(`http://localhost:5000/api/updateDropedItems/${activeTemplateId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ data: droppedItems }), // Only send the `data` field
+      });
   
-  //   setEditPopup({ isOpen: false, index: null, item: null });
-  // };
+      if (response.ok) {
+        toast.success("Data updated successfully!");
+        console.log("Item updated successfully");
+      } else {
+        console.error("Failed to update item");
+        toast.error("Failed to update item.");
+      }
+    } catch (error) {
+      console.error("Error updating item:", error);
+      toast.error("An error occurred while updating.");
+    }
+  };
+  
 
-  const clickHandler = () => {
+  const clickHandler = async () => {
+    console.log("activeTemplateId: ",activeTemplateId);
+
     if(activeTemplateId){
-      // updateData();
+      await updateDropedItems();
+
+      setTimeout( ()=>{
+        dispatch(setSelectTeplate(null));
+        dispatch(setBuilder(null));
+        dispatch(setViewClick(null));
+      }, 3000)
     }
     else{
       handleSave();
+
+      setTimeout( ()=>{
+        dispatch(setSelectTeplate(null));
+        dispatch(setBuilder(null));
+        dispatch(setViewClick(null));
+      }, 3000)
     }
   }
 

@@ -6,7 +6,6 @@ const initialState = {
   subject: "",
   language: "",
   version: "1.0",
-  status: "Pending",
 
   isBuilder: null,
   isEditer: null,
