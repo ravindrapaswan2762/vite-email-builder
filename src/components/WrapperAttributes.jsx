@@ -138,7 +138,7 @@ const WrapperAttribute = () => {
     <div
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
-      className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 relative hover:border-blue-500 transition-all pb-[50px]"
+      className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 relative hover:border-blue-500 transition-all pb-[50px] h-auto"
       
     >
       {droppedItems.map((item) => renderWidget(item.id, item.name))}

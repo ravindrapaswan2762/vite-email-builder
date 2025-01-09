@@ -74,7 +74,7 @@ const SectionEditOption = () => {
   };
 
   return (
-    <div className="w-full max-w-md p-6 bg-white border rounded-lg shadow-lg h-auto overflow-y-auto">
+    <div className="w-full max-w-md p-6 bg-white border rounded-lg shadow-lg h-screen overflow-y-auto">
       <h2 className="text-lg font-bold text-gray-800 mb-4">Section Attributes</h2>
 
       {/* Dimension Section */}

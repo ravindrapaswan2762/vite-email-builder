@@ -9,11 +9,12 @@ import Divider from "./Divider";
 import SocialMedia from "./SocialMedia";
 import Space from "./Space";
 
-import { setActiveWidgetName } from "../../redux/cardDragableSlice";
+import { setActiveWidgetName, setActiveColumn} from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 
 import { useDispatch, useSelector } from "react-redux";
 import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId } from "../../redux/cardDragableSlice";
+import { setActiveBorders } from "../../redux/activeBorderSlice";
 
 // Component Mapping
 const componentMap = {
@@ -28,6 +29,9 @@ const componentMap = {
 
 const ColumnOne = ({ handleDelete, id }) => {
   const { activeWidgetId, activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeBorders } = useSelector((state) => state.borderSlice);
+
+  console.log()
   
   const dispatch = useDispatch();
 
@@ -42,6 +46,8 @@ const ColumnOne = ({ handleDelete, id }) => {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragging(false);
+    console.log("handleDrop called");
     if (!activeWidgetName) return;
     dispatch(
       setDroppedItems({
@@ -73,6 +79,8 @@ const ColumnOne = ({ handleDelete, id }) => {
     console.log("Parent Column clicked, ID:", id);
     dispatch(setActiveParentId(id));
     dispatch(setActiveWidgetId(childId));
+    dispatch(setActiveColumn(""));
+
 
   };
 
@@ -96,7 +104,6 @@ const ColumnOne = ({ handleDelete, id }) => {
   };
 
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
-  console.log("currentStyles: ", currentStyles);
 
   const styleWithBackground = {
     ...currentStyles,
@@ -108,18 +115,38 @@ const ColumnOne = ({ handleDelete, id }) => {
     ...(currentStyles.borderType && { border: currentStyles.borderType }),
   };
 
+  // ***************************************** write extra logic for hilight drop area while dragEnter
+  const [isDragging, setIsDragging] = useState(false); // NEW: Track if an element is being dragged into the column
+  const handleDragEnter = () => {
+    console.log("handleDragEnter called");
+    setIsDragging(true); // NEW: Trigger only once when the element enters
+  };
+  
+  const handleDragLeave = () => {
+    console.log("handleDragLeave called");
+    setIsDragging(false); // NEW: Reset when the draggable element leaves
+  };
+  
+  // *****************************************
+
   return (
     <div
       onDrop={handleDrop}
+
       onDragOver={handleDragOver}
       onMouseEnter={() => setHoveredColumn(true)}
       onMouseLeave={() => setHoveredColumn(false)}
+
+      onDragEnter={handleDragEnter} 
+      onDragLeave={handleDragLeave}
+   
       className="text-center min-h-[150px] relative group"
       onClick={(e) => {
         e.stopPropagation();
         dispatch(setActiveWidgetId(id));
         dispatch(setActiveWidgetName("1-column"));
         dispatch(setActiveEditor("sectionEditor"));
+        dispatch(setActiveBorders(true));
       }}
       style={{
         ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
@@ -130,7 +157,10 @@ const ColumnOne = ({ handleDelete, id }) => {
 
       
     >
-      <div className="rounded-md text-center hover:border hover:border-dashed hover:border-blue-500 min-h-[150px] pb-4 bg-transparent">
+      <div className={`rounded-md text-center hover:border-2 hover:border-dashed hover:border-blue-400 min-h-[150px] p-1
+                      ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'} 
+                      ${isDragging ? "bg-blue-100 border-blue-400" : ""}`}>
+
         {/* Render Children */}
         {children.length > 0 ? (
           children.map((child) => (
@@ -144,7 +174,7 @@ const ColumnOne = ({ handleDelete, id }) => {
               }}
               className="w-full rounded-md relative group"
             >
-              {componentMap[child.name] ? componentMap[child.name]({ id: child.id}) : <div>Unknown Component</div>}
+              {componentMap[child.name] ? componentMap[child.name]({ id: child.id}) : ""}
 
               {/* Delete Button for Each Child */}
               {hoveredChild === child.id && (
@@ -171,4 +201,6 @@ const ColumnOne = ({ handleDelete, id }) => {
 };
 
 export default ColumnOne;
+
+
 

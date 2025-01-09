@@ -5,6 +5,7 @@ import { FiGrid } from "react-icons/fi"; // Updated Icon
 import { setActiveEditor, setColumnPopUp } from "../redux/cardToggleSlice";
 import { setActiveWidgetName } from "../redux/cardDragableSlice";
 import { useDispatch } from "react-redux";
+import { setActiveBorders } from "../redux/activeBorderSlice";
 
 const PageAttribute = () => {
   const [showPopup, setShowPopup] = useState(false);
@@ -25,6 +26,9 @@ const PageAttribute = () => {
     // e.stopPropagation();
     dispatch(setActiveWidgetName("pageAttribute"))
     dispatch(setActiveEditor("pageAttribute"))
+
+    dispatch(setActiveBorders(null));
+
   }
 
   return (

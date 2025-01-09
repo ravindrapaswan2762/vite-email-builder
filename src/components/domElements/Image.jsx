@@ -34,6 +34,8 @@ const Image = ({ id }) => {
 
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
+  console.log("currentStyles:: ",currentStyles);
+
   const dispatch = useDispatch();
 
   // Placeholder image URL
@@ -54,7 +56,8 @@ const Image = ({ id }) => {
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
   const onClickHandler = (e) => {
-    e.stopPropagation();
+    // e.stopPropagation();
+    // e.preventDefault();
     dispatch(setActiveWidgetName("Image"));
     dispatch(setActiveEditor("Image"));
     dispatch(setActiveWidgetId(id));
@@ -64,7 +67,7 @@ const Image = ({ id }) => {
   return (
     <div
       // Removed "flex items-center justify-center" so the image can span the full width
-      className={`border-2 rounded-md text-center w-full h-auto bg-gray-50 relative overflow-hidden transition-all duration-300 shadow-sm
+      className={`rounded-md text-center w-full h-auto relative overflow-hidden transition-all duration-300 bg-transparent
         ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -72,13 +75,19 @@ const Image = ({ id }) => {
     >
       {/* Image or Placeholder */}
       {currentStyles.imageUrl ? (
-        <img
-          src={currentStyles.imageUrl}
-          alt="Uploaded"
-          // Ensures the image takes the full width, auto height, and retains aspect ratio
-          className="w-full h-full object-contain rounded"
-          style={currentStyles}
-        />
+        <a 
+          href={currentStyles.href || "#"} 
+          target={currentStyles.target || "_self"} 
+          rel="noopener noreferrer"
+        >
+          <img
+            src={currentStyles.imageUrl}
+            alt="Uploaded"
+            className="w-full h-full object-contain rounded"
+            style={currentStyles}
+          />
+        </a>
+      
       ) : imageSrc ? (
         <img
           src={imageSrc}

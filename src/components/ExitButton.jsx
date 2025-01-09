@@ -216,7 +216,7 @@ function ExitButton() {
       });
 
       if (response.ok) {
-        toast.success("Data updated successfully!");
+        toast.success("Work saved as draft successfully!");
       } else {
         console.error("Failed to update item");
         toast.error("Failed to update item.");
@@ -252,6 +252,9 @@ function ExitButton() {
       const status = await checkTemplateStatus();
       if (status === "Draft") {
         updateDropedItems();
+        dispatch(setSelectTeplate(null));
+        dispatch(setBuilder(null));
+        dispatch(setViewClick(null));
       } else {
         dispatch(setSelectTeplate(null));
         dispatch(setBuilder(null));

@@ -46,7 +46,9 @@ function LoadSavedData() {
   };
 
   return (
-    <div className="p-2 bg-gray-50 max-h-100 overflow-y-auto border border-gray-300 rounded-md shadow-sm">
+    <div
+      className="p-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm max-h-[500px] overflow-y-auto"
+    >
       <h2 className="mb-2 text-base font-semibold text-gray-800">History</h2>
 
       {savedList.length === 0 ? (
@@ -58,7 +60,34 @@ function LoadSavedData() {
               key={item._id}
               className="p-2 bg-white border border-gray-300 rounded-md flex items-center justify-between text-sm hover:shadow transition-shadow"
             >
-              <div className="text-gray-700 font-normal">{item.name}</div>
+              <div className="text-gray-700 font-normal">
+                {item.templateName}
+                &nbsp; &nbsp;
+                {(() => {
+                  const date = new Date(item.createdAt);
+                  const today = new Date();
+
+                  // Check if the date is today
+                  const isToday =
+                    date.getFullYear() === today.getFullYear() &&
+                    date.getMonth() === today.getMonth() &&
+                    date.getDate() === today.getDate();
+
+                  if (isToday) {
+                    // Format time with AM/PM
+                    const hours = date.getHours();
+                    const minutes = String(date.getMinutes()).padStart(2, "0");
+                    const period = hours >= 12 ? "PM" : "AM";
+                    const formattedHours = hours % 12 || 12; // Convert 24-hour time to 12-hour format
+                    return `${formattedHours}:${minutes} ${period}`;
+                  } else {
+                    // Show only date
+                    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+                      date.getDate()
+                    ).padStart(2, "0")}`;
+                  }
+                })()}
+              </div>
 
               <div className="flex space-x-2">
                 <button

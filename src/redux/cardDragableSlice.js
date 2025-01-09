@@ -119,7 +119,7 @@ const cardDragableSlice = createSlice({
       console.log("action.payload in updateElementStyles: ", action.payload);
       const { id, parentId, column, styles } = action.payload;
     
-      console.log("parentId:", parentId, "childId:", id, "columnName:", column, "styles: ", styles, "in redux action");
+      console.log("parentId::::", parentId, "childId::::", id, "columnName::::", column, "styles:::: ", styles, "in redux action");
     
       if (id && !parentId) {
         // Case 1: Update styles for the parent item

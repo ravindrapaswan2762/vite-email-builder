@@ -20,6 +20,8 @@ import {  setDroppedItems,
           setActiveColumn,
         } from "../../redux/cardDragableSlice";
 
+import { setActiveBorders } from "../../redux/activeBorderSlice";
+
 // Component Mapping
 const componentMap = {
   Text: (props) => <Text {...props} />,
@@ -33,6 +35,7 @@ const componentMap = {
 
 const ColumnTwo = ({ handleDelete, id }) => {
   const { activeWidgetId, activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeBorders } = useSelector((state) => state.borderSlice);
   const dispatch = useDispatch();
 
   const [childrenA, setChildrenA] = useState([]);
@@ -56,6 +59,10 @@ const ColumnTwo = ({ handleDelete, id }) => {
   const handleDrop = (column) => (e) => {
     e.preventDefault();
     e.stopPropagation();
+
+    setIsDragging(false);
+    setColumn(null);
+
     if (!activeWidgetName) return;
 
     dispatch(
@@ -112,7 +119,6 @@ const ColumnTwo = ({ handleDelete, id }) => {
   };
 
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
-  console.log("currentStyles: ", currentStyles);
 
   const styleWithBackground = {
     ...currentStyles,
@@ -124,13 +130,37 @@ const ColumnTwo = ({ handleDelete, id }) => {
     ...(currentStyles.borderType && { border: currentStyles.borderType }),
   };
 
+
+
+  // ***************************************** write extra logic for hilight drop area while dragEnter
+      const [isDragging, setIsDragging] = useState(false); // NEW: Track if an element is being dragged into the column
+      const [column, setColumn] = useState(null);
+      const handleDragEnter = (column) => {
+        console.log("handleDragEnter called", column);
+        if (!isDragging || !column) {
+          setIsDragging(true);
+          setColumn(column);
+        }
+      };
+      
+      const handleDragLeave = () => {
+        console.log("handleDragLeave called");
+        setIsDragging(false);
+        setColumn(null);
+      };
+  
+    
+    // *****************************************
+
   return (
-    <div className="relative grid grid-cols-2 gap-1 transition-all duration-300 group"
+    <div className="relative grid grid-cols-2 gap-1 transition-all duration-300 group bg-transparent"
+
         onClick={(e) => {
           e.stopPropagation();
           dispatch(setActiveWidgetId(id));
           dispatch(setActiveWidgetName("2-column"));
           dispatch(setActiveEditor("sectionEditor"));
+          dispatch(setActiveBorders(true));
         }}
         style={{
           ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
@@ -141,7 +171,13 @@ const ColumnTwo = ({ handleDelete, id }) => {
       <div
         onDrop={handleDrop("columnA")}
         onDragOver={handleDragOver}
-        className="p-1 bg-gray-50 rounded-md text-center min-h-[150px] hover:border hover:border-dashed hover:border-blue-500 bg-transparent hover:m-1"
+        onDragEnter={()=>handleDragEnter("columnA")} 
+        onDragLeave={handleDragLeave}
+
+        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
+                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
+                    ${ (isDragging && column==="columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                  `}
       >
         {childrenA.map((child) => (
           <div
@@ -184,7 +220,13 @@ const ColumnTwo = ({ handleDelete, id }) => {
       <div
         onDrop={handleDrop("columnB")}
         onDragOver={handleDragOver}
-        className="p-1 bg-gray-50 rounded-md text-center min-h-[150px] hover:border hover:border-dashed hover:border-blue-500 bg-transparent hover:m-1"
+        onDragEnter={()=>handleDragEnter("columnB")} 
+        onDragLeave={handleDragLeave}
+
+        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
+                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
+                    ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                  `}
       >
         {childrenB.map((child) => (
           <div

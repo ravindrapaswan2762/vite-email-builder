@@ -6,6 +6,7 @@ import cardDragableSlice from './redux/cardDragableSlice';
 import navbarSlice from './redux/navbarSlice';
 import menubarSlice from './redux/menubarSlice';
 import addTemplateSlice from './redux/addTemplateSlice';
+import activeBorderSlice from './redux/activeBorderSlice';
 
 
 export const store = configureStore({
@@ -15,6 +16,7 @@ export const store = configureStore({
     navbar: navbarSlice,
     menubar: menubarSlice,
     addTemplate: addTemplateSlice,
+    borderSlice: activeBorderSlice,
   },
 });
 

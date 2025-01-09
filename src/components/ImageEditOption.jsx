@@ -15,8 +15,7 @@ const ImageEditOption = () => {
     (state) => state.cardDragable
   );
 
-  const selectedElement =
-    droppedItems.find((item) => item.id === activeWidgetId) || {};
+  const selectedElement = droppedItems.find((item) => item.id === activeWidgetId) || {};
 
   const [fields, setFields] = useState({
     imageUrl: "",
@@ -49,7 +48,16 @@ const ImageEditOption = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    const updatedValue = type === "checkbox" ? checked : value;
+
+    console.log(`name: ${name}, value: ${value}`);
+
+    let updatedValue = type === "checkbox" ? checked : value;
+
+    if (
+      ["paddingTop", "paddingLeft", "paddingBottom", "paddingRight"].includes(name)
+    ) {
+      updatedValue = value && !value.includes("px") ? `${value}px` : value;
+    }
 
     setFields((prev) => ({
       ...prev,
@@ -60,7 +68,7 @@ const ImageEditOption = () => {
       updateElementStyles({
         id: activeWidgetId,
         styles: { [name]: updatedValue },
-        ...(activeParentId && { parentId: activeParentId }), // Include parentId if activeParentId is valid
+        ...(activeParentId && { parentId: activeParentId }),
         ...(activeColumn && { column: activeColumn }),
       })
     );
@@ -130,134 +138,109 @@ const ImageEditOption = () => {
       </div>
 
       {/* Dimension Section */}
-      {/* Dimension Section */}
-<div className="p-4 m-1 bg-gray-100 rounded-lg">
-  <div
-    className="flex items-center justify-between cursor-pointer"
-    onClick={() => setIsDimensionOpen(!isDimensionOpen)}
-  >
-    <h3 className="text-md font-bold text-gray-700">Dimension</h3>
-    <button className="text-gray-500 focus:outline-none">
-      {isDimensionOpen ? <FiChevronDown /> : <FiChevronRight />}
-    </button>
-  </div>
-  {isDimensionOpen && (
-    <div className="mt-3 space-y-4">
-      <div>
-        <label className="block text-sm font-bold text-gray-600 mb-1">Height</label>
-        <input
-          type="number"
-          name="height"
-          value={fields.height}
-          onChange={handleInputChange}
-          placeholder="Height in pixels"
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-bold text-gray-600 mb-1">Width</label>
-        <input
-          type="number"
-          name="width"
-          value={fields.width}
-          onChange={handleInputChange}
-          placeholder="Width in pixels"
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-      </div>
-      {/* Padding Section */}
-      <div>
-        <h4 className="text-sm font-bold text-gray-600 mb-2">Padding</h4>
-        <div className="grid grid-cols-4 gap-2">
-          <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1">Top</label>
-            <input
-              type="number"
-              name="paddingTop"
-              value={fields.paddingTop}
-              onChange={handleInputChange}
-              placeholder="0"
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1">Right</label>
-            <input
-              type="number"
-              name="paddingRight"
-              value={fields.paddingRight}
-              onChange={handleInputChange}
-              placeholder="0"
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1">Bottom</label>
-            <input
-              type="number"
-              name="paddingBottom"
-              value={fields.paddingBottom}
-              onChange={handleInputChange}
-              placeholder="0"
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1">Left</label>
-            <input
-              type="number"
-              name="paddingLeft"
-              value={fields.paddingLeft}
-              onChange={handleInputChange}
-              placeholder="0"
-              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-            />
-          </div>
+      <div className="p-4 m-1 bg-gray-100 rounded-lg">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsDimensionOpen(!isDimensionOpen)}
+        >
+          <h3 className="text-md font-bold text-gray-700">Dimension</h3>
+          <button className="text-gray-500 focus:outline-none">
+            {isDimensionOpen ? <FiChevronDown /> : <FiChevronRight />}
+          </button>
         </div>
-      </div>
-    </div>
-  )}
-</div>
+        {isDimensionOpen && (
+          <div className="mt-3 space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Height</label>
+              <input
+                type="number"
+                name="height"
+                value={fields.height}
+                onChange={handleInputChange}
+                placeholder="Height in pixels"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Width</label>
+              <input
+                type="number"
+                name="width"
+                value={fields.width}
+                onChange={handleInputChange}
+                placeholder="Width in pixels"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+            {/* Padding Section */}
+            <div>
+              <h4 className="text-sm font-bold text-gray-600 mb-2">Padding</h4>
+              <div className="grid grid-cols-4 gap-2">
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">Top</label>
+                  <input
+                    type="number"
+                    name="paddingTop"
+                    value={fields.paddingTop?.replace("px", "")}
+                    onChange={handleInputChange}
+                    placeholder="0"
+                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">Right</label>
+                  <input
+                    type="number"
+                    name="paddingRight"
+                    value={fields.paddingRight?.replace("px", "")}
+                    onChange={handleInputChange}
+                    placeholder="0"
+                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">Bottom</label>
+                  <input
+                    type="number"
+                    name="paddingBottom"
+                    value={fields.paddingBottom?.replace("px", "")}
+                    onChange={handleInputChange}
+                    placeholder="0"
+                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1">Left</label>
+                  <input
+                    type="number"
+                    name="paddingLeft"
+                    value={fields.paddingLeft?.replace("px", "")}
+                    onChange={handleInputChange}
+                    placeholder="0"
+                    className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                </div>
+              </div>
+            </div>
 
-{/* Border Section */}
-<div className="p-4 m-1 bg-gray-100 rounded-lg">
-  <div
-    className="flex items-center justify-between cursor-pointer"
-    onClick={() => setIsBorderOpen(!isBorderOpen)}
-  >
-    <h3 className="text-md font-bold text-gray-700">Border</h3>
-    <button className="text-gray-500 focus:outline-none">
-      {isBorderOpen ? <FiChevronDown /> : <FiChevronRight />}
-    </button>
-  </div>
-  {isBorderOpen && (
-    <div className="mt-3 space-y-4">
-      <div>
-        <label className="block text-sm font-bold text-gray-600 mb-1">Border Width</label>
-        <input
-          type="number"
-          name="border"
-          value={fields.border}
-          onChange={handleInputChange}
-          placeholder="Width in pixels"
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-bold text-gray-600 mb-1">Border Radius</label>
-        <input
-          type="number"
-          name="borderRadius"
-          value={fields.borderRadius}
-          onChange={handleInputChange}
-          placeholder="Radius in pixels"
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-      </div>
-    </div>
-  )}
-</div>
 
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Border</label>
+              <input
+                type="text"
+                name="border"
+                value={fields.border}
+                onChange={handleInputChange}
+                placeholder="2px solid red"
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+
+          </div>
+        )}
+      </div>
+
+      
 
       {/* Link Section */}
       <div className="p-4 m-1 bg-gray-100 rounded-lg">
@@ -298,45 +281,6 @@ const ImageEditOption = () => {
           </div>
         )}
       </div>
-
-      {/* Border Section */}
-      <div className="p-4 m-1 bg-gray-100 rounded-lg">
-  <div
-    className="flex items-center justify-between cursor-pointer"
-    onClick={() => setIsBorderOpen(!isBorderOpen)}
-  >
-    <h3 className="text-md font-bold text-gray-700">Border</h3>
-    <button className="text-gray-500 focus:outline-none">
-      {isBorderOpen ? <FiChevronDown /> : <FiChevronRight />}
-    </button>
-  </div>
-  {isBorderOpen && (
-    <div className="mt-3 space-y-4">
-      <div>
-        <label className="block text-sm font-bold text-gray-600 mb-1">Border Width</label>
-        <input
-          type="number" // Changed to number
-          name="border"
-          value={fields.border}
-          onChange={handleInputChange}
-          placeholder="Width in pixels"
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-bold text-gray-600 mb-1">Border Radius</label>
-        <input
-          type="number" // Changed to number
-          name="borderRadius"
-          value={fields.borderRadius}
-          onChange={handleInputChange}
-          placeholder="Radius in pixels"
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-        />
-      </div>
-    </div>
-  )}
-</div>
 
       {/* Extra Section */}
       <div className="p-4 m-1 bg-gray-100 rounded-lg">

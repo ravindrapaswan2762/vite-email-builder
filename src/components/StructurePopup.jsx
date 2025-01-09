@@ -3,6 +3,7 @@ import { setActiveEditor } from "../redux/cardToggleSlice";
 import { useDispatch } from "react-redux";
 import { setActiveWidgetName, setActiveWidgetId } from "../redux/cardDragableSlice";
 import { setDroppedItems } from "../redux/cardDragableSlice";
+import { setActiveBorders } from "../redux/activeBorderSlice";
 
 const StructurePopup = ({ onClose, onAdd, id}) => {
 
@@ -30,6 +31,9 @@ const StructurePopup = ({ onClose, onAdd, id}) => {
       dispatch(setDroppedItems({id:  Date.now(), name: name, parentId: id, type: "3-columns"}));
     }
     onAdd(structureId);
+
+    dispatch(setActiveBorders(true));
+
   }
 
   return (

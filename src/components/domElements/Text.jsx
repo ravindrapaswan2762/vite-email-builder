@@ -36,6 +36,8 @@ const Text = ({ id }) => {
 
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
+  console.log("text currentStyles: ",currentStyles);
+
   const onClickHandle = (e) => {
     e.preventDefault();
     dispatch(setActiveWidgetName("Text"));

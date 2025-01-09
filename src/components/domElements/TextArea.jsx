@@ -36,6 +36,8 @@ const TextArea = ({ id }) => {
 
   const handleInputChange = (e) => {
     setVal(e.target.value);
+
+    autoResize(e.target);
   };
 
   const onclickHandle = (e) => {
@@ -63,6 +65,17 @@ const TextArea = ({ id }) => {
     };
   }, []);
 
+
+
+  // ***********************************************
+
+  const autoResize = (textarea) => {
+    textarea.style.height = "auto"; // Reset height to calculate new height properly
+    textarea.style.height = `${textarea.scrollHeight}px`; // Set height to scrollHeight
+  };
+
+  // ***********************************************
+
   return (
     <div
       className={`group flex`}
@@ -76,14 +89,15 @@ const TextArea = ({ id }) => {
         onClick={onclickHandle}
         className={`border p-2 w-full rounded focus:outline-none transition-all duration-300 
           ${isFocused ? "border-gray-300 bg-white" : "border-none bg-transparent"} 
-          ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
+          ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : "bg-transparent"}`}
         placeholder="Text Area"
         value={val}
         style={{
           ...currentStyles,
-          overflow: "hidden",
-          resize: "none",
-          whiteSpace: "pre-wrap", // Prevent text from overflowing
+          overflow: "hidden", // Hide scrollbar
+          resize: "none", // Disable manual resizing
+          whiteSpace: "pre-wrap", // Preserve line breaks and spaces
+          wordWrap: "break-word", // Break long words
         }} // Apply dynamic styles
       />
     </div>

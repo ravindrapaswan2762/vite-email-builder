@@ -77,40 +77,13 @@ export const generateInlineStyles = (styles) => {
               html = `
                 <div
                   className=\"border-2 border-gray-300 p-2 rounded-md text-center w-full h-[300px] bg-gray-50 flex items-center justify-center relative overflow-hidden hover:border-blue-400 transition-all duration-300 shadow-sm\"
-                  onClick={(e) => e.stopPropagation()}
                 >
-    
-                  <button
-                      onClick={()=>dispatch(deleteDroppedItemById(id))}
-                      className=\"absolute -top-1 -right-1 text-white p-1 rounded-full transition-all duration-200 z-10\"
-                      >
-                      <div className=\"text-black mb-2 ml-2\"><RxCross2 size={18} /></div>
-                  </button>
-    
-                  {imageSrc ? (
-                    <img
+                  <img
                       src={imageSrc}
                       alt=\"Uploaded\"
                       className=\"w-full h-full object-contain rounded\"
+                      style=\"${inlineStyles}\"
                     />
-                  ) : (
-                    <div className=\"flex flex-col items-center justify-center text-gray-500\">
-                      <img
-                        src={placeholderImage}
-                        alt=\"Placeholder\"
-                        className=\"w-full h-full object-cover rounded opacity-90\"
-                        style=\"${inlineStyles}\"
-                      />
-                    </div>
-                  )}
-    
-                  {/* Hidden File Input */}
-                  <input
-                    type=\"file\"
-                    accept=\"image/*\"
-                    className=\"absolute inset-0 opacity-0 cursor-pointer\"
-                    onChange={handleImageUpload}
-                  />
                 </div>
               `;
               break;

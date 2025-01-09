@@ -27,6 +27,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import MenuBarLandingPage from './landingpage/MenuBarLandingPage';
 import RightSidePanel from './landingpage/RightSidePanel';
 import { useSelector } from 'react-redux';
+import { ToastContainer } from "react-toastify"
 
 import Email_builder from './components/email_builder';
 
@@ -53,6 +54,8 @@ function App() {
           <RightSidePanel />
         </div>
       )}
+
+      <ToastContainer />
       
       </Router>
 
