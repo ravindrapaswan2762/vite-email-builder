@@ -72,6 +72,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
         type: "widget",
         parentId: id, // Parent ID to identify the column
         columnName: column, // Specify the column (childrenA or childrenB)
+        content: null,
         styles: {}, // Additional styles if needed
       })
     );
@@ -141,6 +142,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
           setIsDragging(true);
           setColumn(column);
         }
+        
+        dispatch(dispatch(setActiveBorders(true)));
       };
       
       const handleDragLeave = () => {

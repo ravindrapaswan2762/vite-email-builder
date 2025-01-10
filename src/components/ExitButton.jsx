@@ -206,6 +206,7 @@ function ExitButton() {
 
   // Update dropped items for an existing template
   const updateDropedItems = async () => {
+    console.log("updateDropedItems called");
     try {
       const response = await fetch(`http://localhost:5000/api/updateDropedItems/${activeTemplateId}`, {
         method: "PUT",
@@ -216,6 +217,7 @@ function ExitButton() {
       });
 
       if (response.ok) {
+        console.log("droppedItems: ",droppedItems);
         toast.success("Work saved as draft successfully!");
       } else {
         console.error("Failed to update item");
@@ -248,8 +250,10 @@ function ExitButton() {
 
   // Handle save or update based on status
   const onclickHandler = async () => {
+    console.log("activeTemplateId: ", activeTemplateId);
     if (activeTemplateId) {
       const status = await checkTemplateStatus();
+      console.log("TemplateStatus: ",status);
       if (status === "Draft") {
         updateDropedItems();
         dispatch(setSelectTeplate(null));

@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit"
 
 
 const initialState = {
-    activeBorders: true
+    activeBorders: false
 }
 
 const activeBorderSlice = createSlice({

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
 import { deleteDroppedItemById, setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
+import {setActiveBorders} from '../../redux/activeBorderSlice'
 
 const Button = ({ id }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
@@ -38,6 +39,8 @@ const Button = ({ id }) => {
     dispatch(setActiveWidgetName("Button"));
     dispatch(setActiveEditor("Button"));
     dispatch(setActiveWidgetId(id));
+
+    dispatch(setActiveBorders(true));
     console.log("droppedItems: ", droppedItems);
   };
 
@@ -50,6 +53,7 @@ const Button = ({ id }) => {
       style={{ backgroundColor: `${currentStyles.backgroundColor || "transparent"}` }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
+      onClick={()=>dispatch(setActiveBorders(true))}
     >
       {/* Outer Container with Dashed Border */}
       <div

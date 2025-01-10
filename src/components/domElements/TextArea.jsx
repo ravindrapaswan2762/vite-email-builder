@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
+import { updateElementContent, updateElementStyles } from "../../redux/cardDragableSlice";
+import {setActiveBorders} from '../../redux/activeBorderSlice'
 
 const TextArea = ({ id }) => {
   const [val, setVal] = useState("Make it easy for everyone to compose emails Make it easy for everyone to compose emails!");
@@ -10,9 +12,10 @@ const TextArea = ({ id }) => {
   const [isFocused, setIsFocused] = useState(false); // Focus state
   const inputRef = useRef(null); // Ref for detecting clicks outside
 
-  const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
   const dispatch = useDispatch();
 
+  // *****************************************************************************************************************
   // Recursive function to find the styles based on activeWidgetId
   const findStylesById = (items, widgetId) => {
     for (const item of items) {
@@ -31,13 +34,52 @@ const TextArea = ({ id }) => {
     }
     return null;
   };
-
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
+  // *******************************************************************************************************************
+
+  // Recursive function to find the content based on activeWidgetId 
+  const findContentById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === widgetId) {
+        return item.content || "";
+      }
+
+      // Check for children arrays (children, childrenA, childrenB, etc.)
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const content = findContentById(item[key], widgetId);
+        if (content) {
+          return content;
+        }
+      }
+    }
+    return "";
+  };
+
+  useEffect(() => {
+    const currentContent = findContentById(droppedItems, id);
+    setVal(currentContent);
+  }, []); 
+
+  // *******************************************************************************************************************
+
   const handleInputChange = (e) => {
-    setVal(e.target.value);
+    const updatedValue = e.target.value;
+    setVal(updatedValue);
 
     autoResize(e.target);
+
+    // Dispatch content update to Redux
+    dispatch(
+      updateElementContent({
+        id,
+        content: updatedValue,
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
+
   };
 
   const onclickHandle = (e) => {
@@ -47,6 +89,9 @@ const TextArea = ({ id }) => {
     dispatch(setActiveEditor("TextArea"));
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
+    
+    dispatch(setActiveBorders(true));
+    console.log("droppedItems: ",droppedItems);
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);
@@ -70,8 +115,18 @@ const TextArea = ({ id }) => {
   // ***********************************************
 
   const autoResize = (textarea) => {
-    textarea.style.height = "auto"; // Reset height to calculate new height properly
     textarea.style.height = `${textarea.scrollHeight}px`; // Set height to scrollHeight
+    console.log("textarea.scrollHeight: ",textarea.scrollHeight);
+
+    // Dispatch height update to Redux
+    dispatch(
+      updateElementStyles({
+        id,
+        styles: { height: `${textarea.scrollHeight}px` },
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
   };
 
   // ***********************************************

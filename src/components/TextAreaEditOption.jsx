@@ -99,9 +99,9 @@ const TextAreaEditOption = () => {
             <div>
               <label className="block text-sm font-bold text-gray-600 mb-1">Height</label>
               <input
-                type="text"
+                type="number"
                 name="height"
-                value={fields.height}
+                value={fields.height?.replace("px", "")}
                 onChange={handleInputChange}
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
@@ -281,30 +281,44 @@ const TextAreaEditOption = () => {
                 <option value="lighter">Lighter</option>
               </select>
             </div>
+            {/* Text Alignment */}
             <div>
-              <label className="block text-sm font-bold text-gray-600 mb-1">Text Align</label>
-              <select
-                name="textAlign"
-                value={fields.textAlign}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-              >
-                <option value="left">Left</option>
-                <option value="center">Center</option>
-                <option value="right">Right</option>
-              </select>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Text Alignment</label>
+              <div className="flex space-x-4">
+                {["left", "center", "right", "justify"].map((align) => (
+                  <label key={align} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="textAlign"
+                      value={align}
+                      checked={fields.textAlign === align}
+                      onChange={handleInputChange}
+                      className="form-radio text-blue-600 focus:ring-blue-300"
+                    />
+                    <span className="text-sm text-gray-600">{align.charAt(0).toUpperCase() + align.slice(1)}</span>
+                  </label>
+                ))}
+              </div>
             </div>
+
+            {/* Font Style */}
             <div>
               <label className="block text-sm font-bold text-gray-600 mb-1">Font Style</label>
-              <select
-                name="fontStyle"
-                value={fields.fontStyle}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-              >
-                <option value="normal">Normal</option>
-                <option value="italic">Italic</option>
-              </select>
+              <div className="flex space-x-4">
+                {["normal", "italic"].map((style) => (
+                  <label key={style} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="fontStyle"
+                      value={style}
+                      checked={fields.fontStyle === style}
+                      onChange={handleInputChange}
+                      className="form-radio text-blue-600 focus:ring-blue-300"
+                    />
+                    <span className="text-sm text-gray-600">{style.charAt(0).toUpperCase() + style.slice(1)}</span>
+                  </label>
+                ))}
+              </div>
             </div>
 
             {/* Border */}

@@ -55,6 +55,7 @@ const ColumnOne = ({ handleDelete, id }) => {
         name: activeWidgetName,
         type: "widget", // Only widgets can be added here
         parentId: id, // Associate with this column
+        content: null,
         styles: {},
       })
     );
@@ -117,9 +118,12 @@ const ColumnOne = ({ handleDelete, id }) => {
 
   // ***************************************** write extra logic for hilight drop area while dragEnter
   const [isDragging, setIsDragging] = useState(false); // NEW: Track if an element is being dragged into the column
+
   const handleDragEnter = () => {
     console.log("handleDragEnter called");
     setIsDragging(true); // NEW: Trigger only once when the element enters
+
+    dispatch(dispatch(setActiveBorders(true)));
   };
   
   const handleDragLeave = () => {

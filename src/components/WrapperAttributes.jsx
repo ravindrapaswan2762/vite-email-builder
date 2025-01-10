@@ -6,6 +6,7 @@ import { setDroppedItems, deleteDroppedItemById } from "../redux/cardDragableSli
 import { setActiveWidgetName, setActiveWidgetId } from "../redux/cardDragableSlice";
 import { setActiveColumn, setActiveParentId } from "../redux/cardDragableSlice";
 import { setActiveEditor } from "../redux/cardToggleSlice";
+import { FiGrid } from "react-icons/fi"; // Updated Icon
 
 import Text from "./domElements/Text";
 import TextArea from "./domElements/TextArea";
@@ -48,6 +49,7 @@ const WrapperAttribute = () => {
         name: activeWidgetName,
         type: activeWidgetName.includes("column") ? activeWidgetName : "widget",
         parentId: null,
+        content: null,
         styles: {},
       })
     );
@@ -138,10 +140,20 @@ const WrapperAttribute = () => {
     <div
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
-      className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 relative hover:border-blue-500 transition-all pb-[50px] h-auto"
+      className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all pb-[50px] h-auto"
       
     >
       {droppedItems.map((item) => renderWidget(item.id, item.name))}
+
+      {/* Add Button */}
+            <div className="flex justify-center mt-4 relative">
+              <button
+                className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
+                // onClick={togglePopup} // Handle click and prevent propagation
+              >
+                <FiGrid className="text-2xl" /> {/* Column popup Icon */}
+              </button>
+            </div>
 
     </div>
   );

@@ -92,9 +92,9 @@ const TextEditOption = () => {
               <label className="block text-sm font-bold text-gray-600 mb-1">Height</label>
               <div className="flex items-center">
                 <input
-                  type="text"
+                  type="number"
                   name="height"
-                  value={fields.height.replace("px", "")}
+                  value={fields.height?.replace("px", "")}
                   onChange={handleInputChange}
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
                 />

@@ -4,6 +4,9 @@ import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 
 import { useDispatch, useSelector } from "react-redux";
+import { updateElementContent } from "../../redux/cardDragableSlice";
+import {setActiveBorders} from '../../redux/activeBorderSlice'
+
 
 const Text = ({ id }) => {
   const [val, setVal] = useState("Make it easy for everyone to compose emails!");
@@ -11,11 +14,13 @@ const Text = ({ id }) => {
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
 
-  const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
 
   const dispatch = useDispatch();
 
-  // Recursive function to find the styles based on activeWidgetId
+
+  // *****************************************************************************************************************
+  // Recursive function to find the styles based on activeWidgetId 
   const findStylesById = (items, widgetId) => {
     for (const item of items) {
       if (item.id === id) {
@@ -33,10 +38,36 @@ const Text = ({ id }) => {
     }
     return null;
   };
-
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
+  // console.log("text currentStyles: ",currentStyles);
 
-  console.log("text currentStyles: ",currentStyles);
+  // ********************************************************************************************************************
+  // Recursive function to find the content based on activeWidgetId 
+  const findContentById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === widgetId) {
+        return item.content || "";
+      }
+
+      // Check for children arrays (children, childrenA, childrenB, etc.)
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const content = findContentById(item[key], widgetId);
+        if (content) {
+          return content;
+        }
+      }
+    }
+    return "";
+  };
+
+  useEffect(() => {
+    const currentContent = findContentById(droppedItems, id);
+    console.log("currentContent ",currentContent);
+    setVal(currentContent);
+  }, [droppedItems, id]); 
+
+  // ******************************************************************************************************************
 
   const onClickHandle = (e) => {
     e.preventDefault();
@@ -44,11 +75,26 @@ const Text = ({ id }) => {
     dispatch(setActiveEditor("Text"));
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
+
+    
+    dispatch(setActiveBorders(true));
+    console.log("dropedItems: ",droppedItems);
   };
 
   const onChangeHandle = (e) => {
-    setVal(e.target.value);
+    const updatedValue = e.target.value;
+    setVal(updatedValue);
+
+    dispatch(
+      updateElementContent({
+        id,
+        content: updatedValue,
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
   };
+  
 
   const onMouseEnterHandler = () => setHoveredElement(true);
   const onMouseLeaveHandler = () => setHoveredElement(false);

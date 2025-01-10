@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
+import {setActiveBorders} from '../../redux/activeBorderSlice'
 
 const Space = ({ id }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
@@ -37,6 +38,8 @@ const Space = ({ id }) => {
     dispatch(setActiveEditor("Space"));
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
+
+    dispatch(setActiveBorders(true));
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);

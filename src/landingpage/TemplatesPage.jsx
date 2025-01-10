@@ -151,6 +151,7 @@ function TemplatesPage() {
         dispatch(setActiveTemplateId(item.id));
 
         setPopupIndex(null);
+        console.log("ActiveTemplateId: ",item.id);
         break;
       default:
         break;
@@ -184,9 +185,6 @@ function TemplatesPage() {
   
     setEditPopup({ isOpen: false, index: null, item: null });
   };
-
-
-
 
 //************************************************************
 

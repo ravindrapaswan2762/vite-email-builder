@@ -3,6 +3,7 @@ import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { useDispatch, useSelector } from "react-redux";
+import {setActiveBorders} from '../../redux/activeBorderSlice'
 
 const Divider = ({ id }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
@@ -40,6 +41,8 @@ const Divider = ({ id }) => {
     dispatch(setActiveEditor("Divider"));
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
+
+    dispatch(setActiveBorders(true));
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);

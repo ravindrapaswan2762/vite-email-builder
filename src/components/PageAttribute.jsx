@@ -42,7 +42,7 @@ const PageAttribute = () => {
       <WrapperAttribute />
 
       {/* Add Button */}
-      <div className="flex justify-center mt-4">
+      <div className="flex justify-center mt-4 relative">
         <button
           className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
           onClick={togglePopup} // Handle click and prevent propagation

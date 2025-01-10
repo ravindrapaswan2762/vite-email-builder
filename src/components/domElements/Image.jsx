@@ -5,6 +5,7 @@ import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
 
 import img from '../../assets/placeholder.png';
+import {setActiveBorders} from '../../redux/activeBorderSlice'
 
 const Image = ({ id }) => {
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
@@ -34,8 +35,6 @@ const Image = ({ id }) => {
 
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
-  console.log("currentStyles:: ",currentStyles);
-
   const dispatch = useDispatch();
 
   // Placeholder image URL
@@ -62,6 +61,8 @@ const Image = ({ id }) => {
     dispatch(setActiveEditor("Image"));
     dispatch(setActiveWidgetId(id));
     setIsFocused(true);
+
+    dispatch(setActiveBorders(true));
   };
 
   return (

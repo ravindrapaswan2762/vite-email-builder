@@ -79,6 +79,7 @@ const ColumnThree = ({ handleDelete, id }) => {
         type: "widget",
         parentId: id, // Parent ID to identify the column
         columnName: column, // Specify the column (childrenA, childrenB, or childrenC)
+        content: null,
         styles: {}, // Additional styles if needed
       })
     );
@@ -145,8 +146,9 @@ const ColumnThree = ({ handleDelete, id }) => {
           if (!isDragging || !column) {
             setIsDragging(true);
             setColumn(column);
-
           }
+
+          dispatch(dispatch(setActiveBorders(true)));
         };
         
         const handleDragLeave = () => {

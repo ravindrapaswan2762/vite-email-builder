@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
+import {setActiveBorders} from '../../redux/activeBorderSlice'
 
 // Icons (Replace these with your actual logo images or imports)
 import { FaFacebook, FaGoogle, FaTwitter } from "react-icons/fa"; // Example using FontAwesome icons
@@ -40,6 +41,8 @@ const SocialMedia = ({ id }) => {
     dispatch(setActiveEditor("SocialMedia"));
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
+
+    dispatch(setActiveBorders(true));
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);
@@ -73,15 +76,15 @@ const SocialMedia = ({ id }) => {
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}
     >
-      <div className="flex items-center gap-2 cursor-pointer">
+      <div className="flex items-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
         <FaFacebook className="text-xl text-blue-600" />
         <span className="text-sm">Facebook</span>
       </div>
-      <div className="flex items-center gap-2 cursor-pointer">
+      <div className="flex items-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
         <FaGoogle className="text-xl text-red-600" />
         <span className="text-sm">Google</span>
       </div>
-      <div className="flex items-center gap-2 cursor-pointer">
+      <div className="flex items-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
         <FaTwitter className="text-xl text-blue-400" />
         <span className="text-sm">Twitter</span>
       </div>
