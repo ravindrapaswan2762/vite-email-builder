@@ -4,6 +4,7 @@ import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { useDispatch, useSelector } from "react-redux";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
+import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 const Divider = ({ id }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
@@ -11,6 +12,7 @@ const Divider = ({ id }) => {
   const dividerRef = useRef(null); // Ref to handle divider element
 
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
 
   const dispatch = useDispatch();
 
@@ -61,10 +63,31 @@ const Divider = ({ id }) => {
     };
   }, []);
 
+  // ************************************************************************ 
+    const onClickOutside = () => {
+      dispatch(setActiveNodeList(false));
+    };
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (dividerRef.current && !dividerRef.current.contains(event.target)) {
+          onClickOutside(); // Call the function when clicking outside
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+    // *****************************************************************************
+
   return (
     <div
       style={{ position: "relative" }}
-      className={`group ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
+      className={`group 
+        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}
+        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+        `}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}

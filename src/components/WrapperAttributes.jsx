@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { setDroppedItems, deleteDroppedItemById } from "../redux/cardDragableSlice";
 import { setActiveWidgetName, setActiveWidgetId } from "../redux/cardDragableSlice";
 import { setActiveColumn, setActiveParentId } from "../redux/cardDragableSlice";
-import { setActiveEditor } from "../redux/cardToggleSlice";
+import { setActiveEditor, setColumnPopUp } from "../redux/cardToggleSlice";
 import { FiGrid } from "react-icons/fi"; // Updated Icon
 
 import Text from "./domElements/Text";
@@ -24,11 +24,14 @@ import { generateSourceCode } from "./generateSourceCode";
 
 import { data } from "./domElements/data";
 import { saveState } from "../redux/cardDragableSlice";
+import StructurePopup from "./StructurePopup";
+
 
 const WrapperAttribute = () => {
   const { activeWidgetName, droppedItems, activeWidgetId } = useSelector((state) => state.cardDragable);
   const dispatch = useDispatch();
   const [sourceCode, setSourceCode] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
 
 
   // useEffect( ()=> {
@@ -62,6 +65,17 @@ const WrapperAttribute = () => {
     const generatedCode = generateSourceCode(droppedItems);
     setSourceCode(generatedCode);
   };
+
+  // **********************************************************************
+    const togglePopup = (e) => {
+      // e.stopPropagation(); // Prevent triggering the parent's onClick
+      setShowPopup(!showPopup);
+      dispatch(setColumnPopUp(!showPopup)); // Update column popup state
+    };
+    const handleAddStructure = (structureType) => {
+      setShowPopup(false); // Close the popup
+    };
+  // *********************************************************************
 
   // Render widgets with delete functionality
   const renderWidget = (id, name) => {
@@ -146,14 +160,19 @@ const WrapperAttribute = () => {
       {droppedItems.map((item) => renderWidget(item.id, item.name))}
 
       {/* Add Button */}
-            <div className="flex justify-center mt-4 relative">
-              <button
-                className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
-                // onClick={togglePopup} // Handle click and prevent propagation
-              >
-                <FiGrid className="text-2xl" /> {/* Column popup Icon */}
-              </button>
-            </div>
+      <div className="flex justify-center mt-4 relative">
+        <button
+          className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
+          onClick={togglePopup} // Handle click and prevent propagation
+        >
+          <FiGrid className="text-2xl" /> {/* Column popup Icon */}
+        </button>
+      </div>
+
+      {/* Structure Popup */}
+      {showPopup && (
+        <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
+      )}
 
     </div>
   );

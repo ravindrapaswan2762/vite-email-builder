@@ -6,7 +6,7 @@ import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementContent } from "../../redux/cardDragableSlice";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
-
+import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 const Text = ({ id }) => {
   const [val, setVal] = useState("Make it easy for everyone to compose emails!");
@@ -15,6 +15,9 @@ const Text = ({ id }) => {
   const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
+
+  console.log("activeNodeList: ", activeNodeList);
 
   const dispatch = useDispatch();
 
@@ -76,6 +79,8 @@ const Text = ({ id }) => {
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
 
+    dispatch(setActiveNodeList(true));
+
     
     dispatch(setActiveBorders(true));
     console.log("dropedItems: ",droppedItems);
@@ -113,11 +118,30 @@ const Text = ({ id }) => {
     };
   }, []);
 
+  // ************************************************************************ 
+  const onClickOutside = () => {
+    dispatch(setActiveNodeList(false));
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (inputRef.current && !inputRef.current.contains(event.target)) {
+        onClickOutside(); // Call the function when clicking outside
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  // *****************************************************************************
+
 
   return (
     <div
       style={{ position: "relative" }}
-      className={`group ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
+      className={`group ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""} 
+                        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
     >
@@ -128,8 +152,8 @@ const Text = ({ id }) => {
         onChange={onChangeHandle}
         type="text"
         className={`p-2 w-full transition-all duration-300 ${
-          isFocused ? "border rounded bg-white border-gray-300" : "border-none bg-transparent"
-        }`}
+          isFocused ? "border rounded border-gray-300" : "border-none bg-transparent"
+        }  focus:outline-none focus:ring-0 bg-transparent`}
         placeholder="Text Field"
         value={val}
         style={{

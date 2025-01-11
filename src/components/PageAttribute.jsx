@@ -8,19 +8,9 @@ import { useDispatch } from "react-redux";
 import { setActiveBorders } from "../redux/activeBorderSlice";
 
 const PageAttribute = () => {
-  const [showPopup, setShowPopup] = useState(false);
 
   const dispatch = useDispatch();
 
-  const handleAddStructure = (structureType) => {
-    setShowPopup(false); // Close the popup
-  };
-
-  const togglePopup = (e) => {
-    // e.stopPropagation(); // Prevent triggering the parent's onClick
-    setShowPopup(!showPopup);
-    dispatch(setColumnPopUp(!showPopup)); // Update column popup state
-  };
 
   const onClickHandle = (e) => {
     // e.stopPropagation();
@@ -41,20 +31,6 @@ const PageAttribute = () => {
       {/* WrapperAttribute Component */}
       <WrapperAttribute />
 
-      {/* Add Button */}
-      <div className="flex justify-center mt-4 relative">
-        <button
-          className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
-          onClick={togglePopup} // Handle click and prevent propagation
-        >
-          <FiGrid className="text-2xl" /> {/* Column popup Icon */}
-        </button>
-      </div>
-
-      {/* Structure Popup */}
-      {showPopup && (
-        <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
-      )}
     </div>
   );
 };

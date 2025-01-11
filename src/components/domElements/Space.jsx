@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
+import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 const Space = ({ id }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
@@ -10,6 +11,7 @@ const Space = ({ id }) => {
   const containerRef = useRef(null); // Ref for detecting outside clicks
 
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
   // Recursive function to find the styles based on activeWidgetId
@@ -58,16 +60,36 @@ const Space = ({ id }) => {
     };
   }, []);
 
+
+
+  // ************************************************************************ 
+    const onClickOutside = () => {
+      dispatch(setActiveNodeList(false));
+    };
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (containerRef.current && !containerRef.current.contains(event.target)) {
+          onClickOutside(); // Call the function when clicking outside
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+    // *****************************************************************************
+
   return (
     <div
       ref={containerRef}
-      className={`w-full h-4 ${ // Adjust height (h-4) to match the spacing shown in the image
+      className={`w-full h-4 ${
         isFocused
           ? "border-2 border-blue-500 bg-gray-100"
           : hoveredElement
           ? "border-dashed border-2 border-blue-500"
-          : "border-transparent"
-      }`}
+          : ""
+      }  ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
       style={currentStyles}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}

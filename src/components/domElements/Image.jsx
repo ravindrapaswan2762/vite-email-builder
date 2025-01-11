@@ -1,18 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
+import { useRef } from "react";
 
 import img from '../../assets/placeholder.png';
 import {setActiveBorders} from '../../redux/activeBorderSlice'
+import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 const Image = ({ id }) => {
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
   const [hoveredElement, setHoveredElement] = useState(false); // State for hover
   const [isFocused, setIsFocused] = useState(false); // State for focus
 
+    const imageRef = useRef(null);
+
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
 
   // Find the styles associated with the widget by its ID
   const findStylesById = (items, widgetId) => {
@@ -65,11 +70,31 @@ const Image = ({ id }) => {
     dispatch(setActiveBorders(true));
   };
 
+  // ************************************************************************ 
+    const onClickOutside = () => {
+      dispatch(setActiveNodeList(false));
+    };
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (imageRef.current && !imageRef.current.contains(event.target)) {
+          onClickOutside(); // Call the function when clicking outside
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+    // *****************************************************************************
+
   return (
     <div
       // Removed "flex items-center justify-center" so the image can span the full width
-      className={`rounded-md text-center w-full h-auto relative overflow-hidden transition-all duration-300 bg-transparent
-        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}`}
+      className={`rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent
+        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}
+        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+        `}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandler}
@@ -86,6 +111,7 @@ const Image = ({ id }) => {
             alt="Uploaded"
             className="w-full h-full object-contain rounded"
             style={currentStyles}
+            ref={imageRef}
           />
         </a>
       

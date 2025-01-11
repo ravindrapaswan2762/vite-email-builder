@@ -7,6 +7,7 @@ import navbarSlice from './redux/navbarSlice';
 import menubarSlice from './redux/menubarSlice';
 import addTemplateSlice from './redux/addTemplateSlice';
 import activeBorderSlice from './redux/activeBorderSlice';
+import treeViewSlice from './redux/treeViewSlice';
 
 
 export const store = configureStore({
@@ -17,6 +18,7 @@ export const store = configureStore({
     menubar: menubarSlice,
     addTemplate: addTemplateSlice,
     borderSlice: activeBorderSlice,
+    treeViewSlice: treeViewSlice,
   },
 });
 

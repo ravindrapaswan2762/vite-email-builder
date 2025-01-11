@@ -1,6 +1,7 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RxCross2 } from "react-icons/rx";
+import { useRef } from "react";
 import Text from "./Text";
 import Image from "./Image";
 import Button from "./Button";
@@ -15,6 +16,7 @@ import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveBorders } from "../../redux/activeBorderSlice";
+import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 // Component Mapping
 const componentMap = {
@@ -30,8 +32,9 @@ const componentMap = {
 const ColumnOne = ({ handleDelete, id }) => {
   const { activeWidgetId, activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
 
-  console.log()
+  const oneColumnRef = useRef(null);
   
   const dispatch = useDispatch();
 
@@ -131,11 +134,29 @@ const ColumnOne = ({ handleDelete, id }) => {
     setIsDragging(false); // NEW: Reset when the draggable element leaves
   };
   
-  // *****************************************
+
+   // ************************************************************************ 
+    const onClickOutside = () => {
+      dispatch(setActiveNodeList(false));
+    };
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (oneColumnRef.current && !oneColumnRef.current.contains(event.target)) {
+          onClickOutside(); // Call the function when clicking outside
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+    // *****************************************************************************
 
   return (
     <div
       onDrop={handleDrop}
+      ref={oneColumnRef}
 
       onDragOver={handleDragOver}
       onMouseEnter={() => setHoveredColumn(true)}
@@ -163,7 +184,9 @@ const ColumnOne = ({ handleDelete, id }) => {
     >
       <div className={`rounded-md text-center hover:border-2 hover:border-dashed hover:border-blue-400 min-h-[150px] p-1
                       ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'} 
-                      ${isDragging ? "bg-blue-100 border-blue-400" : ""}`}>
+                      ${isDragging ? "bg-blue-100 border-blue-400" : ""}
+                      ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                      `}>
 
         {/* Render Children */}
         {children.length > 0 ? (

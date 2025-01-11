@@ -206,7 +206,7 @@ function ExitButton() {
 
   // Update dropped items for an existing template
   const updateDropedItems = async () => {
-    console.log("updateDropedItems called");
+    console.log("updateDropedItems called: ",droppedItems);
     try {
       const response = await fetch(`http://localhost:5000/api/updateDropedItems/${activeTemplateId}`, {
         method: "PUT",

@@ -5,6 +5,7 @@ import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { updateElementContent, updateElementStyles } from "../../redux/cardDragableSlice";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
+import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 const TextArea = ({ id }) => {
   const [val, setVal] = useState("Make it easy for everyone to compose emails Make it easy for everyone to compose emails!");
@@ -13,6 +14,7 @@ const TextArea = ({ id }) => {
   const inputRef = useRef(null); // Ref for detecting clicks outside
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
   // *****************************************************************************************************************
@@ -112,7 +114,7 @@ const TextArea = ({ id }) => {
 
 
 
-  // ***********************************************
+  // *************************************************************************
 
   const autoResize = (textarea) => {
     textarea.style.height = `${textarea.scrollHeight}px`; // Set height to scrollHeight
@@ -129,11 +131,27 @@ const TextArea = ({ id }) => {
     );
   };
 
-  // ***********************************************
+  // ************************************************************************ 
+    const onClickOutside = () => {
+      dispatch(setActiveNodeList(false));
+    };
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (inputRef.current && !inputRef.current.contains(event.target)) {
+          onClickOutside(); // Call the function when clicking outside
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+    // *****************************************************************************
 
   return (
     <div
-      className={`group flex`}
+      className={`group flex ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       ref={inputRef} // Add the ref to the parent div to detect clicks outside
@@ -142,9 +160,10 @@ const TextArea = ({ id }) => {
       <textarea
         onChange={handleInputChange}
         onClick={onclickHandle}
-        className={`border p-2 w-full rounded focus:outline-none transition-all duration-300 
-          ${isFocused ? "border-gray-300 bg-white" : "border-none bg-transparent"} 
-          ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : "bg-transparent"}`}
+        className={`border p-2 w-full rounded focus:outline-none transition-all duration-300 focus:outline-none focus:ring-0 bg-transparent
+          ${isFocused ? "border rounded border-gray-300" : "border-none bg-transparent"} 
+          ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : "bg-transparent"}
+         `}
         placeholder="Text Area"
         value={val}
         style={{

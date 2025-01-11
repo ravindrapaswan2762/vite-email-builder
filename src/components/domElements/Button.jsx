@@ -1,17 +1,20 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
 import { deleteDroppedItemById, setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
+import { setActiveNodeList } from "../../redux/treeViewSlice";
+import { useRef } from "react";
 
 const Button = ({ id }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
-  // const currentStyles = droppedItems.find((item) => item.id === id)?.styles || {};
-  // console.log("currentStyles: ", currentStyles);
+  const inputRef = useRef(null);
+
 
   // Recursive function to find the styles based on activeWidgetId
   const findStylesById = (items, widgetId) => {
@@ -47,9 +50,28 @@ const Button = ({ id }) => {
   const onMouseEnterHandler = () => setHoveredElement(true);
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
+  // ************************************************************************ 
+    const onClickOutside = () => {
+      dispatch(setActiveNodeList(false));
+    };
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        // Check if the click is outside the input field
+        if (inputRef.current && !inputRef.current.contains(event.target)) {
+          onClickOutside(); // Call the function when clicking outside
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [inputRef]); // Add inputRef to the dependency array
+    // *****************************************************************************
+
   return (
     <div
-      className="flex justify-center w-full"
+      className={`flex justify-center w-full ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
       style={{ backgroundColor: `${currentStyles.backgroundColor || "transparent"}` }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -70,6 +92,7 @@ const Button = ({ id }) => {
       >
         {/* Button Content */}
         <button
+        ref={inputRef}
           onClick={onclickHandle}
           style={{ ...currentStyles, backgroundColor: `${currentStyles.buttonColor || "#1d4ed8"}` }}
           className="relative bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 text-center"

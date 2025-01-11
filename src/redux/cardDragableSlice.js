@@ -300,6 +300,113 @@ const cardDragableSlice = createSlice({
       }
     },
     
+    // replaceDroppedItem: (state, action) => {
+    //   const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
+
+    //   console.log(`draggedNodeId: ${draggedNodeId}, targetNodeId: ${targetNodeId}, parentId: ${parentId}, column: ${parentId}`);
+    
+    //   const findIndexById = (items, id) => items.findIndex((item) => item.id === id);
+    
+    //   // Get the indexes of the dragged and target nodes
+    //   const draggedIndex = findIndexById(state.droppedItems, draggedNodeId);
+    //   const targetIndex = findIndexById(state.droppedItems, targetNodeId);
+    
+    //   if (draggedIndex !== -1 && targetIndex !== -1) {
+    //     // Swap the positions of the dragged and target nodes
+    //     const temp = state.droppedItems[draggedIndex];
+    //     state.droppedItems[draggedIndex] = state.droppedItems[targetIndex];
+    //     state.droppedItems[targetIndex] = temp;
+
+    //     console.log("droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    //   }
+
+    // },
+    
+    replaceDroppedItem: (state, action) => {
+      const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
+    
+      console.log(
+        `draggedNodeId: ${draggedNodeId}, targetNodeId: ${targetNodeId}, parentId: ${parentId}, column: ${column}`
+      );
+    
+      const findAndSwap = (items, parentId, column, draggedNodeId, targetNodeId) => {
+        // If swapping within a column of a parent
+        if (parentId && column) {
+          return items.map((item) => {
+            if (item.id === parentId) {
+              const columnItems = [...item[column]];
+              const draggedIndex = columnItems.findIndex((child) => child.id === draggedNodeId);
+              const targetIndex = columnItems.findIndex((child) => child.id === targetNodeId);
+    
+              if (draggedIndex !== -1 && targetIndex !== -1) {
+                // Swap the two items
+                const temp = columnItems[draggedIndex];
+                columnItems[draggedIndex] = columnItems[targetIndex];
+                columnItems[targetIndex] = temp;
+    
+                console.log(`Swapped in column: ${column}`);
+              }
+    
+              return { ...item, [column]: columnItems };
+            }
+            return item;
+          });
+        }
+    
+        // If swapping at the parent level or between unrelated nodes
+        if (!parentId && !column) {
+          const draggedIndex = items.findIndex((item) => item.id === draggedNodeId);
+          const targetIndex = items.findIndex((item) => item.id === targetNodeId);
+    
+          if (draggedIndex !== -1 && targetIndex !== -1) {
+            const temp = items[draggedIndex];
+            items[draggedIndex] = items[targetIndex];
+            items[targetIndex] = temp;
+    
+            console.log(`Swapped at the top level`);
+          }
+    
+          return items;
+        }
+    
+        // If swapping in children arrays directly (e.g., for 1-column)
+        if (parentId && !column) {
+          return items.map((item) => {
+            if (item.id === parentId && item.children) {
+              const children = [...item.children];
+              const draggedIndex = children.findIndex((child) => child.id === draggedNodeId);
+              const targetIndex = children.findIndex((child) => child.id === targetNodeId);
+    
+              if (draggedIndex !== -1 && targetIndex !== -1) {
+                const temp = children[draggedIndex];
+                children[draggedIndex] = children[targetIndex];
+                children[targetIndex] = temp;
+    
+                console.log(`Swapped in children of parentId: ${parentId}`);
+              }
+    
+              return { ...item, children };
+            }
+            return item;
+          });
+        }
+    
+        return items;
+      };
+    
+      state.droppedItems = findAndSwap(
+        state.droppedItems,
+        parentId,
+        column,
+        draggedNodeId,
+        targetNodeId
+      );
+    
+      console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    },
+    
+    
+    
     
     
 
@@ -319,6 +426,7 @@ export const {
   saveState,
   clearState,
   updateElementContent,
+  replaceDroppedItem,
 } = cardDragableSlice.actions;
 
 export default cardDragableSlice.reducer;

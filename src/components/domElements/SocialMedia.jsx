@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
+import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 // Icons (Replace these with your actual logo images or imports)
 import { FaFacebook, FaGoogle, FaTwitter } from "react-icons/fa"; // Example using FontAwesome icons
@@ -13,6 +14,7 @@ const SocialMedia = ({ id }) => {
   const containerRef = useRef(null); // Ref for detecting outside clicks
 
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
   // Recursive function to find the styles based on activeWidgetId
@@ -61,6 +63,25 @@ const SocialMedia = ({ id }) => {
     };
   }, []);
 
+
+   // ************************************************************************ 
+    const onClickOutside = () => {
+      dispatch(setActiveNodeList(false));
+    };
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (containerRef.current && !containerRef.current.contains(event.target)) {
+          onClickOutside(); // Call the function when clicking outside
+        }
+      };
+  
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+    // *****************************************************************************
+
   return (
     <div
       ref={containerRef}
@@ -69,8 +90,8 @@ const SocialMedia = ({ id }) => {
           ? "border-2 border-blue-500 bg-gray-100"
           : hoveredElement
           ? "border-dashed border-2 border-blue-500"
-          : "border-transparent"
-      }`}
+          : ""
+      } ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
       style={currentStyles}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}

@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { RxCross2 } from "react-icons/rx";
 import Text from "./Text";
 import Image from "./Image";
@@ -21,6 +21,7 @@ import {  setDroppedItems,
         } from "../../redux/cardDragableSlice";
 
 import { setActiveBorders } from "../../redux/activeBorderSlice";
+import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 // Component Mapping
 const componentMap = {
@@ -36,7 +37,10 @@ const componentMap = {
 const ColumnTwo = ({ handleDelete, id }) => {
   const { activeWidgetId, activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
+
+  const twoColumnRef = useRef(null);
 
   const [childrenA, setChildrenA] = useState([]);
   const [childrenB, setChildrenB] = useState([]);
@@ -152,11 +156,27 @@ const ColumnTwo = ({ handleDelete, id }) => {
         setColumn(null);
       };
   
+
+      // ************************************************************************ 
+      const onClickOutside = () => {
+        dispatch(setActiveNodeList(false));
+      };
+      useEffect(() => {
+        const handleClickOutside = (event) => {
+          if (twoColumnRef.current && !twoColumnRef.current.contains(event.target)) {
+            onClickOutside(); // Call the function when clicking outside
+          }
+        };
     
-    // *****************************************
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+      }, []);
+      // *****************************************************************************
 
   return (
-    <div className="relative grid grid-cols-2 gap-1 transition-all duration-300 group bg-transparent"
+    <div className={`relative grid grid-cols-2 gap-1 group bg-transparent`}
 
         onClick={(e) => {
           e.stopPropagation();
@@ -169,6 +189,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
           ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
           backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
         }}
+
+        ref={twoColumnRef}
     >
       {/* Column A */}
       <div
@@ -180,6 +202,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
         className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${ (isDragging && column==="columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                    ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
                   `}
       >
         {childrenA.map((child) => (
@@ -229,6 +252,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
         className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                    ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
                   `}
       >
         {childrenB.map((child) => (
