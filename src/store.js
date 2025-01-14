@@ -8,6 +8,8 @@ import menubarSlice from './redux/menubarSlice';
 import addTemplateSlice from './redux/addTemplateSlice';
 import activeBorderSlice from './redux/activeBorderSlice';
 import treeViewSlice from './redux/treeViewSlice';
+import exchangeElePosSlice from './redux/exchangeElePosSlice';
+import conditionalCssSlice from './redux/condtionalCssSlice';
 
 
 export const store = configureStore({
@@ -19,6 +21,8 @@ export const store = configureStore({
     addTemplate: addTemplateSlice,
     borderSlice: activeBorderSlice,
     treeViewSlice: treeViewSlice,
+    elementPosition: exchangeElePosSlice,
+    coditionalCssSlice: conditionalCssSlice,
   },
 });
 

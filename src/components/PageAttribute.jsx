@@ -7,6 +7,11 @@ import { setActiveWidgetName } from "../redux/cardDragableSlice";
 import { useDispatch } from "react-redux";
 import { setActiveBorders } from "../redux/activeBorderSlice";
 
+import { setActiveWidgetId } from "../redux/cardDragableSlice";
+import { setActiveParentId } from "../redux/cardDragableSlice";
+import { setActiveColumn } from "../redux/cardDragableSlice";
+import { setColumnOneExtraPadding } from "../redux/condtionalCssSlice";
+
 const PageAttribute = () => {
 
   const dispatch = useDispatch();
@@ -18,6 +23,12 @@ const PageAttribute = () => {
     dispatch(setActiveEditor("pageAttribute"))
 
     dispatch(setActiveBorders(null));
+    
+    dispatch(setActiveWidgetId(null));
+    dispatch(setActiveParentId(null));
+    dispatch(setActiveColumn(null));
+    dispatch(setColumnOneExtraPadding(false));
+
 
   }
 

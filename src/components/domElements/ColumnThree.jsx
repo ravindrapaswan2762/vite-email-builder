@@ -16,11 +16,14 @@ import {
    deleteDroppedItemById, 
    setActiveParentId, 
    setActiveWidgetId,
-   setActiveColumn
+   setActiveColumn,
 } from "../../redux/cardDragableSlice";
 
 import { setActiveBorders } from "../../redux/activeBorderSlice";
 import { setActiveNodeList } from "../../redux/treeViewSlice";
+
+import { AiOutlineDrag } from "react-icons/ai";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 
 
 // Component Mapping
@@ -35,9 +38,9 @@ const componentMap = {
 };
 
 const ColumnThree = ({ handleDelete, id }) => {
-  const { activeWidgetId, activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
-  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
+  const { activeNodeList } = useSelector((state) => state.treeViewSlice);
 
   const dispatch = useDispatch();
 
@@ -77,6 +80,16 @@ const ColumnThree = ({ handleDelete, id }) => {
 
     if (!activeWidgetName) return;
 
+    // Prefill content and styles based on activeWidgetName
+    let content = null;
+    let styles = {};
+    if (activeWidgetName === 'Text') {
+      content = "Lorem Ipsum";
+    } else if (activeWidgetName === 'TextArea') {
+        content = "Liven up your web layout wireframes and mockups with one of these lorem ipsum generators.";
+        styles = {height: "135px"}
+    }
+
     dispatch(
       setDroppedItems({
         id: Date.now(), // Unique ID for the dropped child
@@ -84,10 +97,11 @@ const ColumnThree = ({ handleDelete, id }) => {
         type: "widget",
         parentId: id, // Parent ID to identify the column
         columnName: column, // Specify the column (childrenA, childrenB, or childrenC)
-        content: null,
-        styles: {}, // Additional styles if needed
+        content: content,
+        styles: styles, // Additional styles if needed
       })
     );
+
   };
 
   const handleDragOver = (e) => {
@@ -179,6 +193,42 @@ const ColumnThree = ({ handleDelete, id }) => {
         };
       }, []);
       // *****************************************************************************
+      // element exchange position through ui
+      const onDragStart = (e) => {
+        console.log("onDragStart called in Text");
+        e.stopPropagation();
+        e.dataTransfer.setData(
+          "text/plain",
+          JSON.stringify({
+            id,
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+          })
+        );
+      };
+      
+      const onDrop = (e) => {
+        console.log("onDrop called in Text");
+        e.stopPropagation();
+        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+      
+        // Dispatch the action to replace the item
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          })
+        );
+      };
+      
+      const onDragOver = (e) => {
+        console.log("onDragOver called in Text");
+        e.preventDefault(); // Allow dropping
+      };
+      //******************************************************************************** */ 
+      
 
   return (
     <div className="relative grid grid-cols-3 gap-1 rounded-md transition-all duration-300 bg-transparent"
@@ -195,7 +245,34 @@ const ColumnThree = ({ handleDelete, id }) => {
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
       }}
       ref={threeColumnRef}
+
+      draggable
+      onDragStart={onDragStart}
+      onDragOver={(e)=>{
+        e.stopPropagation();
+        onDragOver(e);
+      }}
+      onDrop={(e)=>{
+        e.stopPropagation();
+        onDrop(e);
+      }}
     >
+
+      {/* Drag Icon */}
+      {(activeWidgetId==id) ? (
+        <AiOutlineDrag
+          style={{
+            position: "absolute",
+            left: "-20px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "grab",
+            zIndex: 10,
+            backgroundColor: "white",
+            borderRadius: "50%", 
+          }}
+        />
+      ) : ""}
       
       {/* Column A */}
       <div
@@ -253,6 +330,7 @@ const ColumnThree = ({ handleDelete, id }) => {
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+
                   `}
       >
   
@@ -300,6 +378,7 @@ const ColumnThree = ({ handleDelete, id }) => {
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${(isDragging && column==="columnC") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+
                   `}
       >
       

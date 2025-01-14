@@ -2,21 +2,29 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
-import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
+import {setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { useRef } from "react";
 
 import img from '../../assets/placeholder.png';
 import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
+import { AiOutlineDrag } from "react-icons/ai";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
+
+import { setActiveWidgetId } from "../../redux/cardDragableSlice";
+import { setActiveParentId } from "../../redux/cardDragableSlice";
+import { setActiveColumn } from "../../redux/cardDragableSlice";
+import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
+
 const Image = ({ id }) => {
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
   const [hoveredElement, setHoveredElement] = useState(false); // State for hover
   const [isFocused, setIsFocused] = useState(false); // State for focus
 
-    const imageRef = useRef(null);
+  const imageRef = useRef(null);
 
-  const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId , activeColumn } = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
 
   // Find the styles associated with the widget by its ID
@@ -87,6 +95,53 @@ const Image = ({ id }) => {
       };
     }, []);
     // *****************************************************************************
+    // element exchange position through ui
+      const onDragStart = (e) => {
+        console.log("onDragStart called in Text");
+        e.stopPropagation();
+        e.dataTransfer.setData(
+          "text/plain",
+          JSON.stringify({
+            id,
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+          })
+        );
+
+        dispatch(setColumnOneExtraPadding(false));
+      };
+      
+      const onDrop = (e) => {
+        e.stopPropagation();
+
+        const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
+        const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
+        if (restrictedWidgets.includes(draggedName)) {
+          alert("Please drop it in an black space.");
+          return;
+        }
+        
+        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          })
+        );
+
+        // initialize the application after exchage the position
+        dispatch(setActiveWidgetId(null));
+        dispatch(setActiveParentId(null));
+        dispatch(setActiveColumn(null));
+      };
+      
+      const onDragOver = (e) => {
+        console.log("onDragOver called in Text");
+        e.preventDefault(); // Allow dropping
+      };
+      //******************************************************************************** */ 
 
   return (
     <div
@@ -98,7 +153,32 @@ const Image = ({ id }) => {
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandler}
+
+      draggable
+      onDragStart={onDragStart}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+
     >
+
+      {/* Drag Icon */}
+      {(activeWidgetId==id) ? (
+        <AiOutlineDrag
+          style={{
+            position: "absolute",
+            // left: "-10px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "grab",
+            zIndex: 10,
+            backgroundColor: "white",
+            borderRadius: "50%",
+          }}
+          // className="bg-gray-100"
+        />
+      ) : ""}
+      
+
       {/* Image or Placeholder */}
       {currentStyles.imageUrl ? (
         <a 

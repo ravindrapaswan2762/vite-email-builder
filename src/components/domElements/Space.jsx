@@ -1,16 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { setActiveWidgetName, setActiveWidgetId } from "../../redux/cardDragableSlice";
+import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
+
+import { AiOutlineDrag } from "react-icons/ai";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
+
+import { setActiveWidgetId } from "../../redux/cardDragableSlice";
+import { setActiveParentId } from "../../redux/cardDragableSlice";
+import { setActiveColumn } from "../../redux/cardDragableSlice";
+import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 
 const Space = ({ id }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const containerRef = useRef(null); // Ref for detecting outside clicks
 
-  const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
@@ -47,21 +55,6 @@ const Space = ({ id }) => {
   const onMouseEnterHandler = () => setHoveredElement(true);
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
-  const handleClickOutside = (e) => {
-    if (containerRef.current && !containerRef.current.contains(e.target)) {
-      setIsFocused(false); // Remove focus
-    }
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-
-
   // ************************************************************************ 
     const onClickOutside = () => {
       dispatch(setActiveNodeList(false));
@@ -79,22 +72,91 @@ const Space = ({ id }) => {
       };
     }, []);
     // *****************************************************************************
+    // element exchange position through ui
+      const onDragStart = (e) => {
+        console.log("onDragStart called in Text");
+        e.stopPropagation();
+        e.dataTransfer.setData(
+          "text/plain",
+          JSON.stringify({
+            id,
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+          })
+        );
+
+        dispatch(setColumnOneExtraPadding(false));
+      };
+      
+      const onDrop = (e) => {
+        e.stopPropagation();
+
+        const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
+        const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
+        if (restrictedWidgets.includes(draggedName)) {
+          alert("Please drop it in an black space.");
+          return;
+        }
+
+        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          })
+        );
+
+        // initialize the application after exchage the position
+        dispatch(setActiveWidgetId(null));
+        dispatch(setActiveParentId(null));
+        dispatch(setActiveColumn(null));
+      };
+      
+      const onDragOver = (e) => {
+        console.log("onDragOver called in Text");
+        e.preventDefault(); // Allow dropping
+      };
+      //******************************************************************************** */ 
 
   return (
     <div
       ref={containerRef}
-      className={`w-full h-4 ${
-        isFocused
-          ? "border-2 border-blue-500 bg-gray-100"
-          : hoveredElement
-          ? "border-dashed border-2 border-blue-500"
-          : ""
-      }  ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
+      className={`w-full h-4 
+        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""} 
+        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+      `}
+
       style={currentStyles}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}
-    ></div>
+
+      draggable
+      onDragStart={onDragStart}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+
+    >
+      {/* Drag Icon */}
+      {(activeWidgetId==id) ? (
+        <AiOutlineDrag
+          style={{
+            position: "absolute",
+            left: "-10px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "grab",
+            zIndex: 10,
+            backgroundColor: "white",
+            borderRadius: "50%",
+          }}
+          // className="bg-gray-100"
+        />
+      ) : ""}
+      
+    </div>
   );
 };
 

@@ -18,6 +18,11 @@ import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWid
 import { setActiveBorders } from "../../redux/activeBorderSlice";
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
+import { AiOutlineDrag } from "react-icons/ai";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
+import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
+
+
 // Component Mapping
 const componentMap = {
   Text: (props) => <Text {...props} />,
@@ -30,9 +35,11 @@ const componentMap = {
 };
 
 const ColumnOne = ({ handleDelete, id }) => {
-  const { activeWidgetId, activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
+  const {columnOneExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+
 
   const oneColumnRef = useRef(null);
   
@@ -47,26 +54,40 @@ const ColumnOne = ({ handleDelete, id }) => {
 
   // Handle Drop
   const handleDrop = (e) => {
-    e.preventDefault();
+    // e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
     console.log("handleDrop called");
+
+  
     if (!activeWidgetName) return;
+
+    const defaultContent =
+            activeWidgetName === "Text"
+              ? "Design Beautiful Emails."
+              : activeWidgetName === "TextArea"
+              ? "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns."
+              : null; // Default to null if no specific content is needed
+    
     dispatch(
       setDroppedItems({
         id: Date.now(), // Unique ID
         name: activeWidgetName,
         type: "widget", // Only widgets can be added here
         parentId: id, // Associate with this column
-        content: null,
+        content: defaultContent,
         styles: {},
       })
     );
+
+    onDrop(e); 
+    dispatch(setColumnOneExtraPadding(false));
 
   };
 
   const handleDragOver = (e) => {
     e.preventDefault();
+    onDragOver(e);
   };
 
   const handleDeleteChild = (childId) => {
@@ -127,6 +148,8 @@ const ColumnOne = ({ handleDelete, id }) => {
     setIsDragging(true); // NEW: Trigger only once when the element enters
 
     dispatch(dispatch(setActiveBorders(true)));
+    dispatch(setColumnOneExtraPadding(true));
+
   };
   
   const handleDragLeave = () => {
@@ -137,7 +160,9 @@ const ColumnOne = ({ handleDelete, id }) => {
 
    // ************************************************************************ 
     const onClickOutside = () => {
+      console.log("onClickOutside called");
       dispatch(setActiveNodeList(false));
+      dispatch(setColumnOneExtraPadding(false));
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -152,6 +177,42 @@ const ColumnOne = ({ handleDelete, id }) => {
       };
     }, []);
     // *****************************************************************************
+    // element exchange position through ui
+    const onDragStart = (e) => {
+      console.log("onDragStart called in Text");
+      e.stopPropagation();
+      e.dataTransfer.setData(
+        "text/plain",
+        JSON.stringify({
+          id,
+          parentId: activeParentId || null,
+          column: activeColumn || null,
+        })
+      );
+    };
+    
+    const onDrop = (e) => {
+      e.stopPropagation();
+
+      console.log("onDrop called in Text");
+      const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+    
+      // Dispatch the action to replace the item
+      dispatch(
+        replaceDroppedItem({
+          parentId: activeParentId || null,
+          column: activeColumn || null,
+          draggedNodeId: droppedData.id,
+          targetNodeId: id,
+        })
+      );
+    };
+    
+    const onDragOver = (e) => {
+      console.log("onDragOver called in Text");
+      e.preventDefault(); // Allow dropping
+    };
+    //******************************************************************************** */ 
 
   return (
     <div
@@ -165,7 +226,7 @@ const ColumnOne = ({ handleDelete, id }) => {
       onDragEnter={handleDragEnter} 
       onDragLeave={handleDragLeave}
    
-      className="text-center min-h-[150px] relative group"
+      className={`text-center min-h-[150px] relative group`}
       onClick={(e) => {
         e.stopPropagation();
         dispatch(setActiveWidgetId(id));
@@ -178,14 +239,35 @@ const ColumnOne = ({ handleDelete, id }) => {
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
       }}
 
-      // access the background image url from currentStyles and set it, if exist background image url.
+      draggable
+      onDragStart={onDragStart}
 
       
     >
+
+      {/* Drag Icon */}
+      {(activeWidgetId==id) ? (
+        <AiOutlineDrag
+          style={{
+            position: "absolute",
+            left: "-20px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "grab",
+            zIndex: 10,
+            backgroundColor: "white",
+            borderRadius: "50%", 
+          }}
+          // className="bg-gray-100"
+        />
+      ) : ""}
+
+
       <div className={`rounded-md text-center hover:border-2 hover:border-dashed hover:border-blue-400 min-h-[150px] p-1
                       ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'} 
                       ${isDragging ? "bg-blue-100 border-blue-400" : ""}
                       ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                      ${columnOneExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
                       `}>
 
         {/* Render Children */}

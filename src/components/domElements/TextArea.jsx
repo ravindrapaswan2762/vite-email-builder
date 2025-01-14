@@ -2,13 +2,22 @@ import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
-import { setActiveWidgetId, setActiveWidgetName } from "../../redux/cardDragableSlice";
+import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { updateElementContent, updateElementStyles } from "../../redux/cardDragableSlice";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
+import { AiOutlineDrag } from "react-icons/ai";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
+
+import { setActiveWidgetId } from "../../redux/cardDragableSlice";
+import { setActiveParentId } from "../../redux/cardDragableSlice";
+import { setActiveColumn } from "../../redux/cardDragableSlice";
+
+
+
 const TextArea = ({ id }) => {
-  const [val, setVal] = useState("Make it easy for everyone to compose emails Make it easy for everyone to compose emails!");
+  const [val, setVal] = useState("");
   const [hoveredElement, setHoveredElement] = useState(false); // Hover state
   const [isFocused, setIsFocused] = useState(false); // Focus state
   const inputRef = useRef(null); // Ref for detecting clicks outside
@@ -148,6 +157,58 @@ const TextArea = ({ id }) => {
       };
     }, []);
     // *****************************************************************************
+      // element exchange position through ui
+      const onDragStart = (e) => {
+        console.log("onDragStart called in Text");
+        e.stopPropagation();
+
+        e.dataTransfer.setData(
+          "text/plain",
+          JSON.stringify({
+            id,
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+          })
+        );
+
+        dispatch(setColumnOneExtraPadding(false));
+
+      };
+      
+      const onDrop = (e) => {
+        e.stopPropagation();
+
+        const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
+        const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
+        if (restrictedWidgets.includes(draggedName)) {
+          alert("Please drop it in an black space.");
+          return;
+        }
+
+        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+        console.log("droppedData in textarea: ", droppedData);
+        
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          })
+        );
+
+        // initialize the application after exchage the position
+        dispatch(setActiveWidgetId(null));
+        dispatch(setActiveParentId(null));
+        dispatch(setActiveColumn(null));
+        dispatch(setColumnOneExtraPadding(false));
+      };
+      
+      const onDragOver = (e) => {
+        e.preventDefault(); // Allow dropping
+      };
+      //******************************************************************************** */ 
 
   return (
     <div
@@ -155,7 +216,31 @@ const TextArea = ({ id }) => {
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       ref={inputRef} // Add the ref to the parent div to detect clicks outside
+
+      draggable
+      onDragStart={onDragStart}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
     >
+
+      {/* Drag Icon */}
+      {(activeWidgetId==id) ? (
+        <AiOutlineDrag
+          style={{
+            position: "absolute",
+            left: "-10px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "grab",
+            zIndex: 10,
+            backgroundColor: "white",
+            borderRadius: "50%",
+          }}
+          // className="bg-gray-100"
+        />
+      ) : ""}
+
+
       {/* Text Area */}
       <textarea
         onChange={handleInputChange}

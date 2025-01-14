@@ -23,6 +23,12 @@ import {  setDroppedItems,
 import { setActiveBorders } from "../../redux/activeBorderSlice";
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
+import { AiOutlineDrag } from "react-icons/ai";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
+import { height } from "@mui/system";
+import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
+
+
 // Component Mapping
 const componentMap = {
   Text: (props) => <Text {...props} />,
@@ -35,9 +41,12 @@ const componentMap = {
 };
 
 const ColumnTwo = ({ handleDelete, id }) => {
-  const { activeWidgetId, activeWidgetName, droppedItems } = useSelector((state) => state.cardDragable);
+
+  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn  } = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
+    const {columnTwoExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+
   const dispatch = useDispatch();
 
   const twoColumnRef = useRef(null);
@@ -61,6 +70,9 @@ const ColumnTwo = ({ handleDelete, id }) => {
   }, [droppedItems, id]);
 
   const handleDrop = (column) => (e) => {
+    console.log("handleDrop************: ", column);
+    console.log("activeWidgetName**********: ", activeWidgetName);
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -69,6 +81,16 @@ const ColumnTwo = ({ handleDelete, id }) => {
 
     if (!activeWidgetName) return;
 
+    // Prefill content and styles based on activeWidgetName
+    let content = null;
+    let styles = {};
+    if (activeWidgetName === 'Text') {
+      content = "Lorem Ipsum";
+    } else if (activeWidgetName === 'TextArea') {
+        content = "Liven up your web layout wireframes and mockups with one of these lorem ipsum generators.";
+        styles = {height: "85px"}
+    }
+
     dispatch(
       setDroppedItems({
         id: Date.now(), // Unique ID for the dropped child
@@ -76,10 +98,12 @@ const ColumnTwo = ({ handleDelete, id }) => {
         type: "widget",
         parentId: id, // Parent ID to identify the column
         columnName: column, // Specify the column (childrenA or childrenB)
-        content: null,
-        styles: {}, // Additional styles if needed
+        content: content,
+        styles: styles, // Additional styles if needed
       })
     );
+
+    dispatch(setColumnTwoExtraPadding(false));
   };
 
   const handleDragOver = (e) => {
@@ -140,6 +164,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
   // ***************************************** write extra logic for hilight drop area while dragEnter
       const [isDragging, setIsDragging] = useState(false); // NEW: Track if an element is being dragged into the column
       const [column, setColumn] = useState(null);
+
       const handleDragEnter = (column) => {
         console.log("handleDragEnter called", column);
         if (!isDragging || !column) {
@@ -148,6 +173,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
         }
         
         dispatch(dispatch(setActiveBorders(true)));
+        dispatch(setColumnTwoExtraPadding(true));
+        console.log("columnTwoExtraPadding: ", columnTwoExtraPadding);
       };
       
       const handleDragLeave = () => {
@@ -160,6 +187,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
       // ************************************************************************ 
       const onClickOutside = () => {
         dispatch(setActiveNodeList(false));
+        dispatch(setColumnTwoExtraPadding(false));
       };
       useEffect(() => {
         const handleClickOutside = (event) => {
@@ -174,6 +202,38 @@ const ColumnTwo = ({ handleDelete, id }) => {
         };
       }, []);
       // *****************************************************************************
+      // element exchange position through ui
+      const onDragStart = (e) => {
+        e.stopPropagation();
+        e.dataTransfer.setData(
+          "text/plain",
+          JSON.stringify({
+            id,
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+          })
+        );
+      };
+      
+      const onDrop = (e) => {
+        e.stopPropagation();
+        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+      
+        // Dispatch the action to replace the item
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          })
+        );
+      };
+      
+      const onDragOver = (e) => {
+        e.preventDefault(); // Allow dropping
+      };
+      //******************************************************************************** */ 
 
   return (
     <div className={`relative grid grid-cols-2 gap-1 group bg-transparent`}
@@ -191,7 +251,37 @@ const ColumnTwo = ({ handleDelete, id }) => {
         }}
 
         ref={twoColumnRef}
+
+        draggable
+        onDragStart={onDragStart}
+        onDragOver={(e)=>{
+          e.stopPropagation();
+          onDragOver(e);
+        }}
+        onDrop={(e)=>{
+          e.stopPropagation();
+          onDrop(e);
+        }}
     >
+
+      {/* Drag Icon */}
+      {(activeWidgetId==id) ? (
+        <AiOutlineDrag
+          style={{
+            position: "absolute",
+            left: "-20px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "grab",
+            zIndex: 10,
+            backgroundColor: "white",
+            borderRadius: "50%", 
+          }}
+          // className="bg-gray-100"
+        />
+      ) : ""}
+
+
       {/* Column A */}
       <div
         onDrop={handleDrop("columnA")}
@@ -203,6 +293,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${ (isDragging && column==="columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                    ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
                   `}
       >
         {childrenA.map((child) => (
@@ -253,6 +344,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                    ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
                   `}
       >
         {childrenB.map((child) => (

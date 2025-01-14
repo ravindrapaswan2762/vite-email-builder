@@ -45,20 +45,30 @@ const WrapperAttribute = () => {
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
+
     if (!activeWidgetName) return;
+
+    const defaultContent =
+            activeWidgetName === "Text"
+              ? "Design Beautiful Emails."
+              : activeWidgetName === "TextArea"
+              ? "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns."
+              : null; // Default to null if no specific content is needed
+      
     dispatch(
       setDroppedItems({
         id: Date.now(),
         name: activeWidgetName,
         type: activeWidgetName.includes("column") ? activeWidgetName : "widget",
         parentId: null,
-        content: null,
+        content: defaultContent,
         styles: {},
       })
     );
     dispatch(setActiveEditor(activeWidgetName));
     dispatch(setActiveWidgetName(activeWidgetName));
     dispatch(setActiveWidgetId(activeWidgetId));
+    dispatch(setActiveExtraPadding(false));
   };
 
   const handleShowSourceCode = () => {
@@ -151,16 +161,53 @@ const WrapperAttribute = () => {
   
 
   return (
+    // <div
+    //   onDragOver={(e) => e.preventDefault()}
+    //   onDrop={handleDrop}
+    //   className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all pb-[50px] h-auto"
+      
+    // >
+    //   {droppedItems.map((item) => renderWidget(item.id, item.name))}
+
+    //   {/* Add Button */}
+    //   <div className="flex justify-center mt-4 relative">
+    //     <button
+    //       className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
+    //       onClick={togglePopup} // Handle click and prevent propagation
+    //     >
+    //       <FiGrid className="text-2xl" /> {/* Column popup Icon */}
+    //     </button>
+    //   </div>
+
+    //   {/* Structure Popup */}
+    //   {showPopup && (
+    //     <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
+    //   )}
+
+    // </div>
+
     <div
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
-      className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all pb-[50px] h-auto"
-      
+      onDragEnter={()=>{
+        
+      }}
+      className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all pb-[50px] h-auto
+      `}
     >
+      {/* Render Dropped Items */}
       {droppedItems.map((item) => renderWidget(item.id, item.name))}
 
+      {/* Structure Popup */}
+      {showPopup && (
+        <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
+      )}
+
       {/* Add Button */}
-      <div className="flex justify-center mt-4 relative">
+      <div
+        className="absolute left-1/2 transform -translate-x-1/2 mt-4"
+        style={{ bottom: "-55px" }} // Adjust this value to control spacing from the bottom of the parent div
+      >
         <button
           className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
           onClick={togglePopup} // Handle click and prevent propagation
@@ -168,13 +215,10 @@ const WrapperAttribute = () => {
           <FiGrid className="text-2xl" /> {/* Column popup Icon */}
         </button>
       </div>
-
-      {/* Structure Popup */}
-      {showPopup && (
-        <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
-      )}
-
     </div>
+
+
+
   );
 };
 
