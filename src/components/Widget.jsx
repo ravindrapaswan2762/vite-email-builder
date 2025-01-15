@@ -15,8 +15,15 @@ const Widget = ({ id, name, icon: Icon }) => {
     <div
       draggable
       onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", name); // Pass widget ID
+        // e.dataTransfer.setData("text/plain", name); // Pass widget ID
+        e.dataTransfer.setData(
+          "text/plain",
+          JSON.stringify({
+            name
+          })
+        );
         e.dataTransfer.effectAllowed = "move"; // Allow move
+        
         dispatch(setActiveWidgetName(name));
       }}
       

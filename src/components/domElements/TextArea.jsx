@@ -14,6 +14,11 @@ import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
 
+import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+
 
 
 const TextArea = ({ id }) => {
@@ -170,9 +175,6 @@ const TextArea = ({ id }) => {
             column: activeColumn || null,
           })
         );
-
-        dispatch(setColumnOneExtraPadding(false));
-
       };
       
       const onDrop = (e) => {
@@ -202,7 +204,12 @@ const TextArea = ({ id }) => {
         dispatch(setActiveWidgetId(null));
         dispatch(setActiveParentId(null));
         dispatch(setActiveColumn(null));
+        
         dispatch(setColumnOneExtraPadding(false));
+        dispatch(setColumnTwoExtraPadding(false));
+        dispatch(setColumnThreeExtraPadding(false));
+        dispatch(setWrapperExtraPadding(false));
+
       };
       
       const onDragOver = (e) => {

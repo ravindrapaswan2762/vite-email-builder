@@ -26,7 +26,13 @@ import { setActiveNodeList } from "../../redux/treeViewSlice";
 import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 import { height } from "@mui/system";
+
+
+import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+
 
 
 // Component Mapping
@@ -45,7 +51,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
   const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn  } = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
-    const {columnTwoExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+  const {columnTwoExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
   const dispatch = useDispatch();
 
@@ -70,9 +76,6 @@ const ColumnTwo = ({ handleDelete, id }) => {
   }, [droppedItems, id]);
 
   const handleDrop = (column) => (e) => {
-    console.log("handleDrop************: ", column);
-    console.log("activeWidgetName**********: ", activeWidgetName);
-
     e.preventDefault();
     e.stopPropagation();
 
@@ -91,19 +94,46 @@ const ColumnTwo = ({ handleDelete, id }) => {
         styles = {height: "85px"}
     }
 
-    dispatch(
-      setDroppedItems({
-        id: Date.now(), // Unique ID for the dropped child
-        name: activeWidgetName,
-        type: "widget",
-        parentId: id, // Parent ID to identify the column
-        columnName: column, // Specify the column (childrenA or childrenB)
-        content: content,
-        styles: styles, // Additional styles if needed
-      })
-    );
+    // Safely parse dropped data
+    let droppedData = null;
+    try {
+      droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+    } catch (error) {
+      console.error("Failed to parse dropped data:", error);
+      return;
+    }
 
+    console.log("droppedData*******************************************: ", droppedData);
+    console.log("droppedData.name***************************************: ", droppedData?.name);
+
+    if(!['1-column','2-columns', '3-columns'].includes(droppedData?.name)){
+      dispatch(
+        setDroppedItems({
+          id: Date.now(), // Unique ID for the dropped child
+          name: activeWidgetName,
+          type: "widget",
+          parentId: id, // Parent ID to identify the column
+          columnName: column, // Specify the column (childrenA or childrenB)
+          content: content,
+          styles: styles, // Additional styles if needed
+        })
+      );
+    }
+
+
+    dispatch(setActiveWidgetId(null));
+    dispatch(setActiveParentId(null));
+    dispatch(setActiveColumn(null));
+
+    dispatch(setColumnOneExtraPadding(false));
     dispatch(setColumnTwoExtraPadding(false));
+    dispatch(setColumnThreeExtraPadding(false));
+    dispatch(setWrapperExtraPadding(false));
+
+    if (onDrop) {
+      onDrop(e);
+    }
+
   };
 
   const handleDragOver = (e) => {
@@ -111,7 +141,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
   };
 
   const handleDeleteChild = (column, childId) => {
-    console.log(`parentId: ${id}, childId: ${childId}, columnName: ${column} from handleDeleteChild ColumnTwo`);
+    // console.log(`parentId: ${id}, childId: ${childId}, columnName: ${column} from handleDeleteChild ColumnTwo`);
     dispatch(
       deleteDroppedItemById({
         parentId: id,
@@ -122,7 +152,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
   };
 
   const onclickHandler = (id, childId, column) => {
-    console.log("Parent Column clicked, ID:", id);
+    // console.log("Parent Column clicked, ID:", id);
     dispatch(setActiveParentId(id));
     dispatch(setActiveWidgetId(childId));
     dispatch(setActiveColumn(column));
@@ -166,7 +196,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
       const [column, setColumn] = useState(null);
 
       const handleDragEnter = (column) => {
-        console.log("handleDragEnter called", column);
+        // console.log("handleDragEnter called", column);
         if (!isDragging || !column) {
           setIsDragging(true);
           setColumn(column);
@@ -174,11 +204,11 @@ const ColumnTwo = ({ handleDelete, id }) => {
         
         dispatch(dispatch(setActiveBorders(true)));
         dispatch(setColumnTwoExtraPadding(true));
-        console.log("columnTwoExtraPadding: ", columnTwoExtraPadding);
+        // console.log("columnTwoExtraPadding: ", columnTwoExtraPadding);
       };
       
       const handleDragLeave = () => {
-        console.log("handleDragLeave called");
+        // console.log("handleDragLeave called");
         setIsDragging(false);
         setColumn(null);
       };
@@ -201,33 +231,51 @@ const ColumnTwo = ({ handleDelete, id }) => {
           document.removeEventListener("mousedown", handleClickOutside);
         };
       }, []);
-      // *****************************************************************************
-      // element exchange position through ui
+      // ***************************************************************************** element exchange position through ui
       const onDragStart = (e) => {
         e.stopPropagation();
         e.dataTransfer.setData(
           "text/plain",
           JSON.stringify({
             id,
-            parentId: activeParentId || null,
-            column: activeColumn || null,
+            name: "2-columns"
           })
         );
       };
       
       const onDrop = (e) => {
         e.stopPropagation();
+
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-      
-        // Dispatch the action to replace the item
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
+        console.log("droppedData: ", droppedData);
+        console.log("droppedData.name: ", droppedData.name);
+
+        const restrictedWidgets = ["1-column", "3-columns"];
+
+        if (droppedData.name && restrictedWidgets.includes(droppedData.name)) {
+
+          dispatch(
+            replaceDroppedItem({
+              parentId: null,
+              column: null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            })
+          )
+
+        }
+        else{
+
+          dispatch(
+            replaceDroppedItem({
+              parentId: activeParentId || null,
+              column: activeColumn || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            })
+          );
+
+        }
       };
       
       const onDragOver = (e) => {
@@ -257,10 +305,6 @@ const ColumnTwo = ({ handleDelete, id }) => {
         onDragOver={(e)=>{
           e.stopPropagation();
           onDragOver(e);
-        }}
-        onDrop={(e)=>{
-          e.stopPropagation();
-          onDrop(e);
         }}
     >
 

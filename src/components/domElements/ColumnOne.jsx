@@ -14,13 +14,18 @@ import { setActiveWidgetName, setActiveColumn} from "../../redux/cardDragableSli
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 
 import { useDispatch, useSelector } from "react-redux";
-import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId } from "../../redux/cardDragableSlice";
+import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId} from "../../redux/cardDragableSlice";
 import { setActiveBorders } from "../../redux/activeBorderSlice";
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
+
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+
 
 
 // Component Mapping
@@ -57,7 +62,7 @@ const ColumnOne = ({ handleDelete, id }) => {
     // e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    console.log("handleDrop called");
+    // console.log("handleDrop called");
 
   
     if (!activeWidgetName) return;
@@ -67,21 +72,45 @@ const ColumnOne = ({ handleDelete, id }) => {
               ? "Design Beautiful Emails."
               : activeWidgetName === "TextArea"
               ? "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns."
-              : null; // Default to null if no specific content is needed
-    
-    dispatch(
-      setDroppedItems({
-        id: Date.now(), // Unique ID
-        name: activeWidgetName,
-        type: "widget", // Only widgets can be added here
-        parentId: id, // Associate with this column
-        content: defaultContent,
-        styles: {},
-      })
-    );
+              : null; // Default to null if no specific content is neededcc
 
-    onDrop(e); 
+    // Safely parse dropped data
+    let droppedData = null;
+    try {
+      droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+    } catch (error) {
+      console.error("Failed to parse dropped data:", error);
+      return;
+    }
+
+    console.log("droppedData: ", droppedData);
+    console.log("droppedData.name: ", droppedData?.name);
+
+    if(!['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
+      dispatch(
+        setDroppedItems({
+          id: Date.now(), // Unique ID for the dropped child
+          name: activeWidgetName,
+          type: "widget",
+          parentId: id, // Parent ID to identify the column
+          content: defaultContent,
+          styles: {}, // Additional styles if needed
+        })
+      );
+    }
+
+    dispatch(setActiveWidgetId(null));
+    dispatch(setActiveParentId(null));
+    dispatch(setActiveColumn(null));
+    
     dispatch(setColumnOneExtraPadding(false));
+    dispatch(setColumnTwoExtraPadding(false));
+    dispatch(setColumnThreeExtraPadding(false));
+    dispatch(setWrapperExtraPadding(false));
+
+    if (onDrop) {
+      onDrop(e);
+    }
 
   };
 
@@ -101,7 +130,7 @@ const ColumnOne = ({ handleDelete, id }) => {
 
  
   const onclickHandler = (id, childId) => {
-    console.log("Parent Column clicked, ID:", id);
+    // console.log("Parent Column clicked, ID:", id);
     dispatch(setActiveParentId(id));
     dispatch(setActiveWidgetId(childId));
     dispatch(setActiveColumn(""));
@@ -144,7 +173,7 @@ const ColumnOne = ({ handleDelete, id }) => {
   const [isDragging, setIsDragging] = useState(false); // NEW: Track if an element is being dragged into the column
 
   const handleDragEnter = () => {
-    console.log("handleDragEnter called");
+    // console.log("handleDragEnter called");
     setIsDragging(true); // NEW: Trigger only once when the element enters
 
     dispatch(dispatch(setActiveBorders(true)));
@@ -153,14 +182,14 @@ const ColumnOne = ({ handleDelete, id }) => {
   };
   
   const handleDragLeave = () => {
-    console.log("handleDragLeave called");
+    // console.log("handleDragLeave called");
     setIsDragging(false); // NEW: Reset when the draggable element leaves
   };
   
 
    // ************************************************************************ 
     const onClickOutside = () => {
-      console.log("onClickOutside called");
+      // console.log("onClickOutside called");
       dispatch(setActiveNodeList(false));
       dispatch(setColumnOneExtraPadding(false));
     };
@@ -176,40 +205,58 @@ const ColumnOne = ({ handleDelete, id }) => {
         document.removeEventListener("mousedown", handleClickOutside);
       };
     }, []);
-    // *****************************************************************************
-    // element exchange position through ui
+    // ***************************************************************************** element exchange position through ui
     const onDragStart = (e) => {
-      console.log("onDragStart called in Text");
+      // console.log("onDragStart called in Text");
       e.stopPropagation();
       e.dataTransfer.setData(
         "text/plain",
         JSON.stringify({
-          id,
-          parentId: activeParentId || null,
-          column: activeColumn || null,
+            id,
+            name: "1-column"
         })
       );
+      e.dataTransfer.effectAllowed = "move";
+    
     };
     
     const onDrop = (e) => {
       e.stopPropagation();
 
-      console.log("onDrop called in Text");
       const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-    
-      // Dispatch the action to replace the item
-      dispatch(
-        replaceDroppedItem({
-          parentId: activeParentId || null,
-          column: activeColumn || null,
-          draggedNodeId: droppedData.id,
-          targetNodeId: id,
-        })
-      );
+      console.log("droppedData: ", droppedData);
+      console.log("droppedData.name: ", droppedData.name);
+
+      const restrictedWidgets = ["2-columns", "3-columns"];
+
+      if (droppedData.name && restrictedWidgets.includes(droppedData.name)) {
+
+        dispatch(
+          replaceDroppedItem({
+            parentId: null,
+            column: null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          })
+        )
+
+      }
+      else{
+
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          })
+        );
+
+      }
     };
     
     const onDragOver = (e) => {
-      console.log("onDragOver called in Text");
+      // console.log("onDragOver called in Text");
       e.preventDefault(); // Allow dropping
     };
     //******************************************************************************** */ 

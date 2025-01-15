@@ -13,7 +13,11 @@ import { replaceDroppedItem} from "../../redux/cardDragableSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
+
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
 
 const Text = ({ id }) => {
@@ -153,12 +157,12 @@ const Text = ({ id }) => {
       })
     );
 
-    dispatch(setColumnOneExtraPadding(false));
   };
   
   const onDrop = (e) => {
     e.stopPropagation();
 
+    // for changing position
     const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
     const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
     if (restrictedWidgets.includes(draggedName)) {
@@ -166,8 +170,9 @@ const Text = ({ id }) => {
       return;
     }
 
+    // for droped widgets from left panel
     const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-    // Dispatch the action to replace the item
+
     dispatch(
       replaceDroppedItem({
         parentId: activeParentId || null,
@@ -181,7 +186,12 @@ const Text = ({ id }) => {
     dispatch(setActiveWidgetId(null));
     dispatch(setActiveParentId(null));
     dispatch(setActiveColumn(null));
+
     dispatch(setColumnOneExtraPadding(false));
+    dispatch(setColumnTwoExtraPadding(false));
+    dispatch(setColumnThreeExtraPadding(false));
+    dispatch(setWrapperExtraPadding(false));
+
   };
   
   const onDragOver = (e) => {

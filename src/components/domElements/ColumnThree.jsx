@@ -26,6 +26,12 @@ import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 
 
+import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+
+
 // Component Mapping
 const componentMap = {
   Text: (props) => <Text {...props} />,
@@ -39,8 +45,10 @@ const componentMap = {
 
 const ColumnThree = ({ handleDelete, id }) => {
   const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
+
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const { activeNodeList } = useSelector((state) => state.treeViewSlice);
+  const {columnThreeExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
   const dispatch = useDispatch();
 
@@ -73,7 +81,7 @@ const ColumnThree = ({ handleDelete, id }) => {
   const handleDrop = (column) => (e) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log("column: ", column);
+    // console.log("column: ", column);
 
     setIsDragging(false); // for hovering box while draging
     setColumn(null); // for hovering box while draging
@@ -90,17 +98,44 @@ const ColumnThree = ({ handleDelete, id }) => {
         styles = {height: "135px"}
     }
 
-    dispatch(
-      setDroppedItems({
-        id: Date.now(), // Unique ID for the dropped child
-        name: activeWidgetName,
-        type: "widget",
-        parentId: id, // Parent ID to identify the column
-        columnName: column, // Specify the column (childrenA, childrenB, or childrenC)
-        content: content,
-        styles: styles, // Additional styles if needed
-      })
-    );
+    // Safely parse dropped data
+    let droppedData = null;
+    try {
+      droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+    } catch (error) {
+      console.error("Failed to parse dropped data:", error);
+      return;
+    }
+
+    console.log("droppedData********************************************************: ", droppedData);
+    console.log("droppedData.name***************************************************: ", droppedData?.name);
+
+    if(!['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
+      dispatch(
+        setDroppedItems({
+          id: Date.now(), // Unique ID for the dropped child
+          name: activeWidgetName,
+          type: "widget",
+          parentId: id, // Parent ID to identify the column
+          columnName: column, // Specify the column (childrenA or childrenB)
+          content: content,
+          styles: styles, // Additional styles if needed
+        })
+      );
+    }
+
+    dispatch(setActiveWidgetId(null));
+    dispatch(setActiveParentId(null));
+    dispatch(setActiveColumn(null));
+
+    dispatch(setColumnOneExtraPadding(false));
+    dispatch(setColumnTwoExtraPadding(false));
+    dispatch(setColumnThreeExtraPadding(false));
+    dispatch(setWrapperExtraPadding(false));
+
+    if (onDrop) {
+      onDrop(e);
+    }
 
   };
 
@@ -119,7 +154,7 @@ const ColumnThree = ({ handleDelete, id }) => {
   };
 
   const onclickHandler = (id, childId, column) => {
-    console.log("Parent Column clicked, ID:", id);
+    // console.log("Parent Column clicked, ID:", id);
     dispatch(setActiveParentId(id));
     dispatch(setActiveWidgetId(childId));
     dispatch(setActiveColumn(column));
@@ -161,17 +196,18 @@ const ColumnThree = ({ handleDelete, id }) => {
       const [column, setColumn] = useState(null);
 
         const handleDragEnter = (column) => {
-          console.log("handleDragEnter called");
+          // console.log("columnThree handleDragEnter called");
           if (!isDragging || !column) {
             setIsDragging(true);
             setColumn(column);
           }
 
           dispatch(dispatch(setActiveBorders(true)));
+          dispatch(setColumnThreeExtraPadding(true));
         };
         
         const handleDragLeave = () => {
-          console.log("handleDragLeave called");
+          // console.log("handleDragLeave called");
           setIsDragging(false); 
           setColumn(null);
         };
@@ -179,6 +215,8 @@ const ColumnThree = ({ handleDelete, id }) => {
     // ************************************************************************ 
       const onClickOutside = () => {
         dispatch(setActiveNodeList(false));
+        dispatch(setColumnThreeExtraPadding(false));
+        
       };
       useEffect(() => {
         const handleClickOutside = (event) => {
@@ -195,36 +233,55 @@ const ColumnThree = ({ handleDelete, id }) => {
       // *****************************************************************************
       // element exchange position through ui
       const onDragStart = (e) => {
-        console.log("onDragStart called in Text");
+        // console.log("activeColumn:::::::::::: ",activeColumn);
+        // console.log("onDragStart called in Text");
         e.stopPropagation();
         e.dataTransfer.setData(
           "text/plain",
           JSON.stringify({
             id,
-            parentId: activeParentId || null,
-            column: activeColumn || null,
+            name: "3-columns"
           })
         );
       };
       
       const onDrop = (e) => {
-        console.log("onDrop called in Text");
         e.stopPropagation();
+
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-      
-        // Dispatch the action to replace the item
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
+        console.log("droppedData: ", droppedData);
+        console.log("droppedData.name: ", droppedData.name);
+
+        const restrictedWidgets = ["1-column", "2-columns"];
+
+        if (droppedData.name && restrictedWidgets.includes(droppedData.name)) {
+
+          dispatch(
+            replaceDroppedItem({
+              parentId: null,
+              column: null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            })
+          )
+
+        }
+        else{
+
+          dispatch(
+            replaceDroppedItem({
+              parentId: activeParentId || null,
+              column: activeColumn || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            })
+          );
+
+        }
       };
       
       const onDragOver = (e) => {
-        console.log("onDragOver called in Text");
+        // console.log("onDragOver called in Text");
         e.preventDefault(); // Allow dropping
       };
       //******************************************************************************** */ 
@@ -252,10 +309,7 @@ const ColumnThree = ({ handleDelete, id }) => {
         e.stopPropagation();
         onDragOver(e);
       }}
-      onDrop={(e)=>{
-        e.stopPropagation();
-        onDrop(e);
-      }}
+      
     >
 
       {/* Drag Icon */}
@@ -284,6 +338,7 @@ const ColumnThree = ({ handleDelete, id }) => {
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${(isDragging && column==="columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                    ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
                   `}
       >
         {childrenA.map((child) => (
@@ -330,6 +385,8 @@ const ColumnThree = ({ handleDelete, id }) => {
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                    ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
+                    
 
                   `}
       >
@@ -378,6 +435,8 @@ const ColumnThree = ({ handleDelete, id }) => {
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
                     ${(isDragging && column==="columnC") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                    ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
+                    
 
                   `}
       >

@@ -4,6 +4,8 @@ import ColumnOne from "../components/domElements/ColumnOne";
 const initialState = {
     columnOneExtraPadding: false,
     columnTwoExtraPadding: false,
+    columnThreeExtraPadding: false,
+    wrapperExtraPadding: false,
 }
 
 const conditionalCssSlice = createSlice({
@@ -20,8 +22,17 @@ const conditionalCssSlice = createSlice({
             console.log("setColumnTwoExtraPadding called: ", action.payload);
             state.columnTwoExtraPadding = action.payload;
         },
+        setColumnThreeExtraPadding: (state, action) => {
+            console.log("setColumnTwoExtraPadding called: ", action.payload);
+            state.columnThreeExtraPadding = action.payload;
+        },
+        setWrapperExtraPadding: (state, action) => {
+            console.log("setWrapperExtraPadding called: ", action.payload);
+            state.wrapperExtraPadding = action.payload;
+        }
+
     }
 })
 
-export const { setColumnOneExtraPadding, setColumnTwoExtraPadding } = conditionalCssSlice.actions;
+export const { setColumnOneExtraPadding, setColumnTwoExtraPadding, setColumnThreeExtraPadding, setWrapperExtraPadding } = conditionalCssSlice.actions;
 export default conditionalCssSlice.reducer;

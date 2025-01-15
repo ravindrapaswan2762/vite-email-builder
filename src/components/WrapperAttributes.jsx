@@ -24,14 +24,22 @@ import { generateSourceCode } from "./generateSourceCode";
 
 import { data } from "./domElements/data";
 import { saveState } from "../redux/cardDragableSlice";
+
 import StructurePopup from "./StructurePopup";
+import { useRef } from "react";
+import { setWrapperExtraPadding } from "../redux/condtionalCssSlice";
 
 
 const WrapperAttribute = () => {
+
   const { activeWidgetName, droppedItems, activeWidgetId } = useSelector((state) => state.cardDragable);
+  const {wrapperExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+
   const dispatch = useDispatch();
   const [sourceCode, setSourceCode] = useState("");
   const [showPopup, setShowPopup] = useState(false);
+
+  const wrapperRef = useRef();
 
 
   // useEffect( ()=> {
@@ -68,12 +76,7 @@ const WrapperAttribute = () => {
     dispatch(setActiveEditor(activeWidgetName));
     dispatch(setActiveWidgetName(activeWidgetName));
     dispatch(setActiveWidgetId(activeWidgetId));
-    dispatch(setActiveExtraPadding(false));
-  };
-
-  const handleShowSourceCode = () => {
-    const generatedCode = generateSourceCode(droppedItems);
-    setSourceCode(generatedCode);
+    dispatch(setWrapperExtraPadding(false));
   };
 
   // **********************************************************************
@@ -86,6 +89,23 @@ const WrapperAttribute = () => {
       setShowPopup(false); // Close the popup
     };
   // *********************************************************************
+      const onClickOutside = () => {
+        dispatch(setWrapperExtraPadding(false));
+        
+      };
+      useEffect(() => {
+        const handleClickOutside = (event) => {
+          if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+            onClickOutside(); // Call the function when clicking outside
+          }
+        };
+    
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+          document.removeEventListener("mousedown", handleClickOutside);
+        };
+      }, []);
+      // *****************************************************************************
 
   // Render widgets with delete functionality
   const renderWidget = (id, name) => {
@@ -190,10 +210,14 @@ const WrapperAttribute = () => {
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
       onDragEnter={()=>{
-        
+        console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
+        dispatch(setWrapperExtraPadding(true));
       }}
-      className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all pb-[50px] h-auto
+      className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all h-auto
+        ${wrapperExtraPadding ? "pb-[100px] border-2 border-dashed-500" : ""}
       `}
+
+      ref={wrapperRef}
     >
       {/* Render Dropped Items */}
       {droppedItems.map((item) => renderWidget(item.id, item.name))}

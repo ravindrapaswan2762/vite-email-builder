@@ -11,7 +11,13 @@ import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
+
+
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+
 
 
 // Icons (Replace these with your actual logo images or imports)
@@ -130,6 +136,11 @@ const SocialMedia = ({ id }) => {
         dispatch(setActiveWidgetId(null));
         dispatch(setActiveParentId(null));
         dispatch(setActiveColumn(null));
+
+        dispatch(setColumnOneExtraPadding(false));
+        dispatch(setColumnTwoExtraPadding(false));
+        dispatch(setColumnThreeExtraPadding(false));
+        dispatch(setWrapperExtraPadding(false));
       };
       
       const onDragOver = (e) => {

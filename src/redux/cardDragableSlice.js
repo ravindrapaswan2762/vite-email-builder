@@ -300,28 +300,6 @@ const cardDragableSlice = createSlice({
       }
     },
     
-    // replaceDroppedItem: (state, action) => {
-    //   const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
-
-    //   console.log(`draggedNodeId: ${draggedNodeId}, targetNodeId: ${targetNodeId}, parentId: ${parentId}, column: ${parentId}`);
-    
-    //   const findIndexById = (items, id) => items.findIndex((item) => item.id === id);
-    
-    //   // Get the indexes of the dragged and target nodes
-    //   const draggedIndex = findIndexById(state.droppedItems, draggedNodeId);
-    //   const targetIndex = findIndexById(state.droppedItems, targetNodeId);
-    
-    //   if (draggedIndex !== -1 && targetIndex !== -1) {
-    //     // Swap the positions of the dragged and target nodes
-    //     const temp = state.droppedItems[draggedIndex];
-    //     state.droppedItems[draggedIndex] = state.droppedItems[targetIndex];
-    //     state.droppedItems[targetIndex] = temp;
-
-    //     console.log("droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
-    //   }
-
-    // },
-    
     replaceDroppedItem: (state, action) => {
       const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
     
