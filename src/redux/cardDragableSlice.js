@@ -48,14 +48,14 @@ const cardDragableSlice = createSlice({
     },
 
     setDroppedItems: (state, action) => {
-      const { id, name, type, parentId, styles, columnName, children, content } = action.payload;
+      const { id, name, type, parentId, styles, columnName, children, content, isActive } = action.payload;
     
       console.log("columnName from reducer: ", columnName);
       console.log("Payload: ", action.payload); // Debug log to check payload
     
       if (!parentId) {
         // Add top-level item
-        const newItem = { id, name, type, content, styles: styles || {} };
+        const newItem = { id, name, type, content, styles: styles || {}, isActive };
     
         // Initialize children arrays for 2-columns or 3-columns
         if (name === "2-columns") {
@@ -81,20 +81,20 @@ const cardDragableSlice = createSlice({
               // Use columnName to identify the correct children array
               if (columnName === "columnA" || columnName === "childrenA") {
                 item.childrenA = item.childrenA || [];
-                item.childrenA.push({ id, name, type, content, children: children || [], styles: styles || {} });
+                item.childrenA.push({ id, name, type, content, children: children || [], styles: styles || {}, isActive });
                 console.log("Child added to childrenA: ", item.childrenA);
               } else if (columnName === "columnB" || columnName === "childrenB") {
                 item.childrenB = item.childrenB || [];
-                item.childrenB.push({ id, name, type, content, children: children || [], styles: styles || {} });
+                item.childrenB.push({ id, name, type, content, children: children || [], styles: styles || {}, isActive });
                 console.log("Child added to childrenB: ", item.childrenB);
               }
               else if (columnName === "columnC" || columnName === "childrenC") {
                 item.childrenC = item.childrenC || [];
-                item.childrenC.push({ id, name, type, content, children: children || [], styles: styles || {} });
+                item.childrenC.push({ id, name, type, content, children: children || [], styles: styles || {}, isActive });
                 console.log("Child added to childrenC: ", item.childrenC);
               }else{
                 item.children = item.children || [];
-                item.children.push({ id, name, type, content, children: children || [], styles: styles || {} });
+                item.children.push({ id, name, type, content, children: children || [], styles: styles || {}, isActive });
               }
               console.log("Updated Item: ", item);
               return true;
@@ -382,6 +382,64 @@ const cardDragableSlice = createSlice({
     
       console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
     },
+    updateElementActiveState: (state, action) => {
+
+      console.log("updateElementActiveState: ",action.payload);
+
+      const { id, parentId, column, isActive } = action.payload;
+    
+      if (id && !parentId) {
+        // Case 1: Update isActive for the parent item
+        state.droppedItems = state.droppedItems.map((item) => {
+          if (item.id === id) {
+            return {
+              ...item,
+              isActive,
+            };
+          }
+          return item;
+        });
+      } else if (id && parentId && column) {
+        // Case 2: Update isActive for a child in a specific column
+        state.droppedItems = state.droppedItems.map((item) => {
+          if (item.id === parentId) {
+            return {
+              ...item,
+              [column]: item[column].map((child) => {
+                if (child.id === id) {
+                  return {
+                    ...child,
+                    isActive,
+                  };
+                }
+                return child;
+              }),
+            };
+          }
+          return item;
+        });
+      } else if (id && parentId) {
+        // Case 3: Update isActive for a child without specifying a column
+        state.droppedItems = state.droppedItems.map((item) => {
+          if (item.id === parentId) {
+            return {
+              ...item,
+              children: item.children.map((child) => {
+                if (child.id === id) {
+                  return {
+                    ...child,
+                    isActive,
+                  };
+                }
+                return child;
+              }),
+            };
+          }
+          return item;
+        });
+      }
+    },
+    
     
     
     
@@ -405,6 +463,7 @@ export const {
   clearState,
   updateElementContent,
   replaceDroppedItem,
+  updateElementActiveState,
 } = cardDragableSlice.actions;
 
 export default cardDragableSlice.reducer;

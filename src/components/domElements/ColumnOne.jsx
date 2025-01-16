@@ -95,6 +95,7 @@ const ColumnOne = ({ handleDelete, id }) => {
           parentId: id, // Parent ID to identify the column
           content: defaultContent,
           styles: {}, // Additional styles if needed
+          isActive: null,
         })
       );
     }

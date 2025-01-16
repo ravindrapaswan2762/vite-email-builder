@@ -116,6 +116,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
           columnName: column, // Specify the column (childrenA or childrenB)
           content: content,
           styles: styles, // Additional styles if needed
+          isActive: null,
         })
       );
     }

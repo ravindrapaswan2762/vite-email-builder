@@ -34,6 +34,7 @@ const WrapperAttribute = () => {
 
   const { activeWidgetName, droppedItems, activeWidgetId } = useSelector((state) => state.cardDragable);
   const {wrapperExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+  const {view} = useSelector( (state) => state.navbar );
 
   const dispatch = useDispatch();
   const [sourceCode, setSourceCode] = useState("");
@@ -71,6 +72,7 @@ const WrapperAttribute = () => {
         parentId: null,
         content: defaultContent,
         styles: {},
+        isActive: null,
       })
     );
     dispatch(setActiveEditor(activeWidgetName));
@@ -179,71 +181,153 @@ const WrapperAttribute = () => {
   };
   
   
-
   return (
-    // <div
-    //   onDragOver={(e) => e.preventDefault()}
-    //   onDrop={handleDrop}
-    //   className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all pb-[50px] h-auto"
-      
-    // >
-    //   {droppedItems.map((item) => renderWidget(item.id, item.name))}
-
-    //   {/* Add Button */}
-    //   <div className="flex justify-center mt-4 relative">
-    //     <button
-    //       className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
-    //       onClick={togglePopup} // Handle click and prevent propagation
-    //     >
-    //       <FiGrid className="text-2xl" /> {/* Column popup Icon */}
-    //     </button>
-    //   </div>
-
-    //   {/* Structure Popup */}
-    //   {showPopup && (
-    //     <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
-    //   )}
-
-    // </div>
-
-    <div
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={handleDrop}
-      onDragEnter={()=>{
-        console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
-        dispatch(setWrapperExtraPadding(true));
-      }}
-      className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all h-auto
-        ${wrapperExtraPadding ? "pb-[100px] border-2 border-dashed-500" : ""}
-      `}
-
-      ref={wrapperRef}
-    >
-      {/* Render Dropped Items */}
-      {droppedItems.map((item) => renderWidget(item.id, item.name))}
-
-      {/* Structure Popup */}
-      {showPopup && (
-        <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
-      )}
-
-      {/* Add Button */}
-      <div
-        className="absolute left-1/2 transform -translate-x-1/2 mt-4"
-        style={{ bottom: "-55px" }} // Adjust this value to control spacing from the bottom of the parent div
-      >
-        <button
-          className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
-          onClick={togglePopup} // Handle click and prevent propagation
+    <>
+      {
+    view === 'tablet' 
+  ? (
+      <div className="flex justify-center items-center mt-[30px]">
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          onDragEnter={() => {
+            console.log(
+              "wrapperExtraPadding*****************: ",
+              wrapperExtraPadding
+            );
+            dispatch(setWrapperExtraPadding(true));
+          }}
+          className={`relative w-[668px] max-w-[668px] min-h-[850px] bg-gray-100 rounded-[30px] border-4 border-black shadow-lg overflow-hidden ${
+            wrapperExtraPadding ? "pb-[100px] border-dashed" : ""
+          }`}
+          style={{
+            boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
+          }}
+          ref={wrapperRef}
         >
-          <FiGrid className="text-2xl" /> {/* Column popup Icon */}
-        </button>
+          {/* App Bar */}
+          <div className="absolute inset-0 h-[45px] bg-gray-500 flex items-center justify-center text-white font-bold text-xl z-20">
+            Tablet App Bar
+          </div>
+
+          {/* Scrollable Content */}
+          <div
+            className="absolute top-[45px] w-full h-[calc(100%-45px)] overflow-y-scroll bg-gray-100 px-4"
+            style={{
+              scrollBehavior: "smooth",
+              scrollbarWidth: "none", // Hides scrollbar in Firefox
+              msOverflowStyle: "none", // Hides scrollbar in IE/Edge
+            }}
+          >
+            {/* Hides scrollbar for webkit browsers */}
+            <style>{`
+              ::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+
+            {/* Render Dropped Items */}
+            <div className="w-full">
+              {droppedItems.map((item) => renderWidget(item.id, item.name))}
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+      ) 
+  : view === 'mobile' 
+    ? (
+      <div className="flex justify-center items-center mt-[50px]">
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+          onDragEnter={() => {
+            console.log(
+              "wrapperExtraPadding*****************: ",
+              wrapperExtraPadding
+            );
+            dispatch(setWrapperExtraPadding(true));
+          }}
+          className={`relative w-[375px] min-h-[700px] bg-gray-100 mx-auto rounded-[50px] border-4 border-black shadow-lg overflow-hidden ${
+            wrapperExtraPadding ? "pb-[100px] border-dashed" : ""
+          }`}
+          style={{
+            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.5)",
+          }}
+          ref={wrapperRef}
+        >
+          {/* App Bar */}
+          <div className="absolute inset-0 h-[50px] bg-gray-500 flex items-center justify-center text-white font-bold text-lg z-20">
+            App Bar
+          </div>
 
+          {/* Scrollable Content */}
+          <div
+            className="absolute top-[50px] w-full h-[calc(100%-50px)] overflow-y-scroll bg-gray-100"
+            style={{
+              scrollBehavior: "smooth",
+              scrollbarWidth: "none", // Hides scrollbar in Firefox
+              msOverflowStyle: "none", // Hides scrollbar in IE/Edge
+            }}
+          >
+            {/* Hides scrollbar for webkit browsers */}
+            <style>{`
+              ::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
 
+            {/* Render Dropped Items */}
+            <div className="w-full">
+              {droppedItems.map((item) => renderWidget(item.id, item.name))}
+            </div>
 
-  );
+          </div>
+
+        </div>
+      </div>
+      ) 
+    : (
+        <div
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={handleDrop}
+            onDragEnter={()=>{
+              console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
+              dispatch(setWrapperExtraPadding(true));
+            }}
+            className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all h-auto
+              ${wrapperExtraPadding ? "pb-[100px] border-2 border-dashed-500" : ""}
+            `}
+
+            ref={wrapperRef}
+          >
+            {/* Render Dropped Items */}
+            {droppedItems.map((item) => renderWidget(item.id, item.name))}
+
+            {/* Structure Popup */}
+            {showPopup && (
+              <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
+            )}
+
+            {/* Add Button */}
+            <div
+              className="absolute left-1/2 transform -translate-x-1/2 mt-4"
+              style={{ bottom: "-55px" }} // Adjust this value to control spacing from the bottom of the parent div
+            >
+              <button
+                className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
+                onClick={togglePopup} // Handle click and prevent propagation
+              >
+                <FiGrid className="text-2xl" /> {/* Column popup Icon */}
+              </button>
+            </div>
+        </div>
+      )
+
+  }
+
+    </>
+  )
+  
 };
 
 export default WrapperAttribute;

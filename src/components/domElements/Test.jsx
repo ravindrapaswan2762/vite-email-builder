@@ -1,166 +1,102 @@
 
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { setDroppedItems, deleteDroppedItemById } from "../redux/cardDragableSlice";
+import { setActiveWidgetName, setActiveWidgetId } from "../redux/cardDragableSlice";
+import { setActiveColumn, setActiveParentId } from "../redux/cardDragableSlice";
+import { setActiveEditor, setColumnPopUp } from "../redux/cardToggleSlice";
+import { FiGrid } from "react-icons/fi"; // Updated Icon
+
+import Text from "./domElements/Text";
+import TextArea from "./domElements/TextArea";
+import Image from "./domElements/Image";
+import ColumnOne from "./domElements/ColumnOne";
+import ColumnTwo from "./domElements/ColumnTwo";
+import ColumnThree from "./domElements/ColumnThree";
+import Button from "./domElements/Button";
+import Divider from "./domElements/Divider";
+import Space from "./domElements/Space";
+import SocialMedia from "./domElements/SocialMedia";
+
 import { RxCross2 } from "react-icons/rx";
-import Text from "./Text";
-import Image from "./Image";
-import Button from "./Button";
-import TextArea from "./TextArea";
-import Divider from "./Divider";
-import SocialMedia from "./SocialMedia";
-import Space from "./Space";
+import { generateSourceCode } from "./generateSourceCode";
+
+import { data } from "./domElements/data";
+import { saveState } from "../redux/cardDragableSlice";
+
+import StructurePopup from "./StructurePopup";
+import { useRef } from "react";
+import { setWrapperExtraPadding } from "../redux/condtionalCssSlice";
 
 
-import { useDispatch, useSelector } from "react-redux";
-import { setActiveEditor } from "../../redux/cardToggleSlice";
-import {  setDroppedItems, 
-          setActiveWidgetName, 
-          setActiveWidgetId, 
-          deleteDroppedItemById, 
-          setActiveParentId, 
-          setActiveColumn,
-        } from "../../redux/cardDragableSlice";
+const WrapperAttribute = () => {
 
-import { setActiveBorders } from "../../redux/activeBorderSlice";
-import { setActiveNodeList } from "../../redux/treeViewSlice";
-
-import { AiOutlineDrag } from "react-icons/ai";
-import { replaceDroppedItem } from "../../redux/cardDragableSlice";
-import { setActiveExtraPadding } from "../../redux/condtionalCssSlice";
-
-
-// Component Mapping
-const componentMap = {
-  Text: (props) => <Text {...props} />,
-  Image: (props) => <Image {...props} />,
-  Button: (props) => <Button {...props} />,
-  TextArea: (props) => <TextArea {...props} />,
-  Divider: (props) => <Divider {...props} />,
-  SocialMedia: (props) => <SocialMedia {...props} />,
-  Space: (props) => <Space {...props} />,
-};
-
-const ColumnTwo = ({ handleDelete, id }) => {
-
-  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn  } = useSelector((state) => state.cardDragable);
-  const { activeBorders } = useSelector((state) => state.borderSlice);
-  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
-  const {activeExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+  const { activeWidgetName, droppedItems, activeWidgetId } = useSelector((state) => state.cardDragable);
+  const {wrapperExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
   const dispatch = useDispatch();
+  const [sourceCode, setSourceCode] = useState("");
+  const [showPopup, setShowPopup] = useState(false);
 
-  const twoColumnRef = useRef(null);
+  const wrapperRef = useRef();
 
-  const [childrenA, setChildrenA] = useState([]);
-  const [childrenB, setChildrenB] = useState([]);
-  const [hoveredChildA, setHoveredChildA] = useState(null); // Track hovered child in Column A
-  const [hoveredChildB, setHoveredChildB] = useState(null); // Track hovered child in Column B
+
+  // useEffect( ()=> {
+  //   dispatch(saveState(data));
+  // }, []);
 
   useEffect(() => {
-    // Fetch column data from Redux store
-    const parent = droppedItems.find((item) => item.id === id);
+    renderWidget(activeWidgetName);
+  }, [activeWidgetName]);
 
-    if (parent) {
-      setChildrenA(parent.childrenA || []);
-      setChildrenB(parent.childrenB || []);
-    } else {
-      setChildrenA([]);
-      setChildrenB([]);
-    }
-  }, [droppedItems, id]);
-
-  const handleDrop = (column) => (e) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    setIsDragging(false);
-    setColumn(null);
-
     if (!activeWidgetName) return;
 
+    const defaultContent =
+            activeWidgetName === "Text"
+              ? "Design Beautiful Emails."
+              : activeWidgetName === "TextArea"
+              ? "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns."
+              : null; // Default to null if no specific content is needed
+      
     dispatch(
       setDroppedItems({
-        id: Date.now(), // Unique ID for the dropped child
+        id: Date.now(),
         name: activeWidgetName,
-        type: "widget",
-        parentId: id, // Parent ID to identify the column
-        columnName: column, // Specify the column (childrenA or childrenB)
-        content: null,
-        styles: {}, // Additional styles if needed
+        type: activeWidgetName.includes("column") ? activeWidgetName : "widget",
+        parentId: null,
+        content: defaultContent,
+        styles: {},
+        isActive: null,
       })
     );
+    dispatch(setActiveEditor(activeWidgetName));
+    dispatch(setActiveWidgetName(activeWidgetName));
+    dispatch(setActiveWidgetId(activeWidgetId));
+    dispatch(setWrapperExtraPadding(false));
   };
 
-  const handleDeleteChild = (column, childId) => {
-    console.log(`parentId: ${id}, childId: ${childId}, columnName: ${column} from handleDeleteChild ColumnTwo`);
-    dispatch(
-      deleteDroppedItemById({
-        parentId: id,
-        columnName: column,
-        childId: childId, // Pass the ID of the child to be deleted
-      })
-    );
-  };
-
-  const onclickHandler = (id, childId, column) => {
-    console.log("Parent Column clicked, ID:", id);
-    dispatch(setActiveParentId(id));
-    dispatch(setActiveWidgetId(childId));
-    dispatch(setActiveColumn(column));
-  };
-
-  // Recursive function to find the styles based on activeWidgetId
-  const findStylesById = (items, widgetId) => {
-    for (const item of items) {
-      if (item.id === id) {
-        return item.styles || {};
-      }
-
-      // Check for children arrays (children, childrenA, childrenB, etc.)
-      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
-      for (const key of nestedKeys) {
-        const styles = findStylesById(item[key], widgetId);
-        if (styles) {
-          return styles;
-        }
-      }
-    }
-    return null;
-  };
-
-  const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
-
-  const styleWithBackground = {
-    ...currentStyles,
-    // If backgroundImage is just a URL, wrap it in `url("...")`
-    backgroundImage: currentStyles.backgroundImage
-      ? `url("${currentStyles.backgroundImage}")`
-      : undefined,
-    // If you want the user to set `borderType`, map it to `border`
-    ...(currentStyles.borderType && { border: currentStyles.borderType }),
-  };
-
-
-
-  // ***************************************** write extra logic for hilight drop area while dragEnter
-      const [isDragging, setIsDragging] = useState(false); // NEW: Track if an element is being dragged into the column
-      const [column, setColumn] = useState(null);
-      const handleDragEnter = (column) => {
-        console.log("handleDragEnter called", column);
-        if (!isDragging || !column) {
-          setIsDragging(true);
-          setColumn(column);
-        }
-        
-        dispatch(dispatch(setActiveBorders(true)));
-      };
-      
-      // ************************************************************************ 
+  // **********************************************************************
+    const togglePopup = (e) => {
+      // e.stopPropagation(); // Prevent triggering the parent's onClick
+      setShowPopup(!showPopup);
+      dispatch(setColumnPopUp(!showPopup)); // Update column popup state
+    };
+    const handleAddStructure = (structureType) => {
+      setShowPopup(false); // Close the popup
+    };
+  // *********************************************************************
       const onClickOutside = () => {
-        dispatch(setActiveNodeList(false));
+        dispatch(setWrapperExtraPadding(false));
+        
       };
       useEffect(() => {
         const handleClickOutside = (event) => {
-          if (twoColumnRef.current && !twoColumnRef.current.contains(event.target)) {
+          if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
             onClickOutside(); // Call the function when clicking outside
           }
         };
@@ -171,201 +107,119 @@ const ColumnTwo = ({ handleDelete, id }) => {
         };
       }, []);
       // *****************************************************************************
-      // element exchange position through ui
-      const onDragStart = (e) => {
-        e.stopPropagation();
-        e.dataTransfer.setData(
-          "text/plain",
-          JSON.stringify({
-            id,
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-          })
-        );
-      };
-      
-      const onDrop = (e) => {
-        e.stopPropagation();
-        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-      
-        // Dispatch the action to replace the item
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
-      };
-      
-      const onDragOver = (e) => {
-        e.preventDefault(); // Allow dropping
-      };
-      
-      //********************************************************************************     COLUMN A  
-      const columnADragEnterHandler = (column) => {
-        console.log("columnADragEnterHandler called");
-      }
-      const columnADropHandler = () => {
-        console.log("columnADropHandler called");
-      }
-      const handleDragLeave = () => {
-        console.log("handleDragLeave called");
-        setIsDragging(false);
-        setColumn(null);
-      };
-      const handleDragOver = (e) => {
-        e.preventDefault();
-      };
-    // ***********************************************************************************   COLUMN B
 
+  // Render widgets with delete functionality
+  const renderWidget = (id, name) => {
+    let WidgetComponent;
+    let additionalStyles = {};
+
+    console.log("name in renderWidget: ",name);
+  
+    switch (name) {
+      case "Text":
+        WidgetComponent = <Text id={id} />;
+        break;
+      case "TextArea":
+        WidgetComponent = <TextArea id={id} />;
+        break;
+      case "Button":
+        WidgetComponent = <Button id={id} />;
+        break;
+      case "Image":
+        WidgetComponent = <Image id={id} />;
+        break;
+      case "Divider":
+        WidgetComponent = <Divider id={id} />;
+        break;
+      case "SocialMedia":
+        WidgetComponent = <SocialMedia id={id} />;
+        break;
+      case "Space":
+        WidgetComponent = <Space id={id} />;
+        break;
+      case "1-column":
+        WidgetComponent = <ColumnOne id={id} />;
+        additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 1-column
+        break;
+      case "2-columns":
+        WidgetComponent = <ColumnTwo id={id} />;
+        additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 2-columns
+        break;
+      case "3-columns":
+        WidgetComponent = <ColumnThree id={id} />;
+        additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 3-columns
+        break;
+      default:
+        WidgetComponent = <div className="text-gray-500">Unknown Widget</div>;
+    }
+  
+    return (
+      <div key={id} className="relative group mb-2"
+      onClick={(e) => {
+        e.stopPropagation();
+        dispatch(setActiveColumn(null));
+        dispatch(setActiveParentId(null));
+        console.log("WrapperAttributes called");
+      }}
+      >
+        {WidgetComponent}
+        
+        {/* Delete Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            dispatch(deleteDroppedItemById({ parentId: id }));
+          }}
+          className="absolute top-2 right-2 text-white rounded-full opacity-0 bg-red-500 group-hover:opacity-100 transition-all duration-200"
+          style={additionalStyles}
+        >
+          <RxCross2 size={14} />
+        </button>
+      </div>
+    );
+  };
+  
+  
 
   return (
-    <div className={`relative grid grid-cols-2 gap-1 group bg-transparent`}
+    <div
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={handleDrop}
+      onDragEnter={()=>{
+        console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
+        dispatch(setWrapperExtraPadding(true));
+      }}
+      className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all h-auto
+        ${wrapperExtraPadding ? "pb-[100px] border-2 border-dashed-500" : ""}
+      `}
 
-        onClick={(e) => {
-          e.stopPropagation();
-          dispatch(setActiveWidgetId(id));
-          dispatch(setActiveWidgetName("2-column"));
-          dispatch(setActiveEditor("sectionEditor"));
-          dispatch(setActiveBorders(true));
-        }}
-        style={{
-          ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
-          backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
-        }}
-
-        ref={twoColumnRef}
-
-        draggable
-        onDragStart={onDragStart}
-        onDragOver={(e)=>{
-          e.stopPropagation();
-          onDragOver(e);
-        }}
-        onDrop={(e)=>{
-          e.stopPropagation();
-          onDrop(e);
-        }}
+      ref={wrapperRef}
     >
+      {/* Render Dropped Items */}
+      {droppedItems.map((item) => renderWidget(item.id, item.name))}
 
-      {/* Drag Icon */}
-      {(activeWidgetId==id) ? (
-        <AiOutlineDrag
-          style={{
-            position: "absolute",
-            left: "-20px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "grab",
-            zIndex: 10,
-            backgroundColor: "white",
-            borderRadius: "50%", 
-          }}
-          // className="bg-gray-100"
-        />
-      ) : ""}
+      {/* Structure Popup */}
+      {showPopup && (
+        <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
+      )}
 
-
-      {/* Column A */}
+      {/* Add Button */}
       <div
-        onDragOver={handleDragOver}
-        onDragEnter={()=>columnADropHandler("columnA")} 
-        onDragLeave={handleDragLeave}
-        onDrop={()=>columnADragEnterHandler("columnA")}
-
-        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
-                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${ (isDragging && column==="columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-                    ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-                  `}
+        className="absolute left-1/2 transform -translate-x-1/2 mt-4"
+        style={{ bottom: "-55px" }} // Adjust this value to control spacing from the bottom of the parent div
       >
-        {childrenA.map((child) => (
-          <div
-            key={child.id}
-            className="w-full mb-1 relative"
-            onMouseEnter={() => setHoveredChildA(child.id)} 
-            onMouseLeave={() => setHoveredChildA(null)}   
-            onClick={(e) => {
-              e.stopPropagation();
-              onclickHandler(id, child.id, "childrenA");
-            }}
-          >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
-            
-       
-            {hoveredChildA === child.id && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteChild("childrenA", child.id);
-                }}
-                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-              >
-                <RxCross2 size={14} />
-              </button>
-            )}
-          </div>
-        ))}
-
-
-        {childrenA.length === 0 && (
-          <>
-            <p className="text-gray-400">Column A</p>
-            <p className="text-gray-400">Drop elements here</p>
-          </>
-        )}
-      </div>
-
-      {/* Column B */}
-      <div
-        onDrop={handleDrop("columnB")}
-        onDragOver={handleDragOver}
-        onDragEnter={()=>handleDragEnter("columnB")} 
-        onDragLeave={handleDragLeave}
-
-        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
-                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-                    ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-                  `}
-      >
-        {childrenB.map((child) => (
-          <div
-            key={child.id}
-            className="w-full mb-1 relative"
-            onMouseEnter={() => setHoveredChildB(child.id)}  // Set hover state for the child
-            onMouseLeave={() => setHoveredChildB(null)}    // Reset hover state when mouse leaves
-            onClick={(e) => {
-              e.stopPropagation();
-              onclickHandler(id, child.id, "childrenB");
-            }}
-          >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
-            {/* Delete Button for Child in Column B */}
-            {hoveredChildB === child.id && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteChild("childrenB", child.id);
-                }}
-                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-              >
-                <RxCross2 size={14} />
-              </button>
-            )}
-          </div>
-        ))}
-        {childrenB.length === 0 && (
-          <>
-            <p className="text-gray-400">Column B</p>
-            <p className="text-gray-400">Drop elements here</p>
-          </>
-        )}
+        <button
+          className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
+          onClick={togglePopup} // Handle click and prevent propagation
+        >
+          <FiGrid className="text-2xl" /> {/* Column popup Icon */}
+        </button>
       </div>
     </div>
+
+
+
   );
 };
 
-export default ColumnTwo;
+export default WrapperAttribute;

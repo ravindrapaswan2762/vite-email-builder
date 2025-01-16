@@ -8,6 +8,12 @@ import SaveButton from "./SaveButton";
 import ExitButton from "./ExitButton";
 import ClearElements from "./ClearElements";
 
+import { setActiveBorders } from "../redux/activeBorderSlice";
+import { setActiveWidgetId } from "../redux/cardDragableSlice";
+import { setActiveParentId } from "../redux/cardDragableSlice";
+import { setActiveColumn } from "../redux/cardDragableSlice";
+import { setActiveNodeList } from "../redux/treeViewSlice";
+
 const Navbar = () => {
 
   const {view} = useSelector( (state) => state.navbar );
@@ -47,7 +53,15 @@ const Navbar = () => {
           className={`text-2xl cursor-pointer ${
             view === tabView ? "text-blue-600" : "text-gray-400"
           } hover:text-blue-600 transition-all`}
-          onClick={() => dispatch(setView(tabView))}
+          onClick={() => {
+            dispatch(setView(tabView));
+
+            dispatch(setActiveBorders(null));
+            dispatch(setActiveWidgetId(null));
+            dispatch(setActiveParentId(null));
+            dispatch(setActiveColumn(null));
+            dispatch(setActiveNodeList(null));
+          }}
         >
           {icon}
         </div>
