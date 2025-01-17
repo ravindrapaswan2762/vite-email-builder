@@ -6,6 +6,8 @@ const initialState = {
     columnTwoExtraPadding: false,
     columnThreeExtraPadding: false,
     wrapperExtraPadding: false,
+
+    textExtraPadding: false,
 }
 
 const conditionalCssSlice = createSlice({
@@ -29,10 +31,22 @@ const conditionalCssSlice = createSlice({
         setWrapperExtraPadding: (state, action) => {
             console.log("setWrapperExtraPadding called: ", action.payload);
             state.wrapperExtraPadding = action.payload;
+        },
+        setTextExtraPadding: (state, action) => {
+            console.log("setTextExtraPadding called: ", action.payload);
+            state.textExtraPadding = action.payload;
         }
 
     }
 })
 
-export const { setColumnOneExtraPadding, setColumnTwoExtraPadding, setColumnThreeExtraPadding, setWrapperExtraPadding } = conditionalCssSlice.actions;
+export const { 
+    setColumnOneExtraPadding, 
+    setColumnTwoExtraPadding, 
+    setColumnThreeExtraPadding, 
+    setWrapperExtraPadding,
+
+    setTextExtraPadding,
+    
+ } = conditionalCssSlice.actions;
 export default conditionalCssSlice.reducer;

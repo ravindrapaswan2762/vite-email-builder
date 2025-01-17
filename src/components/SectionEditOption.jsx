@@ -7,8 +7,15 @@ const SectionEditOption = () => {
   const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
 
   // Find the currently selected element from Redux state
+  // const selectedElement =
+  //   droppedItems.find((item) => item.id === activeWidgetId) || {};
+
   const selectedElement =
-    droppedItems.find((item) => item.id === activeWidgetId) || {};
+    droppedItems.find((item) => item?.id === activeWidgetId) || {};
+  if (!selectedElement) {
+    console.error("Error: No matching element found or activeWidgetId is invalid.");
+    return;
+  }
 
   // 1. Local state for component attributes
   const [attributes, setAttributes] = useState({

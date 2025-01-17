@@ -15,6 +15,8 @@ import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
+import { updateElementStyles } from "../../redux/cardDragableSlice";
+
 
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
@@ -127,6 +129,16 @@ const Image = ({ id }) => {
         }
         
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+        dispatch(
+          updateElementStyles({
+            id,
+            styles: {paddingTop: "", background: "trasparent", border: "none"},
+            ...(activeParentId && { parentId: activeParentId }),
+            ...(activeColumn && { column: activeColumn }),
+          })
+        );
+        
         dispatch(
           replaceDroppedItem({
             parentId: activeParentId || null,
@@ -152,6 +164,45 @@ const Image = ({ id }) => {
         e.preventDefault(); // Allow dropping
       };
       //******************************************************************************** */ 
+      const onDragEnterHandle = () => {
+                
+        // dispatch(setTextExtraPadding(true));
+        dispatch(setActiveWidgetId(id));
+    
+        dispatch(setActiveBorders(null));
+        dispatch(setActiveNodeList(null));
+        setHoveredElement(false);
+    
+        dispatch(
+              updateElementStyles({
+                id,
+                styles: { paddingTop: "150px", background: "transparent" },
+                ...(activeParentId && { parentId: activeParentId }),
+                ...(activeColumn && { column: activeColumn }),
+              })
+            );
+      }
+    
+      const onDragLeaveHandle = () => {
+    
+        // dispatch(setTextExtraPadding(false));
+      
+        // borders
+        dispatch(setActiveBorders(null));
+        dispatch(setActiveNodeList(null));
+        setHoveredElement(false);
+    
+        dispatch(
+          updateElementStyles({
+            id,
+            styles: {paddingTop: "", background: "trasparent", border: "none"},
+            ...(activeParentId && { parentId: activeParentId }),
+            ...(activeColumn && { column: activeColumn }),
+          })
+        );
+    
+      }
+    // ****************************************************************************************
 
   return (
     <div
@@ -168,6 +219,9 @@ const Image = ({ id }) => {
       onDragStart={onDragStart}
       onDrop={onDrop}
       onDragOver={onDragOver}
+
+      onDragEnter={onDragEnterHandle}
+      onDragLeave={onDragLeaveHandle}
 
     >
 

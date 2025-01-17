@@ -1,225 +1,271 @@
+import React, { useState, useEffect, useRef } from "react";
+import { setActiveWidgetName } from "../../redux/cardDragableSlice";
+import { setActiveEditor } from "../../redux/cardToggleSlice";
+
+import { useDispatch, useSelector } from "react-redux";
+import { updateElementContent } from "../../redux/cardDragableSlice";
+import {setActiveBorders} from '../../redux/activeBorderSlice'
+import { setActiveNodeList } from "../../redux/treeViewSlice";
+
+import { AiOutlineDrag } from "react-icons/ai";
+import { replaceDroppedItem} from "../../redux/cardDragableSlice";
+
+import { setActiveWidgetId } from "../../redux/cardDragableSlice";
+import { setActiveParentId } from "../../redux/cardDragableSlice";
+import { setActiveColumn } from "../../redux/cardDragableSlice";
+
+import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
+import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+import { setTextExtraPadding } from "../../redux/condtionalCssSlice";
 
 
-import React, { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { setDroppedItems, deleteDroppedItemById } from "../redux/cardDragableSlice";
-import { setActiveWidgetName, setActiveWidgetId } from "../redux/cardDragableSlice";
-import { setActiveColumn, setActiveParentId } from "../redux/cardDragableSlice";
-import { setActiveEditor, setColumnPopUp } from "../redux/cardToggleSlice";
-import { FiGrid } from "react-icons/fi"; // Updated Icon
+const Text = ({ id }) => {
+  const [val, setVal] = useState("");
+  const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
+  const [isFocused, setIsFocused] = useState(false); // Track focus state
+  const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
 
-import Text from "./domElements/Text";
-import TextArea from "./domElements/TextArea";
-import Image from "./domElements/Image";
-import ColumnOne from "./domElements/ColumnOne";
-import ColumnTwo from "./domElements/ColumnTwo";
-import ColumnThree from "./domElements/ColumnThree";
-import Button from "./domElements/Button";
-import Divider from "./domElements/Divider";
-import Space from "./domElements/Space";
-import SocialMedia from "./domElements/SocialMedia";
-
-import { RxCross2 } from "react-icons/rx";
-import { generateSourceCode } from "./generateSourceCode";
-
-import { data } from "./domElements/data";
-import { saveState } from "../redux/cardDragableSlice";
-
-import StructurePopup from "./StructurePopup";
-import { useRef } from "react";
-import { setWrapperExtraPadding } from "../redux/condtionalCssSlice";
-
-
-const WrapperAttribute = () => {
-
-  const { activeWidgetName, droppedItems, activeWidgetId } = useSelector((state) => state.cardDragable);
-  const {wrapperExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
+  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
+    const {textExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
   const dispatch = useDispatch();
-  const [sourceCode, setSourceCode] = useState("");
-  const [showPopup, setShowPopup] = useState(false);
-
-  const wrapperRef = useRef();
 
 
-  // useEffect( ()=> {
-  //   dispatch(saveState(data));
-  // }, []);
+  // *****************************************************************************************************************
+  // Recursive function to find the styles based on activeWidgetId 
+  const findStylesById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === id) {
+        return item.styles || {};
+      }
+
+      // Check for children arrays (children, childrenA, childrenB, etc.)
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const styles = findStylesById(item[key], widgetId);
+        if (styles) {
+          return styles;
+        }
+      }
+    }
+    return null;
+  };
+  const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
+  // console.log("text currentStyles: ",currentStyles);
+
+  // ********************************************************************************************************************
+  // Recursive function to find the content based on activeWidgetId 
+  const findContentById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === widgetId) {
+        return item.content || "";
+      }
+
+      // Check for children arrays (children, childrenA, childrenB, etc.)
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const content = findContentById(item[key], widgetId);
+        if (content) {
+          return content;
+        }
+      }
+    }
+    return "";
+  };
 
   useEffect(() => {
-    renderWidget(activeWidgetName);
-  }, [activeWidgetName]);
+    const currentContent = findContentById(droppedItems, id);
+    console.log("currentContent ",currentContent);
+    setVal(currentContent);
+  }, [droppedItems, id]); 
 
-  const handleDrop = (e) => {
+  // ******************************************************************************************************************
+
+  const onClickHandle = (e) => {
     e.preventDefault();
-    e.stopPropagation();
+    dispatch(setActiveWidgetName("Text"));
+    dispatch(setActiveEditor("Text"));
+    dispatch(setActiveWidgetId(id));
+    setIsFocused(true); // Set focus state
 
-    if (!activeWidgetName) return;
+    dispatch(setActiveNodeList(true));
 
-    const defaultContent =
-            activeWidgetName === "Text"
-              ? "Design Beautiful Emails."
-              : activeWidgetName === "TextArea"
-              ? "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns."
-              : null; // Default to null if no specific content is needed
-      
+    dispatch(setActiveBorders(true));
+    console.log("dropedItems: ",droppedItems);
+  };
+
+  const onChangeHandle = (e) => {
+    const updatedValue = e.target.value;
+    setVal(updatedValue);
+
     dispatch(
-      setDroppedItems({
-        id: Date.now(),
-        name: activeWidgetName,
-        type: activeWidgetName.includes("column") ? activeWidgetName : "widget",
-        parentId: null,
-        content: defaultContent,
-        styles: {},
-        isActive: null,
+      updateElementContent({
+        id,
+        content: updatedValue,
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
       })
     );
-    dispatch(setActiveEditor(activeWidgetName));
-    dispatch(setActiveWidgetName(activeWidgetName));
-    dispatch(setActiveWidgetId(activeWidgetId));
-    dispatch(setWrapperExtraPadding(false));
   };
-
-  // **********************************************************************
-    const togglePopup = (e) => {
-      // e.stopPropagation(); // Prevent triggering the parent's onClick
-      setShowPopup(!showPopup);
-      dispatch(setColumnPopUp(!showPopup)); // Update column popup state
-    };
-    const handleAddStructure = (structureType) => {
-      setShowPopup(false); // Close the popup
-    };
-  // *********************************************************************
-      const onClickOutside = () => {
-        dispatch(setWrapperExtraPadding(false));
-        
-      };
-      useEffect(() => {
-        const handleClickOutside = (event) => {
-          if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-            onClickOutside(); // Call the function when clicking outside
-          }
-        };
-    
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-          document.removeEventListener("mousedown", handleClickOutside);
-        };
-      }, []);
-      // *****************************************************************************
-
-  // Render widgets with delete functionality
-  const renderWidget = (id, name) => {
-    let WidgetComponent;
-    let additionalStyles = {};
-
-    console.log("name in renderWidget: ",name);
   
-    switch (name) {
-      case "Text":
-        WidgetComponent = <Text id={id} />;
-        break;
-      case "TextArea":
-        WidgetComponent = <TextArea id={id} />;
-        break;
-      case "Button":
-        WidgetComponent = <Button id={id} />;
-        break;
-      case "Image":
-        WidgetComponent = <Image id={id} />;
-        break;
-      case "Divider":
-        WidgetComponent = <Divider id={id} />;
-        break;
-      case "SocialMedia":
-        WidgetComponent = <SocialMedia id={id} />;
-        break;
-      case "Space":
-        WidgetComponent = <Space id={id} />;
-        break;
-      case "1-column":
-        WidgetComponent = <ColumnOne id={id} />;
-        additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 1-column
-        break;
-      case "2-columns":
-        WidgetComponent = <ColumnTwo id={id} />;
-        additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 2-columns
-        break;
-      case "3-columns":
-        WidgetComponent = <ColumnThree id={id} />;
-        additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 3-columns
-        break;
-      default:
-        WidgetComponent = <div className="text-gray-500">Unknown Widget</div>;
+
+  const onMouseEnterHandler = () => setHoveredElement(true);
+  const onMouseLeaveHandler = () => setHoveredElement(false);
+
+
+  const handleClickOutside = (e) => {
+    if (inputRef.current && !inputRef.current.contains(e.target)) {
+      setIsFocused(false); // Remove focus
     }
-  
-    return (
-      <div key={id} className="relative group mb-2"
-      onClick={(e) => {
-        e.stopPropagation();
-        dispatch(setActiveColumn(null));
-        dispatch(setActiveParentId(null));
-        console.log("WrapperAttributes called");
-      }}
-      >
-        {WidgetComponent}
-        
-        {/* Delete Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            dispatch(deleteDroppedItemById({ parentId: id }));
-          }}
-          className="absolute top-2 right-2 text-white rounded-full opacity-0 bg-red-500 group-hover:opacity-100 transition-all duration-200"
-          style={additionalStyles}
-        >
-          <RxCross2 size={14} />
-        </button>
-      </div>
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // ************************************************************************ 
+  const onClickOutside = () => {
+    dispatch(setActiveNodeList(false));
+  };
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (inputRef.current && !inputRef.current.contains(event.target)) {
+        onClickOutside(); // Call the function when clicking outside
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+  // *****************************************************************************
+  // element exchange position through ui
+  const onDragStart = (e) => {
+    console.log("onDragStart called in Text");
+    e.stopPropagation();
+    e.dataTransfer.setData(
+      "text/plain",
+      JSON.stringify({
+        id,
+        parentId: activeParentId || null,
+        column: activeColumn || null,
+      })
     );
+
   };
   
+  const onDrop = (e) => {
+    e.stopPropagation();
+
+    // for changing position
+    const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
+    const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
+    if (restrictedWidgets.includes(draggedName)) {
+      alert("Please drop it in an black space.");
+      return;
+    }
+
+    // for droped widgets from left panel
+    const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+    dispatch(
+      replaceDroppedItem({
+        parentId: activeParentId || null,
+        column: activeColumn || null,
+        draggedNodeId: droppedData.id,
+        targetNodeId: id,
+      })
+    );
+
+    // initialize the application
+    dispatch(setActiveWidgetId(null));
+    dispatch(setActiveParentId(null));
+    dispatch(setActiveColumn(null));
+
+    dispatch(setColumnOneExtraPadding(false));
+    dispatch(setColumnTwoExtraPadding(false));
+    dispatch(setColumnThreeExtraPadding(false));
+    dispatch(setWrapperExtraPadding(false));
+
+  };
   
+  const onDragOver = (e) => {
+    console.log("onDragOver called in Text");
+    e.preventDefault(); // Allow dropping
+  };
+  //******************************************************************************** */ 
+
+  const ondragenterHandle = () => {
+    dispatch(setTextExtraPadding(true));
+  }
+
 
   return (
     <div
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={handleDrop}
-      onDragEnter={()=>{
-        console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
-        dispatch(setWrapperExtraPadding(true));
-      }}
-      className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all h-auto
-        ${wrapperExtraPadding ? "pb-[100px] border-2 border-dashed-500" : ""}
-      `}
+      style={{ position: "relative" }}
+      className={`group ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""} 
+                        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                        `}
+                        
 
-      ref={wrapperRef}
+      onMouseEnter={onMouseEnterHandler}
+      onMouseLeave={onMouseLeaveHandler}
+
+
+      draggable
+      onDragStart={onDragStart}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      onDragEnter={ondragenterHandle}
+
     >
-      {/* Render Dropped Items */}
-      {droppedItems.map((item) => renderWidget(item.id, item.name))}
 
-      {/* Structure Popup */}
-      {showPopup && (
-        <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
-      )}
 
-      {/* Add Button */}
-      <div
-        className="absolute left-1/2 transform -translate-x-1/2 mt-4"
-        style={{ bottom: "-55px" }} // Adjust this value to control spacing from the bottom of the parent div
-      >
-        <button
-          className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
-          onClick={togglePopup} // Handle click and prevent propagation
-        >
-          <FiGrid className="text-2xl" /> {/* Column popup Icon */}
-        </button>
-      </div>
+      {/* Drag Icon */}
+      {(activeWidgetId==id) ? (
+        <AiOutlineDrag
+          style={{
+            position: "absolute",
+            left: "-10px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "grab",
+            zIndex: 10,
+            backgroundColor: "white",
+            borderRadius: "50%",
+          }}
+          // className="bg-gray-100"
+        />
+      ) : ""}
+
+      {/* Input Field */}
+      <input
+        ref={inputRef}
+        onClick={onClickHandle}
+        onChange={onChangeHandle}
+        type="text"
+        className={`p-2 w-full transition-all duration-300 ${
+          isFocused ? "border rounded border-gray-300" : "border-none bg-transparent"
+        }  focus:outline-none focus:ring-0 bg-transparent`}
+        placeholder="Text Field"
+        value={val}
+        style={{
+          ...currentStyles,
+          overflow: "hidden",
+          resize: "none",
+          whiteSpace: "pre-wrap",
+
+        }} // Apply dynamic styles
+      />
     </div>
-
-
-
   );
 };
 
-export default WrapperAttribute;
+export default Text;

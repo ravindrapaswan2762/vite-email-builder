@@ -14,6 +14,7 @@ import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
 
+
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
@@ -188,8 +189,16 @@ const TextArea = ({ id }) => {
         }
 
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-
         console.log("droppedData in textarea: ", droppedData);
+
+        dispatch(
+              updateElementStyles({
+                id,
+                styles: {paddingTop: "", background: "trasparent", border: "none"},
+                ...(activeParentId && { parentId: activeParentId }),
+                ...(activeColumn && { column: activeColumn }),
+              })
+            );
         
         dispatch(
           replaceDroppedItem({
@@ -216,6 +225,36 @@ const TextArea = ({ id }) => {
         e.preventDefault(); // Allow dropping
       };
       //******************************************************************************** */ 
+      const onDragEnterHandle = () => {
+          
+          dispatch(setActiveWidgetId(id));
+          dispatch(setActiveBorders(null));
+          dispatch(setActiveNodeList(null));
+          setHoveredElement(false);
+      
+          dispatch(
+                updateElementStyles({
+                  id,
+                  styles: { paddingTop: "150px", background: "transparent" },
+                  ...(activeParentId && { parentId: activeParentId }),
+                  ...(activeColumn && { column: activeColumn }),
+                })
+              );
+        }
+      
+        const onDragLeaveHandle = () => {
+      
+          dispatch(
+            updateElementStyles({
+              id,
+              styles: {paddingTop: "", background: "trasparent", border: "none"},
+              ...(activeParentId && { parentId: activeParentId }),
+              ...(activeColumn && { column: activeColumn }),
+            })
+          );
+      
+        }
+      // ****************************************************************************************
 
   return (
     <div
@@ -228,6 +267,9 @@ const TextArea = ({ id }) => {
       onDragStart={onDragStart}
       onDrop={onDrop}
       onDragOver={onDragOver}
+
+      onDragEnter={onDragEnterHandle}
+      onDragLeave={onDragLeaveHandle}
     >
 
       {/* Drag Icon */}

@@ -299,89 +299,185 @@ const cardDragableSlice = createSlice({
         );
       }
     },
+
+
+
     
+    // replaceDroppedItem: (state, action) => {
+    //   const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
+    
+    //   console.log(
+    //     `draggedNodeId: ${draggedNodeId}, targetNodeId: ${targetNodeId}, parentId: ${parentId}, column: ${column}`
+    //   );
+    
+    //   const findAndSwap = (items, parentId, column, draggedNodeId, targetNodeId) => {
+    //     // If swapping within a column of a parent
+    //     if (parentId && column) {
+    //       return items.map((item) => {
+    //         if (item.id === parentId) {
+    //           const columnItems = [...item[column]];
+    //           const draggedIndex = columnItems.findIndex((child) => child.id === draggedNodeId);
+    //           const targetIndex = columnItems.findIndex((child) => child.id === targetNodeId);
+    
+    //           if (draggedIndex !== -1 && targetIndex !== -1) {
+    //             // Swap the two items
+    //             const temp = columnItems[draggedIndex];
+    //             columnItems[draggedIndex] = columnItems[targetIndex];
+    //             columnItems[targetIndex] = temp;
+    
+    //             console.log(`Swapped in column: ${column}`);
+    //           }
+    
+    //           return { ...item, [column]: columnItems };
+    //         }
+    //         return item;
+    //       });
+    //     }
+    
+    //     // If swapping at the parent level or between unrelated nodes
+    //     if (!parentId && !column) {
+    //       const draggedIndex = items.findIndex((item) => item.id === draggedNodeId);
+    //       const targetIndex = items.findIndex((item) => item.id === targetNodeId);
+    
+    //       if (draggedIndex !== -1 && targetIndex !== -1) {
+    //         const temp = items[draggedIndex];
+    //         items[draggedIndex] = items[targetIndex];
+    //         items[targetIndex] = temp;
+    
+    //         console.log(`Swapped at the top level`);
+    //       }
+    
+    //       return items;
+    //     }
+    
+    //     // If swapping in children arrays directly (e.g., for 1-column)
+    //     if (parentId && !column) {
+    //       return items.map((item) => {
+    //         if (item.id === parentId && item.children) {
+    //           const children = [...item.children];
+    //           const draggedIndex = children.findIndex((child) => child.id === draggedNodeId);
+    //           const targetIndex = children.findIndex((child) => child.id === targetNodeId);
+    
+    //           if (draggedIndex !== -1 && targetIndex !== -1) {
+    //             const temp = children[draggedIndex];
+    //             children[draggedIndex] = children[targetIndex];
+    //             children[targetIndex] = temp;
+    
+    //             console.log(`Swapped in children of parentId: ${parentId}`);
+    //           }
+    
+    //           return { ...item, children };
+    //         }
+    //         return item;
+    //       });
+    //     }
+    
+    //     return items;
+    //   };
+    
+    //   state.droppedItems = findAndSwap(
+    //     state.droppedItems,
+    //     parentId,
+    //     column,
+    //     draggedNodeId,
+    //     targetNodeId
+    //   );
+    
+    //   console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    // },
+
+
     replaceDroppedItem: (state, action) => {
       const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
-    
+
       console.log(
         `draggedNodeId: ${draggedNodeId}, targetNodeId: ${targetNodeId}, parentId: ${parentId}, column: ${column}`
       );
-    
-      const findAndSwap = (items, parentId, column, draggedNodeId, targetNodeId) => {
-        // If swapping within a column of a parent
+
+      const findAndInsert = (items, parentId, column, draggedNodeId, targetNodeId) => {
+        // Helper function to handle reordering
+        const reorderItems = (list, draggedIndex, targetIndex) => {
+          const [draggedItem] = list.splice(draggedIndex, 1); // Remove dragged item
+
+          // Adjust targetIndex for upward movement
+          if (draggedIndex < targetIndex) {
+            targetIndex -= 1;
+          }
+
+          // Place dragged item at target position
+          list.splice(targetIndex, 0, draggedItem);
+
+          // Move target item to the position below the dragged item
+          const [targetItem] = list.splice(targetIndex + 1, 1);
+          list.splice(targetIndex + 1, 0, targetItem);
+
+          return list;
+        };
+
         if (parentId && column) {
           return items.map((item) => {
             if (item.id === parentId) {
               const columnItems = [...item[column]];
               const draggedIndex = columnItems.findIndex((child) => child.id === draggedNodeId);
               const targetIndex = columnItems.findIndex((child) => child.id === targetNodeId);
-    
+
               if (draggedIndex !== -1 && targetIndex !== -1) {
-                // Swap the two items
-                const temp = columnItems[draggedIndex];
-                columnItems[draggedIndex] = columnItems[targetIndex];
-                columnItems[targetIndex] = temp;
-    
-                console.log(`Swapped in column: ${column}`);
+                reorderItems(columnItems, draggedIndex, targetIndex);
+                console.log(`Reordered in column: ${column}`);
               }
-    
+
               return { ...item, [column]: columnItems };
             }
             return item;
           });
         }
-    
-        // If swapping at the parent level or between unrelated nodes
+
         if (!parentId && !column) {
           const draggedIndex = items.findIndex((item) => item.id === draggedNodeId);
           const targetIndex = items.findIndex((item) => item.id === targetNodeId);
-    
+
           if (draggedIndex !== -1 && targetIndex !== -1) {
-            const temp = items[draggedIndex];
-            items[draggedIndex] = items[targetIndex];
-            items[targetIndex] = temp;
-    
-            console.log(`Swapped at the top level`);
+            reorderItems(items, draggedIndex, targetIndex);
+            console.log(`Reordered at the top level`);
           }
-    
+
           return items;
         }
-    
-        // If swapping in children arrays directly (e.g., for 1-column)
+
         if (parentId && !column) {
           return items.map((item) => {
             if (item.id === parentId && item.children) {
               const children = [...item.children];
               const draggedIndex = children.findIndex((child) => child.id === draggedNodeId);
               const targetIndex = children.findIndex((child) => child.id === targetNodeId);
-    
+
               if (draggedIndex !== -1 && targetIndex !== -1) {
-                const temp = children[draggedIndex];
-                children[draggedIndex] = children[targetIndex];
-                children[targetIndex] = temp;
-    
-                console.log(`Swapped in children of parentId: ${parentId}`);
+                reorderItems(children, draggedIndex, targetIndex);
+                console.log(`Reordered in children of parentId: ${parentId}`);
               }
-    
+
               return { ...item, children };
             }
             return item;
           });
         }
-    
+
         return items;
       };
-    
-      state.droppedItems = findAndSwap(
+
+      state.droppedItems = findAndInsert(
         state.droppedItems,
         parentId,
         column,
         draggedNodeId,
         targetNodeId
       );
-    
+
       console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
     },
+
+
+
     updateElementActiveState: (state, action) => {
 
       console.log("updateElementActiveState: ",action.payload);

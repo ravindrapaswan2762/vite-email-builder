@@ -13,11 +13,13 @@ import { replaceDroppedItem} from "../../redux/cardDragableSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
+import { updateElementStyles } from "../../redux/cardDragableSlice";
 
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+// import { setTextExtraPadding } from "../../redux/condtionalCssSlice";
 
 
 const Text = ({ id }) => {
@@ -28,6 +30,7 @@ const Text = ({ id }) => {
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
+    // const {textExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
   const dispatch = useDispatch();
 
@@ -51,6 +54,7 @@ const Text = ({ id }) => {
     }
     return null;
   };
+  
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
   // console.log("text currentStyles: ",currentStyles);
 
@@ -174,13 +178,23 @@ const Text = ({ id }) => {
     const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
     dispatch(
+      updateElementStyles({
+        id,
+        styles: {paddingTop: "", background: "trasparent", border: "none"},
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
+
+    dispatch(
       replaceDroppedItem({
         parentId: activeParentId || null,
         column: activeColumn || null,
         draggedNodeId: droppedData.id,
         targetNodeId: id,
-      })
+      }) 
     );
+
 
     // initialize the application
     dispatch(setActiveWidgetId(null));
@@ -198,14 +212,59 @@ const Text = ({ id }) => {
     console.log("onDragOver called in Text");
     e.preventDefault(); // Allow dropping
   };
-  //******************************************************************************** */ 
+  //******************************************************************************** smooth extra gap b/w elements during replacing*/ 
+
+  const onDragEnterHandle = () => {
+    console.log("onDragEnterHandle called!!!!!!");
+    
+    // dispatch(setTextExtraPadding(true));
+    dispatch(setActiveWidgetId(id));
+
+    dispatch(setActiveBorders(null));
+    dispatch(setActiveNodeList(null));
+    setHoveredElement(false);
+
+    dispatch(
+          updateElementStyles({
+            id,
+            styles: { paddingTop: "150px", background: "transparent" },
+            ...(activeParentId && { parentId: activeParentId }),
+            ...(activeColumn && { column: activeColumn }),
+          })
+        );
+  }
+
+  const onDragLeaveHandle = () => {
+
+    // dispatch(setTextExtraPadding(false));
+  
+    // borders
+    dispatch(setActiveBorders(null));
+    dispatch(setActiveNodeList(null));
+    setHoveredElement(false);
+
+    dispatch(
+      updateElementStyles({
+        id,
+        styles: {paddingTop: "", background: "trasparent", border: "none"},
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
+
+  }
+
+  // **********************************************************************************
 
 
   return (
     <div
       style={{ position: "relative" }}
       className={`group ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""} 
-                        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
+                        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                        `}
+                        
+
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
 
@@ -214,6 +273,9 @@ const Text = ({ id }) => {
       onDragStart={onDragStart}
       onDrop={onDrop}
       onDragOver={onDragOver}
+
+      onDragEnter={onDragEnterHandle}
+      onDragLeave={onDragLeaveHandle}
 
     >
 
@@ -234,8 +296,6 @@ const Text = ({ id }) => {
           // className="bg-gray-100"
         />
       ) : ""}
-
-
 
       {/* Input Field */}
       <input

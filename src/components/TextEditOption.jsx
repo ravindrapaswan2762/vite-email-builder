@@ -18,7 +18,7 @@ const TextEditOption = () => {
 
   const [fields, setFields] = useState({
     height: "",
-    paddingTop: "0px",
+    paddingTop: "",
     paddingLeft: "",
     paddingBottom: "",
     paddingRight: "",

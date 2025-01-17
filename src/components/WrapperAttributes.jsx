@@ -28,6 +28,8 @@ import { saveState } from "../redux/cardDragableSlice";
 import StructurePopup from "./StructurePopup";
 import { useRef } from "react";
 import { setWrapperExtraPadding } from "../redux/condtionalCssSlice";
+import { PiCircleNotchFill } from "react-icons/pi";
+import { replaceDroppedItem } from "../redux/cardDragableSlice";
 
 
 const WrapperAttribute = () => {
@@ -75,6 +77,16 @@ const WrapperAttribute = () => {
         isActive: null,
       })
     );
+
+    dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          }) 
+        );
+
     dispatch(setActiveEditor(activeWidgetName));
     dispatch(setActiveWidgetName(activeWidgetName));
     dispatch(setActiveWidgetId(activeWidgetId));
@@ -206,8 +218,8 @@ const WrapperAttribute = () => {
           ref={wrapperRef}
         >
           {/* App Bar */}
-          <div className="absolute inset-0 h-[45px] bg-gray-500 flex items-center justify-center text-white font-bold text-xl z-20">
-            Tablet App Bar
+          <div className="absolute inset-0 h-[45px] bg-gray-500 flex items-center justify-center text-black font-bold text-xl z-20">
+          <PiCircleNotchFill />
           </div>
 
           {/* Scrollable Content */}
@@ -255,9 +267,10 @@ const WrapperAttribute = () => {
           }}
           ref={wrapperRef}
         >
-          {/* App Bar */}
-          <div className="absolute inset-0 h-[50px] bg-gray-500 flex items-center justify-center text-white font-bold text-lg z-20">
-            App Bar
+          {/* Mobile App Bar */}
+          <div className="absolute inset-0 h-[50px] bg-gray-500 flex items-center justify-center font-bold text-lg z-20 text-black">
+            <PiCircleNotchFill />
+            
           </div>
 
           {/* Scrollable Content */}
@@ -301,7 +314,14 @@ const WrapperAttribute = () => {
             ref={wrapperRef}
           >
             {/* Render Dropped Items */}
-            {droppedItems.map((item) => renderWidget(item.id, item.name))}
+            {droppedItems.map((item) => {
+              if(item){
+                return renderWidget(item.id, item.name);
+              }
+              else{
+                return;
+              }
+            } )}
 
             {/* Structure Popup */}
             {showPopup && (
