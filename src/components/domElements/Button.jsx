@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { RxCross2 } from "react-icons/rx";
 import { deleteDroppedItemById, setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
-import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 import { useRef } from "react";
 
@@ -13,6 +12,7 @@ import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
+import { updateElementStyles } from "../../redux/cardDragableSlice";
 
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
@@ -23,6 +23,7 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
 const Button = ({ id }) => {
 
+  const [isFocused, setIsFocused] = useState(false); // Track focus state
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const { activeWidgetId, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
@@ -58,7 +59,9 @@ const Button = ({ id }) => {
     dispatch(setActiveEditor("Button"));
     dispatch(setActiveWidgetId(id));
 
-    dispatch(setActiveBorders(true));
+    setIsFocused(true);
+    dispatch(setActiveNodeList(true));
+
     console.log("droppedItems: ", droppedItems);
   };
 
@@ -68,6 +71,7 @@ const Button = ({ id }) => {
   // ************************************************************************ 
     const onClickOutside = () => {
       dispatch(setActiveNodeList(false));
+      setIsFocused(false);
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -109,6 +113,16 @@ const Button = ({ id }) => {
         }
 
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+        dispatch(
+          updateElementStyles({
+            id,
+            styles: {extragap: ""},
+            ...(activeParentId && { parentId: activeParentId }),
+            ...(activeColumn && { column: activeColumn }),
+          })
+        );
+
         dispatch(
           replaceDroppedItem({
             parentId: activeParentId || null,
@@ -133,23 +147,73 @@ const Button = ({ id }) => {
         console.log("onDragOver called in Text");
         e.preventDefault(); // Allow dropping
       };
-      //******************************************************************************** */ 
+      //******************************************************************************** smooth extra gap b/w elements during replacing */ 
+      const onDragEnterHandle = () => {
+        console.log("onDragEnterHandle called!!!!!!");
+        
+        dispatch(setActiveWidgetId(id));
+        dispatch(setActiveNodeList(null));
+        setHoveredElement(false);
+    
+        dispatch(
+          updateElementStyles({
+            id,
+            styles: { extragap: "150px"},
+            ...(activeParentId && { parentId: activeParentId }),
+            ...(activeColumn && { column: activeColumn }),
+          })
+        );
+
+        console.log("Button currentStyles Enter: ",currentStyles);
+
+        
+      }
+    
+      const onDragLeaveHandle = () => {
+    
+        // borders
+        dispatch(setActiveNodeList(null));
+        setHoveredElement(false);
+    
+        dispatch(
+          updateElementStyles({
+            id,
+            styles: {extragap: ""},
+            ...(activeParentId && { parentId: activeParentId }),
+            ...(activeColumn && { column: activeColumn }),
+          })
+        );
+        console.log("Button currentStyles Leave: ",currentStyles);
+    
+      }
+    
+      // **********************************************************************************
 
   return (
     <div
       className={`flex justify-center w-full 
-        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}
+        ${
+          isFocused
+            ? "border-2 border-blue-500 bg-gray-100"
+            : hoveredElement
+            ? "border-dashed border border-blue-500"
+            : ""
+          } 
+          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
       `}
-      style={{ backgroundColor: `${currentStyles.backgroundColor || "transparent"}` }}
+      style={{backgroundColor: `${currentStyles.backgroundColor || "transparent"}` }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
-      onClick={()=>dispatch(setActiveBorders(true))}
+  
+      onClick={onclickHandle}
 
       draggable
       onDragStart={onDragStart}
       onDrop={onDrop}
       onDragOver={onDragOver}
+
+      onDragEnter={onDragEnterHandle}
+      onDragLeave={onDragLeaveHandle}
     >
 
       {/* Drag Icon */}
@@ -172,19 +236,19 @@ const Button = ({ id }) => {
 
       {/* Outer Container with Dashed Border */}
       <div
-        className={`relative w-full h-[50px] bg-transparent  flex items-center p-1`}
+        className={`relative w-full h-[50px] bg-transparent  flex items-center p-1 transition-all duration-300`}
 
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: `${currentStyles.textAlign || "center"}`,
           height: "auto",
+          paddingTop: currentStyles.extragap,
         }}
       >
         {/* Button Content */}
         <button
         ref={inputRef}
-          onClick={onclickHandle}
           style={{ ...currentStyles, backgroundColor: `${currentStyles.buttonColor || "#1d4ed8"}` }}
           className="relative bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 text-center"
         >

@@ -49,6 +49,8 @@ const ColumnThree = ({ handleDelete, id }) => {
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const { activeNodeList } = useSelector((state) => state.treeViewSlice);
   const {columnThreeExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+  const {view} = useSelector( (state) => state.navbar );
+  
 
   const dispatch = useDispatch();
 
@@ -289,7 +291,11 @@ const ColumnThree = ({ handleDelete, id }) => {
       
 
   return (
-    <div className="relative grid grid-cols-3 gap-1 rounded-md transition-all duration-300 bg-transparent"
+    <div className={`relative grid gap-1 group bg-transparent
+      sm:grid-cols-1
+      md:grid-cols-3
+      lg:grid-cols-3
+    `}
 
       onClick={(e) => {
         e.stopPropagation();
@@ -301,6 +307,7 @@ const ColumnThree = ({ handleDelete, id }) => {
       style={{
         ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
+        ...(view === "mobile" ? { padding: "30px", display: "flex", flexDirection: "column" } : {}),
       }}
       ref={threeColumnRef}
 

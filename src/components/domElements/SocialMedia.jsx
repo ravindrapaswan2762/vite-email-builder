@@ -29,6 +29,7 @@ const SocialMedia = ({ id }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const containerRef = useRef(null); // Ref for detecting outside clicks
+  const {view} = useSelector( (state) => state.navbar );
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
@@ -61,7 +62,7 @@ const SocialMedia = ({ id }) => {
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
 
-    dispatch(setActiveBorders(true));
+    // dispatch(setActiveBorders(true));
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);
@@ -204,14 +205,20 @@ const SocialMedia = ({ id }) => {
   return (
     <div
       ref={containerRef}
-      className={`flex items-center justify-center gap-4 p-3 rounded ${
-        isFocused
-          ? "border-2 border-blue-500 bg-gray-100"
-          : hoveredElement
-          ? "border-dashed border-2 border-blue-500"
-          : ""
-      } ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
-      style={currentStyles}
+      className={`flex items-center justify-center gap-4 p-3 rounded transition-all duration-300 
+                  sm:flex-col sm:gap-2 sm:justify-center sm:items-center
+                  // deleted for md screen
+                  
+                  ${isFocused
+                    ? "border-2 border-blue-500 bg-gray-100"
+                    : hoveredElement
+                    ? "border-dashed border border-blue-500"
+                    : ""
+                  } 
+                  ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+        `}
+
+      style={{...currentStyles, ...(view === "Desktop" ? {display: "flex", flexDirection: "column" } : {}),}}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}
@@ -243,20 +250,87 @@ const SocialMedia = ({ id }) => {
       ) : ""}
       
 
-      <div className="flex items-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
+      <div className="flex items-center justify-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
         <FaFacebook className="text-xl text-blue-600" />
         <span className="text-sm">Facebook</span>
       </div>
-      <div className="flex items-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
+      <div className="flex items-center justify-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
         <FaGoogle className="text-xl text-red-600" />
         <span className="text-sm">Google</span>
       </div>
-      <div className="flex items-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
+      <div className="flex items-center justify-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
         <FaTwitter className="text-xl text-blue-400" />
         <span className="text-sm">Twitter</span>
       </div>
     </div>
+
+//     <div
+//   ref={containerRef}
+//   className={`grid grid-cols-2 gap-4 p-3 rounded transition-all duration-300 sm:grid-cols-1 sm:gap-2
+//          ${
+//            isFocused
+//              ? "border-2 border-blue-500 bg-gray-100"
+//              : hoveredElement
+//              ? "border-dashed border border-blue-500"
+//              : ""
+//          } ${(activeWidgetId == id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
+
+//   onMouseEnter={onMouseEnterHandler}
+//   onMouseLeave={onMouseLeaveHandler}
+//   onClick={onClickHandle}
+
+//   draggable
+//   onDragStart={onDragStart}
+//   onDrop={onDrop}
+//   onDragOver={onDragOver}
+
+//   onDragEnter={onDragEnterHandle}
+//   onDragLeave={onDragLeaveHandle}
+// >
+//   {/* Drag Icon */}
+//   {activeWidgetId == id ? (
+//     <AiOutlineDrag
+//       style={{
+//         position: "absolute",
+//         left: "-10px",
+//         top: "50%",
+//         transform: "translateY(-50%)",
+//         cursor: "grab",
+//         zIndex: 10,
+//         backgroundColor: "white",
+//         borderRadius: "50%",
+//       }}
+//     />
+//   ) : (
+//     ""
+//   )}
+
+//   {/* Grid Items */}
+//   <div
+//     className="flex items-center gap-2 cursor-pointer"
+//     onClick={() => dispatch(setActiveBorders(true))}
+//   >
+//     <FaFacebook className="text-xl text-blue-600" />
+//     <span className="text-sm">Facebook</span>
+//   </div>
+//   <div
+//     className="flex items-center gap-2 cursor-pointer"
+//     onClick={() => dispatch(setActiveBorders(true))}
+//   >
+//     <FaGoogle className="text-xl text-red-600" />
+//     <span className="text-sm">Google</span>
+//   </div>
+//   <div
+//     className="flex items-center gap-2 cursor-pointer"
+//     onClick={() => dispatch(setActiveBorders(true))}
+//   >
+//     <FaTwitter className="text-xl text-blue-400" />
+//     <span className="text-sm">Twitter</span>
+//   </div>
+// </div>
+
   );
+
 };
 
 export default SocialMedia;

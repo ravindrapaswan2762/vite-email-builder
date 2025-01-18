@@ -4,7 +4,6 @@ import { setActiveEditor } from "../../redux/cardToggleSlice";
 
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementContent } from "../../redux/cardDragableSlice";
-import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
@@ -91,11 +90,10 @@ const Text = ({ id }) => {
     dispatch(setActiveWidgetName("Text"));
     dispatch(setActiveEditor("Text"));
     dispatch(setActiveWidgetId(id));
-    setIsFocused(true); // Set focus state
 
+    setIsFocused(true);
     dispatch(setActiveNodeList(true));
 
-    dispatch(setActiveBorders(true));
     console.log("dropedItems: ",droppedItems);
   };
 
@@ -166,8 +164,8 @@ const Text = ({ id }) => {
   const onDrop = (e) => {
     e.stopPropagation();
 
-    // for changing position
-    const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
+    // for changing position from the ui
+    const draggedName = e.dataTransfer.getData("text/plain");
     const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
     if (restrictedWidgets.includes(draggedName)) {
       alert("Please drop it in an black space.");
@@ -217,29 +215,23 @@ const Text = ({ id }) => {
   const onDragEnterHandle = () => {
     console.log("onDragEnterHandle called!!!!!!");
     
-    // dispatch(setTextExtraPadding(true));
     dispatch(setActiveWidgetId(id));
-
-    dispatch(setActiveBorders(null));
     dispatch(setActiveNodeList(null));
     setHoveredElement(false);
 
     dispatch(
-          updateElementStyles({
-            id,
-            styles: { paddingTop: "150px", background: "transparent" },
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
+      updateElementStyles({
+        id,
+        styles: { paddingTop: "150px", background: "transparent" },
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
   }
 
   const onDragLeaveHandle = () => {
 
-    // dispatch(setTextExtraPadding(false));
-  
     // borders
-    dispatch(setActiveBorders(null));
     dispatch(setActiveNodeList(null));
     setHoveredElement(false);
 
@@ -260,9 +252,16 @@ const Text = ({ id }) => {
   return (
     <div
       style={{ position: "relative" }}
-      className={`group ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""} 
-                        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-                        `}
+      className={`group ${
+        isFocused
+          ? "border-2 border-blue-500 bg-gray-100"
+          : hoveredElement
+          ? "border-dashed border border-blue-500"
+          : ""
+        } 
+        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                        
+      `}
                         
 
       onMouseEnter={onMouseEnterHandler}

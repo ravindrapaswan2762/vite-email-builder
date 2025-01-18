@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { useDispatch, useSelector } from "react-redux";
-import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
@@ -56,9 +55,10 @@ const Divider = ({ id }) => {
     dispatch(setActiveWidgetName("Divider"));
     dispatch(setActiveEditor("Divider"));
     dispatch(setActiveWidgetId(id));
-    setIsFocused(true); // Set focus state
+    
+    setIsFocused(true); 
+    dispatch(setActiveNodeList(true));
 
-    dispatch(setActiveBorders(true));
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);
@@ -68,6 +68,7 @@ const Divider = ({ id }) => {
   // ************************************************************************ 
     const onClickOutside = () => {
       dispatch(setActiveNodeList(false));
+      setIsFocused(false);
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -137,6 +138,8 @@ const Divider = ({ id }) => {
         dispatch(setColumnTwoExtraPadding(false));
         dispatch(setColumnThreeExtraPadding(false));
         dispatch(setWrapperExtraPadding(false));
+
+        console.log("droppedItems: ",droppedItems);
       };
       
       const onDragOver = (e) => {
@@ -145,11 +148,8 @@ const Divider = ({ id }) => {
       };
       //******************************************************************************** */ 
       const onDragEnterHandle = () => {
-        
-        // dispatch(setTextExtraPadding(true));
+
         dispatch(setActiveWidgetId(id));
-    
-        dispatch(setActiveBorders(null));
         dispatch(setActiveNodeList(null));
         setHoveredElement(false);
     
@@ -161,14 +161,13 @@ const Divider = ({ id }) => {
                 ...(activeColumn && { column: activeColumn }),
               })
             );
+
+        console.log("Divider currentStyles Enter: ",currentStyles);
       }
     
       const onDragLeaveHandle = () => {
     
-        // dispatch(setTextExtraPadding(false));
-      
         // borders
-        dispatch(setActiveBorders(null));
         dispatch(setActiveNodeList(null));
         setHoveredElement(false);
     
@@ -180,16 +179,24 @@ const Divider = ({ id }) => {
             ...(activeColumn && { column: activeColumn }),
           })
         );
+
+        console.log("Divider currentStyles Leave: ",currentStyles);
     
       }
     // ****************************************************************************************
 
   return (
     <div
-      style={{ position: "relative" }}
+      style={{ position: "relative"}}
       className={`group 
-        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}
-        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+        ${
+          isFocused
+            ? "border-2 border-blue-500 bg-gray-100"
+            : hoveredElement
+            ? "border-dashed border border-blue-500"
+            : ""
+          } 
+          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
         `}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -199,9 +206,6 @@ const Divider = ({ id }) => {
       onDragStart={onDragStart}
       onDrop={onDrop}
       onDragOver={onDragOver}
-
-      onDragEnter={onDragEnterHandle}
-      onDragLeave={onDragLeaveHandle}
     >
 
       {/* Drag Icon */}
@@ -223,6 +227,9 @@ const Divider = ({ id }) => {
 
       {/* Divider Element */}
       <hr
+        onDragEnter={onDragEnterHandle}
+        onDragLeave={onDragLeaveHandle}
+        
         ref={dividerRef}
         style={{
           ...currentStyles,

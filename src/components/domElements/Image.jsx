@@ -6,7 +6,6 @@ import {setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { useRef } from "react";
 
 import img from '../../assets/placeholder.png';
-import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
@@ -80,14 +79,18 @@ const Image = ({ id }) => {
     dispatch(setActiveWidgetName("Image"));
     dispatch(setActiveEditor("Image"));
     dispatch(setActiveWidgetId(id));
-    setIsFocused(true);
 
-    dispatch(setActiveBorders(true));
+    setIsFocused(true);
+    dispatch(setActiveNodeList(true));
+
   };
 
   // ************************************************************************ 
     const onClickOutside = () => {
+      setIsFocused(false);
       dispatch(setActiveNodeList(false));
+
+      console.log("Image outside called!!: ",activeNodeList);
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -169,7 +172,6 @@ const Image = ({ id }) => {
         // dispatch(setTextExtraPadding(true));
         dispatch(setActiveWidgetId(id));
     
-        dispatch(setActiveBorders(null));
         dispatch(setActiveNodeList(null));
         setHoveredElement(false);
     
@@ -188,7 +190,6 @@ const Image = ({ id }) => {
         // dispatch(setTextExtraPadding(false));
       
         // borders
-        dispatch(setActiveBorders(null));
         dispatch(setActiveNodeList(null));
         setHoveredElement(false);
     
@@ -206,10 +207,19 @@ const Image = ({ id }) => {
 
   return (
     <div
+      ref={imageRef}
       // Removed "flex items-center justify-center" so the image can span the full width
       className={`rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent
-        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""}
-        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+          
+        ${
+          isFocused
+            ? "border-2 border-blue-500 bg-gray-100"
+            : hoveredElement
+            ? "border-dashed border border-blue-500"
+            : ""
+          } 
+          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+
         `}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -255,7 +265,6 @@ const Image = ({ id }) => {
             alt="Uploaded"
             className="w-full h-full object-contain rounded"
             style={currentStyles}
-            ref={imageRef}
           />
         </a>
       
@@ -268,7 +277,7 @@ const Image = ({ id }) => {
           style={currentStyles}
         />
       ) : (
-        <div className="flex flex-col items-center justify-center text-gray-500">
+        <div className="flex flex-col items-center justify-center text-gray-500 transition-all duration-300">
           <img
             src={placeholderImage}
             alt="Placeholder"

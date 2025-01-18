@@ -4,7 +4,6 @@ import { RxCross2 } from "react-icons/rx";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { updateElementContent, updateElementStyles } from "../../redux/cardDragableSlice";
-import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
@@ -13,6 +12,8 @@ import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
+import { setView } from "../../redux/navbarSlice";
+
 
 
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
@@ -26,10 +27,11 @@ const TextArea = ({ id }) => {
   const [val, setVal] = useState("");
   const [hoveredElement, setHoveredElement] = useState(false); // Hover state
   const [isFocused, setIsFocused] = useState(false); // Focus state
-  const inputRef = useRef(null); // Ref for detecting clicks outside
+  const textAreaRef = useRef(null); // Ref for detecting clicks outside
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
+  const {view} = useSelector( (state) => state.navbar );
   const dispatch = useDispatch();
 
   // *****************************************************************************************************************
@@ -105,9 +107,10 @@ const TextArea = ({ id }) => {
     dispatch(setActiveWidgetName("TextArea"));
     dispatch(setActiveEditor("TextArea"));
     dispatch(setActiveWidgetId(id));
+
     setIsFocused(true); // Set focus state
+    dispatch(setActiveNodeList(true));
     
-    dispatch(setActiveBorders(true));
     console.log("droppedItems: ",droppedItems);
   };
 
@@ -115,7 +118,7 @@ const TextArea = ({ id }) => {
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
   const handleClickOutside = (e) => {
-    if (inputRef.current && !inputRef.current.contains(e.target)) {
+    if (textAreaRef.current && !textAreaRef.current.contains(e.target)) {
       setIsFocused(false); // Remove focus and reset background and border
     }
   };
@@ -131,20 +134,36 @@ const TextArea = ({ id }) => {
 
   // *************************************************************************
 
-  const autoResize = (textarea) => {
-    textarea.style.height = `${textarea.scrollHeight}px`; // Set height to scrollHeight
-    console.log("textarea.scrollHeight: ",textarea.scrollHeight);
+  useEffect(() => {
+    if (textAreaRef.current) {
+      autoResize(textAreaRef.current); // Recalculate height on mode switch
+    }
+  }, [view]); // Triggers when the `view` (mobile or desktop) changes
+  
 
+  const autoResize = (textarea) => {
+    // Reset height to auto to recalculate based on content
+    textarea.style.height = "auto";
+  
+    // Calculate the new height based on scrollHeight
+    const contentHeight = textarea.scrollHeight;
+  
+    // Set the new height to match content height
+    textarea.style.height = `${contentHeight}px`;
+  
+    console.log("Updated textarea height:", contentHeight);
+  
     // Dispatch height update to Redux
     dispatch(
       updateElementStyles({
         id,
-        styles: { height: `${textarea.scrollHeight}px` },
+        styles: { height: `${contentHeight}px` },
         ...(activeParentId && { parentId: activeParentId }),
         ...(activeColumn && { column: activeColumn }),
       })
     );
   };
+  
 
   // ************************************************************************ 
     const onClickOutside = () => {
@@ -152,7 +171,7 @@ const TextArea = ({ id }) => {
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
-        if (inputRef.current && !inputRef.current.contains(event.target)) {
+        if (textAreaRef.current && !textAreaRef.current.contains(event.target)) {
           onClickOutside(); // Call the function when clicking outside
         }
       };
@@ -228,7 +247,6 @@ const TextArea = ({ id }) => {
       const onDragEnterHandle = () => {
           
           dispatch(setActiveWidgetId(id));
-          dispatch(setActiveBorders(null));
           dispatch(setActiveNodeList(null));
           setHoveredElement(false);
       
@@ -258,10 +276,19 @@ const TextArea = ({ id }) => {
 
   return (
     <div
-      className={`group flex ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
+      className={`group flex 
+        ${
+          isFocused
+            ? "border-2 border-blue-500 bg-gray-100"
+            : hoveredElement
+            ? "border-dashed border border-blue-500"
+            : ""
+          } 
+          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+      `}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
-      ref={inputRef} // Add the ref to the parent div to detect clicks outside
+      ref={textAreaRef} // Add the ref to the parent div to detect clicks outside
 
       draggable
       onDragStart={onDragStart}
@@ -296,7 +323,6 @@ const TextArea = ({ id }) => {
         onClick={onclickHandle}
         className={`border p-2 w-full rounded focus:outline-none transition-all duration-300 focus:outline-none focus:ring-0 bg-transparent
           ${isFocused ? "border rounded border-gray-300" : "border-none bg-transparent"} 
-          ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : "bg-transparent"}
          `}
         placeholder="Text Area"
         value={val}

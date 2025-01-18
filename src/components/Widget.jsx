@@ -6,7 +6,7 @@ const Widget = ({ id, name, icon: Icon }) => {
   const dispatch = useDispatch();
 
   // Get the activeWidgetId from Redux state
-  const { activeWidgetId } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
 
   // Check if the current widget is active
   const isActive = activeWidgetId === id;
@@ -19,7 +19,10 @@ const Widget = ({ id, name, icon: Icon }) => {
         e.dataTransfer.setData(
           "text/plain",
           JSON.stringify({
-            name
+            name,
+            id,
+            parentId: activeParentId || null,
+            column: activeColumn || null,
           })
         );
         e.dataTransfer.effectAllowed = "move"; // Allow move

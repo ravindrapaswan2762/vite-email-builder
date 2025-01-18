@@ -52,6 +52,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const {columnTwoExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+  const {view} = useSelector( (state) => state.navbar );
+
 
   const dispatch = useDispatch();
 
@@ -285,147 +287,275 @@ const ColumnTwo = ({ handleDelete, id }) => {
       //******************************************************************************** */ 
 
   return (
-    <div className={`relative grid grid-cols-2 gap-1 group bg-transparent`}
+    // <div className={`relative grid grid-cols-2 gap-1 group bg-transparent`}
 
-        onClick={(e) => {
-          e.stopPropagation();
-          dispatch(setActiveWidgetId(id));
-          dispatch(setActiveWidgetName("2-column"));
-          dispatch(setActiveEditor("sectionEditor"));
-          dispatch(setActiveBorders(true));
-        }}
-        style={{
-          ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
-          backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
-        }}
+    //     onClick={(e) => {
+    //       e.stopPropagation();
+    //       dispatch(setActiveWidgetId(id));
+    //       dispatch(setActiveWidgetName("2-column"));
+    //       dispatch(setActiveEditor("sectionEditor"));
+    //       dispatch(setActiveBorders(true));
+    //     }}
+    //     style={{
+    //       ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
+    //       backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
+    //     }}
 
-        ref={twoColumnRef}
+    //     ref={twoColumnRef}
 
-        draggable
-        onDragStart={onDragStart}
-        onDragOver={(e)=>{
-          e.stopPropagation();
-          onDragOver(e);
-        }}
-    >
+    //     draggable
+    //     onDragStart={onDragStart}
+    //     onDragOver={(e)=>{
+    //       e.stopPropagation();
+    //       onDragOver(e);
+    //     }}
+    // >
 
-      {/* Drag Icon */}
-      {(activeWidgetId==id) ? (
-        <AiOutlineDrag
-          style={{
-            position: "absolute",
-            left: "-20px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "grab",
-            zIndex: 10,
-            backgroundColor: "white",
-            borderRadius: "50%", 
-          }}
-          // className="bg-gray-100"
-        />
-      ) : ""}
+    //   {/* Drag Icon */}
+    //   {(activeWidgetId==id) ? (
+    //     <AiOutlineDrag
+    //       style={{
+    //         position: "absolute",
+    //         left: "-20px",
+    //         top: "50%",
+    //         transform: "translateY(-50%)",
+    //         cursor: "grab",
+    //         zIndex: 10,
+    //         backgroundColor: "white",
+    //         borderRadius: "50%", 
+    //       }}
+    //       // className="bg-gray-100"
+    //     />
+    //   ) : ""}
 
 
-      {/* Column A */}
-      <div
-        onDrop={handleDrop("columnA")}
-        onDragOver={handleDragOver}
-        onDragEnter={()=>handleDragEnter("columnA")} 
-        onDragLeave={handleDragLeave}
+    //   {/* Column A */}
+    //   <div
+    //     onDrop={handleDrop("columnA")}
+    //     onDragOver={handleDragOver}
+    //     onDragEnter={()=>handleDragEnter("columnA")} 
+    //     onDragLeave={handleDragLeave}
 
-        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
-                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${ (isDragging && column==="columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-                    ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-                    ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
-                  `}
-      >
-        {childrenA.map((child) => (
-          <div
-            key={child.id}
-            className="w-full mb-1 relative"
-            onMouseEnter={() => setHoveredChildA(child.id)} 
-            onMouseLeave={() => setHoveredChildA(null)}   
-            onClick={(e) => {
-              e.stopPropagation();
-              onclickHandler(id, child.id, "childrenA");
-            }}
-          >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+    //     className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
+    //                 ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
+    //                 ${ (isDragging && column==="columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+    //                 ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+    //                 ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
+    //               `}
+    //   >
+    //     {childrenA.map((child) => (
+    //       <div
+    //         key={child.id}
+    //         className="w-full mb-1 relative"
+    //         onMouseEnter={() => setHoveredChildA(child.id)} 
+    //         onMouseLeave={() => setHoveredChildA(null)}   
+    //         onClick={(e) => {
+    //           e.stopPropagation();
+    //           onclickHandler(id, child.id, "childrenA");
+    //         }}
+    //       >
+    //         {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
             
        
-            {hoveredChildA === child.id && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteChild("childrenA", child.id);
-                }}
-                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-              >
-                <RxCross2 size={14} />
-              </button>
-            )}
-          </div>
-        ))}
+    //         {hoveredChildA === child.id && (
+    //           <button
+    //             onClick={(e) => {
+    //               e.stopPropagation();
+    //               handleDeleteChild("childrenA", child.id);
+    //             }}
+    //             className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+    //           >
+    //             <RxCross2 size={14} />
+    //           </button>
+    //         )}
+    //       </div>
+    //     ))}
 
 
-        {childrenA.length === 0 && (
-          <>
-            <p className="text-gray-400">Column A</p>
-            <p className="text-gray-400">Drop elements here</p>
-          </>
-        )}
-      </div>
+    //     {childrenA.length === 0 && (
+    //       <>
+    //         <p className="text-gray-400">Column A</p>
+    //         <p className="text-gray-400">Drop elements here</p>
+    //       </>
+    //     )}
+    //   </div>
 
-      {/* Column B */}
+    //   {/* Column B */}
+    //   <div
+    //     onDrop={handleDrop("columnB")}
+    //     onDragOver={handleDragOver}
+    //     onDragEnter={()=>handleDragEnter("columnB")} 
+    //     onDragLeave={handleDragLeave}
+
+    //     className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
+    //                 ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
+    //                 ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+    //                 ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+    //                 ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
+    //               `}
+    //   >
+    //     {childrenB.map((child) => (
+    //       <div
+    //         key={child.id}
+    //         className="w-full mb-1 relative"
+    //         onMouseEnter={() => setHoveredChildB(child.id)}  // Set hover state for the child
+    //         onMouseLeave={() => setHoveredChildB(null)}    // Reset hover state when mouse leaves
+    //         onClick={(e) => {
+    //           e.stopPropagation();
+    //           onclickHandler(id, child.id, "childrenB");
+    //         }}
+    //       >
+    //         {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+    //         {/* Delete Button for Child in Column B */}
+    //         {hoveredChildB === child.id && (
+    //           <button
+    //             onClick={(e) => {
+    //               e.stopPropagation();
+    //               handleDeleteChild("childrenB", child.id);
+    //             }}
+    //             className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+    //           >
+    //             <RxCross2 size={14} />
+    //           </button>
+    //         )}
+    //       </div>
+    //     ))}
+    //     {childrenB.length === 0 && (
+    //       <>
+    //         <p className="text-gray-400">Column B</p>
+    //         <p className="text-gray-400">Drop elements here</p>
+    //       </>
+    //     )}
+    //   </div>
+    // </div>
+
+    <div
+    className={`relative grid gap-1 group bg-transparent
+      sm:grid-cols-1 
+      md:grid-cols-2
+      lg:grid-cols-2
+    `}
+
+  // Tailwind classes:
+  // - `grid-cols-2`: Default for non-mobile (two columns horizontally).
+  // - `sm:grid-cols-1`: Vertically align columns for small screens (mobile).
+  onClick={(e) => {
+    e.stopPropagation();
+    dispatch(setActiveWidgetId(id));
+    dispatch(setActiveWidgetName("2-column"));
+    dispatch(setActiveEditor("sectionEditor"));
+    dispatch(setActiveBorders(true));
+  }}
+  style={{
+    ...styleWithBackground,
+    border: currentStyles.borderType,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    backgroundSize: "cover",
+    borderRadius: currentStyles.borderRadius,
+    ...(view === "mobile" ? { padding: "12px", display: "flex", flexDirection: "column" } : {}),
+  }}
+  ref={twoColumnRef}
+  draggable
+  onDragStart={onDragStart}
+  onDragOver={(e) => {
+    e.stopPropagation();
+    onDragOver(e);
+  }}
+>
+  {/* Column A */}
+  <div
+    onDrop={handleDrop("columnA")}
+    onDragOver={handleDragOver}
+    onDragEnter={() => handleDragEnter("columnA")}
+    onDragLeave={handleDragLeave}
+    className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
+                ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
+                ${(isDragging && column === "columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                ${(activeWidgetId == id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
+              `}
+  >
+    {childrenA.map((child) => (
       <div
-        onDrop={handleDrop("columnB")}
-        onDragOver={handleDragOver}
-        onDragEnter={()=>handleDragEnter("columnB")} 
-        onDragLeave={handleDragLeave}
-
-        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
-                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-                    ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-                    ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
-                  `}
+        key={child.id}
+        className="w-full mb-1 relative"
+        onMouseEnter={() => setHoveredChildA(child.id)}
+        onMouseLeave={() => setHoveredChildA(null)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onclickHandler(id, child.id, "childrenA");
+        }}
       >
-        {childrenB.map((child) => (
-          <div
-            key={child.id}
-            className="w-full mb-1 relative"
-            onMouseEnter={() => setHoveredChildB(child.id)}  // Set hover state for the child
-            onMouseLeave={() => setHoveredChildB(null)}    // Reset hover state when mouse leaves
+        {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+        {hoveredChildA === child.id && (
+          <button
             onClick={(e) => {
               e.stopPropagation();
-              onclickHandler(id, child.id, "childrenB");
+              handleDeleteChild("childrenA", child.id);
             }}
+            className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
-            {/* Delete Button for Child in Column B */}
-            {hoveredChildB === child.id && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteChild("childrenB", child.id);
-                }}
-                className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-              >
-                <RxCross2 size={14} />
-              </button>
-            )}
-          </div>
-        ))}
-        {childrenB.length === 0 && (
-          <>
-            <p className="text-gray-400">Column B</p>
-            <p className="text-gray-400">Drop elements here</p>
-          </>
+            <RxCross2 size={14} />
+          </button>
         )}
       </div>
-    </div>
+    ))}
+    {childrenA.length === 0 && (
+      <>
+        <p className="text-gray-400">Column A</p>
+        <p className="text-gray-400">Drop elements here</p>
+      </>
+    )}
+  </div>
+
+  {/* Column B */}
+  <div
+    onDrop={handleDrop("columnB")}
+    onDragOver={handleDragOver}
+    onDragEnter={() => handleDragEnter("columnB")}
+    onDragLeave={handleDragLeave}
+    className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
+                ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
+                ${(isDragging && column === "columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                ${(activeWidgetId == id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
+              `}
+  >
+    {childrenB.map((child) => (
+      <div
+        key={child.id}
+        className="w-full mb-1 relative"
+        onMouseEnter={() => setHoveredChildB(child.id)}
+        onMouseLeave={() => setHoveredChildB(null)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onclickHandler(id, child.id, "childrenB");
+        }}
+      >
+        {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+        {hoveredChildB === child.id && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteChild("childrenB", child.id);
+            }}
+            className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
+          >
+            <RxCross2 size={14} />
+          </button>
+        )}
+      </div>
+    ))}
+    {childrenB.length === 0 && (
+      <>
+        <p className="text-gray-400">Column B</p>
+        <p className="text-gray-400">Drop elements here</p>
+      </>
+    )}
+  </div>
+</div>
+
   );
 };
 

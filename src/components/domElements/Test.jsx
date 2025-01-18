@@ -1,41 +1,39 @@
 import React, { useState, useEffect, useRef } from "react";
-import { setActiveWidgetName } from "../../redux/cardDragableSlice";
-import { setActiveEditor } from "../../redux/cardToggleSlice";
-
 import { useDispatch, useSelector } from "react-redux";
-import { updateElementContent } from "../../redux/cardDragableSlice";
-import {setActiveBorders} from '../../redux/activeBorderSlice'
+import { RxCross2 } from "react-icons/rx";
+import { setActiveEditor } from "../../redux/cardToggleSlice";
+import { setActiveWidgetName } from "../../redux/cardDragableSlice";
+import { updateElementContent, updateElementStyles } from "../../redux/cardDragableSlice";
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
-import { replaceDroppedItem} from "../../redux/cardDragableSlice";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
 
+
+
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
-import { setTextExtraPadding } from "../../redux/condtionalCssSlice";
 
 
-const Text = ({ id }) => {
+
+const TextArea = ({ id }) => {
   const [val, setVal] = useState("");
-  const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
-  const [isFocused, setIsFocused] = useState(false); // Track focus state
-  const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
+  const [hoveredElement, setHoveredElement] = useState(false); // Hover state
+  const [isFocused, setIsFocused] = useState(false); // Focus state
+  const inputRef = useRef(null); // Ref for detecting clicks outside
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
-    const {textExtraPadding} = useSelector((state) => state.coditionalCssSlice);
-
   const dispatch = useDispatch();
 
-
   // *****************************************************************************************************************
-  // Recursive function to find the styles based on activeWidgetId 
+  // Recursive function to find the styles based on activeWidgetId
   const findStylesById = (items, widgetId) => {
     for (const item of items) {
       if (item.id === id) {
@@ -54,9 +52,9 @@ const Text = ({ id }) => {
     return null;
   };
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
-  // console.log("text currentStyles: ",currentStyles);
 
-  // ********************************************************************************************************************
+  // *******************************************************************************************************************
+
   // Recursive function to find the content based on activeWidgetId 
   const findContentById = (items, widgetId) => {
     for (const item of items) {
@@ -78,29 +76,18 @@ const Text = ({ id }) => {
 
   useEffect(() => {
     const currentContent = findContentById(droppedItems, id);
-    console.log("currentContent ",currentContent);
     setVal(currentContent);
-  }, [droppedItems, id]); 
+  }, []); 
 
-  // ******************************************************************************************************************
+  // *******************************************************************************************************************
 
-  const onClickHandle = (e) => {
-    e.preventDefault();
-    dispatch(setActiveWidgetName("Text"));
-    dispatch(setActiveEditor("Text"));
-    dispatch(setActiveWidgetId(id));
-    setIsFocused(true); // Set focus state
-
-    dispatch(setActiveNodeList(true));
-
-    dispatch(setActiveBorders(true));
-    console.log("dropedItems: ",droppedItems);
-  };
-
-  const onChangeHandle = (e) => {
+  const handleInputChange = (e) => {
     const updatedValue = e.target.value;
     setVal(updatedValue);
 
+    autoResize(e.target);
+
+    // Dispatch content update to Redux
     dispatch(
       updateElementContent({
         id,
@@ -109,16 +96,28 @@ const Text = ({ id }) => {
         ...(activeColumn && { column: activeColumn }),
       })
     );
+
   };
-  
+
+  const onclickHandle = (e) => {
+    // e.stopPropagation();
+    e.preventDefault();
+    dispatch(setActiveWidgetName("TextArea"));
+    dispatch(setActiveEditor("TextArea"));
+    dispatch(setActiveWidgetId(id));
+
+    setIsFocused(true); // Set focus state
+    dispatch(setActiveNodeList(true));
+    
+    console.log("droppedItems: ",droppedItems);
+  };
 
   const onMouseEnterHandler = () => setHoveredElement(true);
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
-
   const handleClickOutside = (e) => {
     if (inputRef.current && !inputRef.current.contains(e.target)) {
-      setIsFocused(false); // Remove focus
+      setIsFocused(false); // Remove focus and reset background and border
     }
   };
 
@@ -128,105 +127,159 @@ const Text = ({ id }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+
+
+  // *************************************************************************
+
+  const autoResize = (textarea) => {
+    textarea.style.height = `${textarea.scrollHeight}px`; // Set height to scrollHeight
+    console.log("textarea.scrollHeight: ",textarea.scrollHeight);
+
+    // Dispatch height update to Redux
+    dispatch(
+      updateElementStyles({
+        id,
+        styles: { height: `${textarea.scrollHeight}px` },
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
+  };
 
   // ************************************************************************ 
-  const onClickOutside = () => {
-    dispatch(setActiveNodeList(false));
-  };
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (inputRef.current && !inputRef.current.contains(event.target)) {
-        onClickOutside(); // Call the function when clicking outside
-      }
+    const onClickOutside = () => {
+      dispatch(setActiveNodeList(false));
     };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-  // *****************************************************************************
-  // element exchange position through ui
-  const onDragStart = (e) => {
-    console.log("onDragStart called in Text");
-    e.stopPropagation();
-    e.dataTransfer.setData(
-      "text/plain",
-      JSON.stringify({
-        id,
-        parentId: activeParentId || null,
-        column: activeColumn || null,
-      })
-    );
-
-  };
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (inputRef.current && !inputRef.current.contains(event.target)) {
+          onClickOutside(); // Call the function when clicking outside
+        }
+      };
   
-  const onDrop = (e) => {
-    e.stopPropagation();
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, []);
+    // *****************************************************************************
+      // element exchange position through ui
+      const onDragStart = (e) => {
+        console.log("onDragStart called in Text");
+        e.stopPropagation();
 
-    // for changing position
-    const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
-    const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
-    if (restrictedWidgets.includes(draggedName)) {
-      alert("Please drop it in an black space.");
-      return;
-    }
+        e.dataTransfer.setData(
+          "text/plain",
+          JSON.stringify({
+            id,
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+          })
+        );
+      };
+      
+      const onDrop = (e) => {
+        e.stopPropagation();
 
-    // for droped widgets from left panel
-    const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+        const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
+        const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
+        if (restrictedWidgets.includes(draggedName)) {
+          alert("Please drop it in an black space.");
+          return;
+        }
 
-    dispatch(
-      replaceDroppedItem({
-        parentId: activeParentId || null,
-        column: activeColumn || null,
-        draggedNodeId: droppedData.id,
-        targetNodeId: id,
-      })
-    );
+        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+        console.log("droppedData in textarea: ", droppedData);
 
-    // initialize the application
-    dispatch(setActiveWidgetId(null));
-    dispatch(setActiveParentId(null));
-    dispatch(setActiveColumn(null));
+        dispatch(
+              updateElementStyles({
+                id,
+                styles: {paddingTop: "", background: "trasparent", border: "none"},
+                ...(activeParentId && { parentId: activeParentId }),
+                ...(activeColumn && { column: activeColumn }),
+              })
+            );
+        
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          })
+        );
 
-    dispatch(setColumnOneExtraPadding(false));
-    dispatch(setColumnTwoExtraPadding(false));
-    dispatch(setColumnThreeExtraPadding(false));
-    dispatch(setWrapperExtraPadding(false));
+        // initialize the application after exchage the position
+        dispatch(setActiveWidgetId(null));
+        dispatch(setActiveParentId(null));
+        dispatch(setActiveColumn(null));
+        
+        dispatch(setColumnOneExtraPadding(false));
+        dispatch(setColumnTwoExtraPadding(false));
+        dispatch(setColumnThreeExtraPadding(false));
+        dispatch(setWrapperExtraPadding(false));
 
-  };
-  
-  const onDragOver = (e) => {
-    console.log("onDragOver called in Text");
-    e.preventDefault(); // Allow dropping
-  };
-  //******************************************************************************** */ 
-
-  const ondragenterHandle = () => {
-    dispatch(setTextExtraPadding(true));
-  }
-
+      };
+      
+      const onDragOver = (e) => {
+        e.preventDefault(); // Allow dropping
+      };
+      //******************************************************************************** */ 
+      const onDragEnterHandle = () => {
+          
+          dispatch(setActiveWidgetId(id));
+          dispatch(setActiveNodeList(null));
+          setHoveredElement(false);
+      
+          dispatch(
+                updateElementStyles({
+                  id,
+                  styles: { paddingTop: "150px", background: "transparent" },
+                  ...(activeParentId && { parentId: activeParentId }),
+                  ...(activeColumn && { column: activeColumn }),
+                })
+              );
+        }
+      
+        const onDragLeaveHandle = () => {
+      
+          dispatch(
+            updateElementStyles({
+              id,
+              styles: {paddingTop: "", background: "trasparent", border: "none"},
+              ...(activeParentId && { parentId: activeParentId }),
+              ...(activeColumn && { column: activeColumn }),
+            })
+          );
+      
+        }
+      // ****************************************************************************************
 
   return (
     <div
-      style={{ position: "relative" }}
-      className={`group ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""} 
-                        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-                        `}
-                        
-
+      className={`group flex 
+        ${
+          isFocused
+            ? "border-2 border-blue-500 bg-gray-100"
+            : hoveredElement
+            ? "border-dashed border border-blue-500"
+            : ""
+          } 
+          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+      `}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
-
+      ref={inputRef} // Add the ref to the parent div to detect clicks outside
 
       draggable
       onDragStart={onDragStart}
       onDrop={onDrop}
       onDragOver={onDragOver}
-      onDragEnter={ondragenterHandle}
 
+      onDragEnter={onDragEnterHandle}
+      onDragLeave={onDragLeaveHandle}
     >
-
 
       {/* Drag Icon */}
       {(activeWidgetId==id) ? (
@@ -245,27 +298,26 @@ const Text = ({ id }) => {
         />
       ) : ""}
 
-      {/* Input Field */}
-      <input
-        ref={inputRef}
-        onClick={onClickHandle}
-        onChange={onChangeHandle}
-        type="text"
-        className={`p-2 w-full transition-all duration-300 ${
-          isFocused ? "border rounded border-gray-300" : "border-none bg-transparent"
-        }  focus:outline-none focus:ring-0 bg-transparent`}
-        placeholder="Text Field"
+
+      {/* Text Area */}
+      <textarea
+        onChange={handleInputChange}
+        onClick={onclickHandle}
+        className={`border p-2 w-full rounded focus:outline-none transition-all duration-300 focus:outline-none focus:ring-0 bg-transparent
+          ${isFocused ? "border rounded border-gray-300" : "border-none bg-transparent"} 
+         `}
+        placeholder="Text Area"
         value={val}
         style={{
           ...currentStyles,
-          overflow: "hidden",
-          resize: "none",
-          whiteSpace: "pre-wrap",
-
+          overflow: "hidden", // Hide scrollbar
+          resize: "none", // Disable manual resizing
+          whiteSpace: "pre-wrap", // Preserve line breaks and spaces
+          wordWrap: "break-word", // Break long words
         }} // Apply dynamic styles
       />
     </div>
   );
 };
 
-export default Text;
+export default TextArea;

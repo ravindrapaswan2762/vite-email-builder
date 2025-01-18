@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
-import {setActiveBorders} from '../../redux/activeBorderSlice'
 import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
@@ -56,7 +55,6 @@ const Space = ({ id }) => {
     dispatch(setActiveWidgetId(id));
     setIsFocused(true); // Set focus state
 
-    dispatch(setActiveBorders(true));
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);
@@ -65,6 +63,7 @@ const Space = ({ id }) => {
   // ************************************************************************ 
     const onClickOutside = () => {
       dispatch(setActiveNodeList(false));
+      setIsFocused(false);
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -146,7 +145,6 @@ const Space = ({ id }) => {
         // dispatch(setTextExtraPadding(true));
         dispatch(setActiveWidgetId(id));
     
-        dispatch(setActiveBorders(null));
         dispatch(setActiveNodeList(null));
         setHoveredElement(false);
     
@@ -165,7 +163,6 @@ const Space = ({ id }) => {
         // dispatch(setTextExtraPadding(false));
       
         // borders
-        dispatch(setActiveBorders(null));
         dispatch(setActiveNodeList(null));
         setHoveredElement(false);
     
@@ -185,8 +182,15 @@ const Space = ({ id }) => {
     <div
       ref={containerRef}
       className={`w-full h-4 
-        ${hoveredElement ? "hover:border hover:border-dashed hover:border-blue-500" : ""} 
-        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+        ${
+          isFocused
+            ? "border-2 border-blue-500 bg-gray-100"
+            : hoveredElement
+            ? "border-dashed border border-blue-500"
+            : ""
+          } 
+          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+
       `}
 
       style={currentStyles}

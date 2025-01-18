@@ -34,9 +34,11 @@ import { replaceDroppedItem } from "../redux/cardDragableSlice";
 
 const WrapperAttribute = () => {
 
-  const { activeWidgetName, droppedItems, activeWidgetId } = useSelector((state) => state.cardDragable);
+  const { activeWidgetName, droppedItems, activeWidgetId, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
   const {wrapperExtraPadding} = useSelector((state) => state.coditionalCssSlice);
   const {view} = useSelector( (state) => state.navbar );
+
+  console.log("view in wrapperAttributes: ", view);
 
   const dispatch = useDispatch();
   const [sourceCode, setSourceCode] = useState("");
@@ -54,10 +56,14 @@ const WrapperAttribute = () => {
   }, [activeWidgetName]);
 
   const handleDrop = (e) => {
+    if (view === "tablet" || view === "mobile") return;
+
     e.preventDefault();
     e.stopPropagation();
 
     if (!activeWidgetName) return;
+
+    const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
     const defaultContent =
             activeWidgetName === "Text"
@@ -78,14 +84,14 @@ const WrapperAttribute = () => {
       })
     );
 
-    dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          }) 
-        );
+    // dispatch(
+    //       replaceDroppedItem({
+    //         parentId: activeParentId || null,
+    //         column: activeColumn || null,
+    //         draggedNodeId: droppedData.id,
+    //         targetNodeId: id,
+    //       }) 
+    //     );
 
     dispatch(setActiveEditor(activeWidgetName));
     dispatch(setActiveWidgetName(activeWidgetName));
@@ -181,6 +187,7 @@ const WrapperAttribute = () => {
         <button
           onClick={(e) => {
             e.stopPropagation();
+            if (view === "tablet" || view === "mobile") return;
             dispatch(deleteDroppedItemById({ parentId: id }));
           }}
           className="absolute top-2 right-2 text-white rounded-full opacity-0 bg-red-500 group-hover:opacity-100 transition-all duration-200"
@@ -200,7 +207,11 @@ const WrapperAttribute = () => {
   ? (
       <div className="flex justify-center items-center mt-[30px]">
         <div
-          onDragOver={(e) => e.preventDefault()}
+          onDragOver={(e) => {
+            if (view === "tablet" || view === "mobile") return; // Prevent interaction
+            e.preventDefault();
+          }}
+
           onDrop={handleDrop}
           onDragEnter={() => {
             console.log(
