@@ -22,15 +22,19 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
 
-const Image = ({ id }) => {
+
+const Image = ({ id, parentId, column}) => {
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
   const [hoveredElement, setHoveredElement] = useState(false); // State for hover
   const [isFocused, setIsFocused] = useState(false); // State for focus
+  const [extraGap, setExtraGap] = useState(null);
 
   const imageRef = useRef(null);
 
-  const { activeWidgetId, droppedItems, activeParentId , activeColumn } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId , activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
 
   // Find the styles associated with the widget by its ID
@@ -119,6 +123,7 @@ const Image = ({ id }) => {
         );
 
         dispatch(setColumnOneExtraPadding(false));
+        dispatch(setWidgetOrElement("element"));
       };
       
       const onDrop = (e) => {
@@ -133,23 +138,32 @@ const Image = ({ id }) => {
         
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {paddingTop: "", background: "trasparent", border: "none"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
+        setExtraGap(null);
         
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
+        if(widgetOrElement && widgetOrElement === "widget"){
+              // for droped widgets from left panel
+              dispatch(
+                addElementAtLocation({
+                  draggedNodeId: Date.now(), 
+                  draggedName: droppedData.name, 
+                  dragableType: droppedData.type,
+                  
+                  targetParentId: parentId, 
+                  targetColumn: column, 
+                  targetNodeId: id, 
+                })
+              )
+            }
+          else{
+              dispatch(
+                replaceDroppedItem({
+                  parentId: activeParentId || null,
+                  column: activeColumn || null,
+                  draggedNodeId: droppedData.id,
+                  targetNodeId: id,
+                }) 
+              );
+          }
 
         // initialize the application after exchage the position
         dispatch(setActiveWidgetId(null));
@@ -168,39 +182,13 @@ const Image = ({ id }) => {
       };
       //******************************************************************************** */ 
       const onDragEnterHandle = () => {
-                
-        // dispatch(setTextExtraPadding(true));
-        dispatch(setActiveWidgetId(id));
-    
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-              updateElementStyles({
-                id,
-                styles: { paddingTop: "150px", background: "transparent" },
-                ...(activeParentId && { parentId: activeParentId }),
-                ...(activeColumn && { column: activeColumn }),
-              })
-            );
+        console.log("onDragEnterHandle called in Image");
+
+        setExtraGap(true);
       }
     
       const onDragLeaveHandle = () => {
-    
-        // dispatch(setTextExtraPadding(false));
-      
-        // borders
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {paddingTop: "", background: "trasparent", border: "none"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
+        setExtraGap(null);
     
       }
     // ****************************************************************************************
@@ -263,8 +251,9 @@ const Image = ({ id }) => {
           <img
             src={currentStyles.imageUrl}
             alt="Uploaded"
-            className="w-full h-full object-contain rounded"
-            style={currentStyles}
+            className="w-full h-full object-contain rounded transition-all duration-300"
+            style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })}}
+            
           />
         </a>
       
@@ -273,8 +262,8 @@ const Image = ({ id }) => {
           src={imageSrc}
           alt="Uploaded"
           // Ensures the image takes the full width, auto height, and retains aspect ratio
-          className="w-full h-full object-contain rounded"
-          style={currentStyles}
+          className="w-full h-full object-contain rounded transition-all duration-300"
+          style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })}}
         />
       ) : (
         <div className="flex flex-col items-center justify-center text-gray-500 transition-all duration-300">
@@ -282,7 +271,7 @@ const Image = ({ id }) => {
             src={placeholderImage}
             alt="Placeholder"
             className="w-full h-auto object-contain rounded opacity-90"
-            style={currentStyles}
+            style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })}}
           />
         </div>
       )}

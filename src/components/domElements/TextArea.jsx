@@ -12,7 +12,6 @@ import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
-import { setView } from "../../redux/navbarSlice";
 
 
 
@@ -21,17 +20,20 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
 
 
-const TextArea = ({ id }) => {
+
+const TextArea = ({ id, parentId, column}) => {
   const [val, setVal] = useState("");
   const [hoveredElement, setHoveredElement] = useState(false); // Hover state
   const [isFocused, setIsFocused] = useState(false); // Focus state
-  const textAreaRef = useRef(null); // Ref for detecting clicks outside
+  const inputRef = useRef(null); // Ref for detecting clicks outside
+  const [extraGap, setExtraGap] = useState(null);
 
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
-  const {view} = useSelector( (state) => state.navbar );
   const dispatch = useDispatch();
 
   // *****************************************************************************************************************
@@ -118,7 +120,7 @@ const TextArea = ({ id }) => {
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
   const handleClickOutside = (e) => {
-    if (textAreaRef.current && !textAreaRef.current.contains(e.target)) {
+    if (inputRef.current && !inputRef.current.contains(e.target)) {
       setIsFocused(false); // Remove focus and reset background and border
     }
   };
@@ -134,36 +136,20 @@ const TextArea = ({ id }) => {
 
   // *************************************************************************
 
-  useEffect(() => {
-    if (textAreaRef.current) {
-      autoResize(textAreaRef.current); // Recalculate height on mode switch
-    }
-  }, [view]); // Triggers when the `view` (mobile or desktop) changes
-  
-
   const autoResize = (textarea) => {
-    // Reset height to auto to recalculate based on content
-    textarea.style.height = "auto";
-  
-    // Calculate the new height based on scrollHeight
-    const contentHeight = textarea.scrollHeight;
-  
-    // Set the new height to match content height
-    textarea.style.height = `${contentHeight}px`;
-  
-    console.log("Updated textarea height:", contentHeight);
-  
+    textarea.style.height = `${textarea.scrollHeight}px`; // Set height to scrollHeight
+    console.log("textarea.scrollHeight: ",textarea.scrollHeight);
+
     // Dispatch height update to Redux
     dispatch(
       updateElementStyles({
         id,
-        styles: { height: `${contentHeight}px` },
+        styles: { height: `${textarea.scrollHeight}px` },
         ...(activeParentId && { parentId: activeParentId }),
         ...(activeColumn && { column: activeColumn }),
       })
     );
   };
-  
 
   // ************************************************************************ 
     const onClickOutside = () => {
@@ -171,7 +157,7 @@ const TextArea = ({ id }) => {
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
-        if (textAreaRef.current && !textAreaRef.current.contains(event.target)) {
+        if (inputRef.current && !inputRef.current.contains(event.target)) {
           onClickOutside(); // Call the function when clicking outside
         }
       };
@@ -195,6 +181,8 @@ const TextArea = ({ id }) => {
             column: activeColumn || null,
           })
         );
+
+        dispatch(setWidgetOrElement("element"));
       };
       
       const onDrop = (e) => {
@@ -210,23 +198,33 @@ const TextArea = ({ id }) => {
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
         console.log("droppedData in textarea: ", droppedData);
 
-        dispatch(
-              updateElementStyles({
-                id,
-                styles: {paddingTop: "", background: "trasparent", border: "none"},
-                ...(activeParentId && { parentId: activeParentId }),
-                ...(activeColumn && { column: activeColumn }),
-              })
-            );
+        setExtraGap(null);
         
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
+        if(widgetOrElement && widgetOrElement === "widget"){
+              // for droped widgets from left panel
+              dispatch(
+                addElementAtLocation({
+                  draggedNodeId: Date.now(), 
+                  draggedName: droppedData.name, 
+                  dragableType: droppedData.type,
+                  
+                  targetParentId: parentId, 
+                  targetColumn: column, 
+                  targetNodeId: id, 
+                })
+              )
+            }
+            else{
+              dispatch(
+                replaceDroppedItem({
+                  parentId: activeParentId || null,
+                  column: activeColumn || null,
+                  draggedNodeId: droppedData.id,
+                  targetNodeId: id,
+                }) 
+              );
+          }
+
 
         // initialize the application after exchage the position
         dispatch(setActiveWidgetId(null));
@@ -245,33 +243,12 @@ const TextArea = ({ id }) => {
       };
       //******************************************************************************** */ 
       const onDragEnterHandle = () => {
-          
-          dispatch(setActiveWidgetId(id));
-          dispatch(setActiveNodeList(null));
-          setHoveredElement(false);
-      
-          dispatch(
-                updateElementStyles({
-                  id,
-                  styles: { paddingTop: "150px", background: "transparent" },
-                  ...(activeParentId && { parentId: activeParentId }),
-                  ...(activeColumn && { column: activeColumn }),
-                })
-              );
-        }
-      
-        const onDragLeaveHandle = () => {
-      
-          dispatch(
-            updateElementStyles({
-              id,
-              styles: {paddingTop: "", background: "trasparent", border: "none"},
-              ...(activeParentId && { parentId: activeParentId }),
-              ...(activeColumn && { column: activeColumn }),
-            })
-          );
-      
-        }
+        console.log("onDragEnterHandle called in text");
+        setExtraGap(true);
+      }
+      const onDragLeaveHandle = () => {
+        setExtraGap(null);
+      }
       // ****************************************************************************************
 
   return (
@@ -288,7 +265,7 @@ const TextArea = ({ id }) => {
       `}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
-      ref={textAreaRef} // Add the ref to the parent div to detect clicks outside
+      ref={inputRef} // Add the ref to the parent div to detect clicks outside
 
       draggable
       onDragStart={onDragStart}
@@ -332,6 +309,7 @@ const TextArea = ({ id }) => {
           resize: "none", // Disable manual resizing
           whiteSpace: "pre-wrap", // Preserve line breaks and spaces
           wordWrap: "break-word", // Break long words
+          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
         }} // Apply dynamic styles
       />
     </div>

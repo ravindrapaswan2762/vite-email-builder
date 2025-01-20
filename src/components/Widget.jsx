@@ -1,6 +1,7 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetId, setActiveWidgetName } from "../redux/cardDragableSlice";
+import { setWidgetOrElement } from "../redux/cardDragableSlice";
 
 const Widget = ({ id, name, icon: Icon }) => {
   const dispatch = useDispatch();
@@ -23,14 +24,18 @@ const Widget = ({ id, name, icon: Icon }) => {
             id,
             parentId: activeParentId || null,
             column: activeColumn || null,
+            type: "widget"
           })
         );
         e.dataTransfer.effectAllowed = "move"; // Allow move
         
         dispatch(setActiveWidgetName(name));
+        dispatch(setWidgetOrElement("widget"));
       }}
       
-      onDragEnd={() => dispatch(setActiveWidgetId(null))} // Reset active widget
+      onDragEnd={() => {
+        dispatch(setActiveWidgetId(null));
+      }} // Reset active widget
       className={`flex flex-col items-center justify-center p-5 m-2 border rounded-lg shadow-md cursor-move w-[115px] h-[90px] transition-all ${
         isActive
           ? "bg-gradient-to-br from-blue-200 text-white border-blue-700 shadow-lg scale-105"

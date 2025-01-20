@@ -18,13 +18,17 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
 
-const Space = ({ id }) => {
+
+const Space = ({ id, parentId, column }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const containerRef = useRef(null); // Ref for detecting outside clicks
+  const [extraGap, setExtraGap] = useState(null);
 
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
@@ -92,6 +96,7 @@ const Space = ({ id }) => {
         );
 
         dispatch(setColumnOneExtraPadding(false));
+        dispatch(setWidgetOrElement("element"));
       };
       
       const onDrop = (e) => {
@@ -106,23 +111,32 @@ const Space = ({ id }) => {
 
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {paddingTop: "", background: "trasparent", border: "none"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
+        setExtraGap(null);
 
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
+        if(widgetOrElement && widgetOrElement === "widget"){
+          // for droped widgets from left panel
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+        }
+        else{
+          dispatch(
+            replaceDroppedItem({
+              parentId: activeParentId || null,
+              column: activeColumn || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
 
         // initialize the application after exchage the position
         dispatch(setActiveWidgetId(null));
@@ -141,47 +155,20 @@ const Space = ({ id }) => {
       };
       //******************************************************************************** */ 
       const onDragEnterHandle = () => {
-        
-        // dispatch(setTextExtraPadding(true));
-        dispatch(setActiveWidgetId(id));
-    
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-              updateElementStyles({
-                id,
-                styles: { paddingTop: "150px", background: "transparent" },
-                ...(activeParentId && { parentId: activeParentId }),
-                ...(activeColumn && { column: activeColumn }),
-              })
-            );
+        console.log("onDragEnterHandle called in Social-Media");
+
+        setExtraGap(true);
       }
     
       const onDragLeaveHandle = () => {
-    
-        // dispatch(setTextExtraPadding(false));
-      
-        // borders
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {paddingTop: "", background: "trasparent", border: "none"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
-    
+        setExtraGap(null);
       }
     // ****************************************************************************************
 
   return (
     <div
       ref={containerRef}
-      className={`w-full h-4 
+      className={`w-full h-4 transition-all duration-300
         ${
           isFocused
             ? "border-2 border-blue-500 bg-gray-100"
@@ -193,7 +180,7 @@ const Space = ({ id }) => {
 
       `}
 
-      style={currentStyles}
+      style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })}}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}

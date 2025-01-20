@@ -487,7 +487,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
           onclickHandler(id, child.id, "childrenA");
         }}
       >
-        {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+        {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA" }) : <div>Unknown Component</div>}
         {hoveredChildA === child.id && (
           <button
             onClick={(e) => {
@@ -533,7 +533,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
           onclickHandler(id, child.id, "childrenB");
         }}
       >
-        {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+        {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB"}) : <div>Unknown Component</div>}
         {hoveredChildB === child.id && (
           <button
             onClick={(e) => {

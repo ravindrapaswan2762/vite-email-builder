@@ -20,18 +20,22 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
+
 
 
 // Icons (Replace these with your actual logo images or imports)
 import { FaFacebook, FaGoogle, FaTwitter } from "react-icons/fa"; // Example using FontAwesome icons
 
-const SocialMedia = ({ id }) => {
+const SocialMedia = ({ id, parentId, column}) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const [isFocused, setIsFocused] = useState(false); // Track focus state
+  const [extraGap, setExtraGap] = useState(null);
   const containerRef = useRef(null); // Ref for detecting outside clicks
   const {view} = useSelector( (state) => state.navbar );
 
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
@@ -113,6 +117,7 @@ const SocialMedia = ({ id }) => {
         );
 
         dispatch(setColumnOneExtraPadding(false));
+        dispatch(setWidgetOrElement("element"));
       };
       
       const onDrop = (e) => {
@@ -127,23 +132,32 @@ const SocialMedia = ({ id }) => {
 
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {paddingTop: "", background: "trasparent", border: "none"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
+        setExtraGap(null);
         
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
+        if(widgetOrElement && widgetOrElement === "widget"){
+          // for droped widgets from left panel
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+        }
+        else{
+          dispatch(
+            replaceDroppedItem({
+              parentId: activeParentId || null,
+              column: activeColumn || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
 
         // initialize the application after exchage the position
         dispatch(setActiveWidgetId(null));
@@ -162,42 +176,13 @@ const SocialMedia = ({ id }) => {
       };
       //******************************************************************************** */ 
       const onDragEnterHandle = () => {
-                
-        // dispatch(setTextExtraPadding(true));
-        dispatch(setActiveWidgetId(id));
-    
-        dispatch(setActiveBorders(null));
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-              updateElementStyles({
-                id,
-                styles: { paddingTop: "150px", background: "transparent" },
-                ...(activeParentId && { parentId: activeParentId }),
-                ...(activeColumn && { column: activeColumn }),
-              })
-            );
+        console.log("onDragEnterHandle called in Social-Media");
+
+        setExtraGap(true);
       }
     
       const onDragLeaveHandle = () => {
-    
-        // dispatch(setTextExtraPadding(false));
-      
-        // borders
-        dispatch(setActiveBorders(null));
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {paddingTop: "", background: "trasparent", border: "none"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
-    
+        setExtraGap(null);
       }
     // ****************************************************************************************
     
@@ -218,7 +203,10 @@ const SocialMedia = ({ id }) => {
                   ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
         `}
 
-      style={{...currentStyles, ...(view === "Desktop" ? {display: "flex", flexDirection: "column" } : {}),}}
+      style={{...currentStyles, 
+        ...(view === "Desktop" ? {display: "flex", flexDirection: "column" } : {}),
+        ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
+      }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}

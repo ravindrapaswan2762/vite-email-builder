@@ -18,13 +18,17 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
 
-const Divider = ({ id }) => {
+
+const Divider = ({ id, parentId, column }) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const dividerRef = useRef(null); // Ref to handle divider element
+  const [extraGap, setExtraGap] = useState(null);
 
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
 
   const dispatch = useDispatch();
@@ -97,6 +101,7 @@ const Divider = ({ id }) => {
         );
 
         dispatch(setColumnOneExtraPadding(false));
+        dispatch(setWidgetOrElement("element"));
       };
       
       const onDrop = (e) => {
@@ -111,23 +116,32 @@ const Divider = ({ id }) => {
 
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {paddingTop: "", background: "trasparent", border: "none"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
+        setExtraGap(null);
         
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
+        if(widgetOrElement && widgetOrElement === "widget"){
+          // for droped widgets from left panel
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+        }
+        else{
+          dispatch(
+            replaceDroppedItem({
+              parentId: activeParentId || null,
+              column: activeColumn || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
 
         // initialize the application after exchage the position
         dispatch(setActiveWidgetId(null));
@@ -148,47 +162,20 @@ const Divider = ({ id }) => {
       };
       //******************************************************************************** */ 
       const onDragEnterHandle = () => {
+        console.log("onDragEnterHandle called in Divider");
 
-        dispatch(setActiveWidgetId(id));
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-              updateElementStyles({
-                id,
-                styles: { paddingTop: "150px", background: "transparent" },
-                ...(activeParentId && { parentId: activeParentId }),
-                ...(activeColumn && { column: activeColumn }),
-              })
-            );
-
-        console.log("Divider currentStyles Enter: ",currentStyles);
+        setExtraGap(true);
       }
     
       const onDragLeaveHandle = () => {
-    
-        // borders
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {paddingTop: "", background: "trasparent", border: "none"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
-
-        console.log("Divider currentStyles Leave: ",currentStyles);
-    
+        setExtraGap(null);
       }
     // ****************************************************************************************
 
   return (
     <div
       style={{ position: "relative"}}
-      className={`group 
+      className={`group
         ${
           isFocused
             ? "border-2 border-blue-500 bg-gray-100"
@@ -206,6 +193,9 @@ const Divider = ({ id }) => {
       onDragStart={onDragStart}
       onDrop={onDrop}
       onDragOver={onDragOver}
+
+      onDragEnter={onDragEnterHandle}
+      onDragLeave={onDragLeaveHandle}
     >
 
       {/* Drag Icon */}
@@ -232,9 +222,9 @@ const Divider = ({ id }) => {
         
         ref={dividerRef}
         style={{
-          ...currentStyles,
+          ...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
         }}
-        className="w-full"
+        className="w-full transition-all duration-300"
       />
     </div>
   );

@@ -19,13 +19,18 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 
 
-const Button = ({ id }) => {
+
+const Button = ({ id, parentId, column }) => {
 
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
+  const [extraGap, setExtraGap] = useState(null);
+
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
 
   const dispatch = useDispatch();
@@ -100,6 +105,7 @@ const Button = ({ id }) => {
           })
         );
         dispatch(setColumnOneExtraPadding(false));
+        dispatch(setWidgetOrElement("element"));
       };
       
       const onDrop = (e) => {
@@ -114,23 +120,32 @@ const Button = ({ id }) => {
 
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {extragap: ""},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
+        setExtraGap(null);
 
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          })
-        );
+        if(widgetOrElement && widgetOrElement === "widget"){
+              // for droped widgets from left panel
+              dispatch(
+                addElementAtLocation({
+                  draggedNodeId: Date.now(), 
+                  draggedName: droppedData.name, 
+                  dragableType: droppedData.type,
+                  
+                  targetParentId: parentId, 
+                  targetColumn: column, 
+                  targetNodeId: id, 
+                })
+              )
+            }
+            else{
+              dispatch(
+                replaceDroppedItem({
+                  parentId: activeParentId || null,
+                  column: activeColumn || null,
+                  draggedNodeId: droppedData.id,
+                  targetNodeId: id,
+                }) 
+              );
+            }
 
         // initialize the application after exchage the position
         dispatch(setActiveWidgetId(null));
@@ -149,41 +164,13 @@ const Button = ({ id }) => {
       };
       //******************************************************************************** smooth extra gap b/w elements during replacing */ 
       const onDragEnterHandle = () => {
-        console.log("onDragEnterHandle called!!!!!!");
-        
-        dispatch(setActiveWidgetId(id));
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: { extragap: "150px"},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
+        console.log("onDragEnterHandle called in Button");
 
-        console.log("Button currentStyles Enter: ",currentStyles);
-
-        
+        setExtraGap(true);
       }
     
       const onDragLeaveHandle = () => {
-    
-        // borders
-        dispatch(setActiveNodeList(null));
-        setHoveredElement(false);
-    
-        dispatch(
-          updateElementStyles({
-            id,
-            styles: {extragap: ""},
-            ...(activeParentId && { parentId: activeParentId }),
-            ...(activeColumn && { column: activeColumn }),
-          })
-        );
-        console.log("Button currentStyles Leave: ",currentStyles);
+        setExtraGap(null);
     
       }
     
@@ -236,6 +223,9 @@ const Button = ({ id }) => {
 
       {/* Outer Container with Dashed Border */}
       <div
+        onDragEnter={onDragEnterHandle}
+        onDragLeave={onDragLeaveHandle}
+        
         className={`relative w-full h-[50px] bg-transparent  flex items-center p-1 transition-all duration-300`}
 
         style={{
@@ -243,11 +233,16 @@ const Button = ({ id }) => {
           alignItems: "center",
           justifyContent: `${currentStyles.textAlign || "center"}`,
           height: "auto",
-          paddingTop: currentStyles.extragap,
+          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
         }}
       >
         {/* Button Content */}
         <button
+
+        
+        onDragEnter={onDragEnterHandle}
+        onDragLeave={onDragLeaveHandle}
+
         ref={inputRef}
           style={{ ...currentStyles, backgroundColor: `${currentStyles.buttonColor || "#1d4ed8"}` }}
           className="relative bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 text-center"

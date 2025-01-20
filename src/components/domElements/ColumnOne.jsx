@@ -331,7 +331,7 @@ const ColumnOne = ({ handleDelete, id }) => {
               }}
               className="w-full rounded-md relative group"
             >
-              {componentMap[child.name] ? componentMap[child.name]({ id: child.id}) : ""}
+              {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id}) : ""}
 
               {/* Delete Button for Each Child */}
               {hoveredChild === child.id && (

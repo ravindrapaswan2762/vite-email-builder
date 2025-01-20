@@ -360,7 +360,7 @@ const ColumnThree = ({ handleDelete, id }) => {
               onclickHandler(id, child.id, "childrenA");
             }}
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA"}) : <div>Unknown Component</div>}
 
             {hoveredChildA === child.id && (
               <button
@@ -410,7 +410,7 @@ const ColumnThree = ({ handleDelete, id }) => {
               onclickHandler(id, child.id, "childrenB");
             }}
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB" }) : <div>Unknown Component</div>}
 
             {/* Delete Button for Child */}
             {hoveredChildB === child.id && (
@@ -460,7 +460,7 @@ const ColumnThree = ({ handleDelete, id }) => {
               onclickHandler(id, child.id, "childrenC");
             }}
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenC" }) : <div>Unknown Component</div>}
 
             {/* Delete Button for Child */}
             {hoveredChildC === child.id && (

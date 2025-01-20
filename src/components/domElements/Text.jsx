@@ -18,16 +18,20 @@ import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 // import { setTextExtraPadding } from "../../redux/condtionalCssSlice";
 
 
-const Text = ({ id }) => {
+const Text = ({ id, parentId, column}) => {
   const [val, setVal] = useState("");
   const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
   const [isFocused, setIsFocused] = useState(false); // Track focus state
+  const [extraGap, setExtraGap] = useState(null);
   const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
 
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
     // const {textExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
@@ -87,6 +91,11 @@ const Text = ({ id }) => {
 
   const onClickHandle = (e) => {
     e.preventDefault();
+
+    // console.log(
+    //   `[parentId=${parentId}, column=${column}, nodeId=${id}]`
+    // );
+
     dispatch(setActiveWidgetName("Text"));
     dispatch(setActiveEditor("Text"));
     dispatch(setActiveWidgetId(id));
@@ -154,10 +163,12 @@ const Text = ({ id }) => {
       "text/plain",
       JSON.stringify({
         id,
-        parentId: activeParentId || null,
-        column: activeColumn || null,
+        parentId: parentId || null,
+        column: column || null,
       })
     );
+
+    dispatch(setWidgetOrElement("element"));
 
   };
   
@@ -166,6 +177,7 @@ const Text = ({ id }) => {
 
     // for changing position from the ui
     const draggedName = e.dataTransfer.getData("text/plain");
+    console.log("droppedData from the ui: ", draggedName);
     const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
     if (restrictedWidgets.includes(draggedName)) {
       alert("Please drop it in an black space.");
@@ -174,25 +186,47 @@ const Text = ({ id }) => {
 
     // for droped widgets from left panel
     const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+    console.log("droppedData from left panel: ", droppedData);
 
-    dispatch(
-      updateElementStyles({
-        id,
-        styles: {paddingTop: "", background: "trasparent", border: "none"},
-        ...(activeParentId && { parentId: activeParentId }),
-        ...(activeColumn && { column: activeColumn }),
-      })
-    );
+    setExtraGap(null);
 
-    dispatch(
-      replaceDroppedItem({
-        parentId: activeParentId || null,
-        column: activeColumn || null,
-        draggedNodeId: droppedData.id,
-        targetNodeId: id,
-      }) 
-    );
+    if(widgetOrElement && widgetOrElement === "widget"){
+      // for droped widgets from left panel
+      dispatch(
+        addElementAtLocation({
+          draggedNodeId: Date.now(), 
+          draggedName: droppedData.name, 
+          dragableType: droppedData.type,
+          
+          targetParentId: parentId, 
+          targetColumn: column, 
+          targetNodeId: id, 
+        })
+      )
+    }
+    else{
+      // for droped element from ui
+      dispatch(
+        replaceDroppedItem({
+          parentId: activeParentId || null,
+          column: activeColumn || null,
+          draggedNodeId: droppedData.id,
+          targetNodeId: id,
+        }) 
+      );
 
+      // dispatch(
+      //   replaceDroppedItem({
+      //     draggedParentId: droppedData.parentId, 
+      //     draggedColumn: droppedData.column, 
+      //     draggedNodeId: droppedData.id,
+
+      //     targetParentId: parentId,
+      //     targetColumn: column,
+      //     targetNodeId: id,
+      //   }) 
+      // );
+    }
 
     // initialize the application
     dispatch(setActiveWidgetId(null));
@@ -213,37 +247,11 @@ const Text = ({ id }) => {
   //******************************************************************************** smooth extra gap b/w elements during replacing*/ 
 
   const onDragEnterHandle = () => {
-    console.log("onDragEnterHandle called!!!!!!");
-    
-    dispatch(setActiveWidgetId(id));
-    dispatch(setActiveNodeList(null));
-    setHoveredElement(false);
-
-    dispatch(
-      updateElementStyles({
-        id,
-        styles: { paddingTop: "150px", background: "transparent" },
-        ...(activeParentId && { parentId: activeParentId }),
-        ...(activeColumn && { column: activeColumn }),
-      })
-    );
+    console.log("onDragEnterHandle called in text");
+    setExtraGap(true);
   }
-
   const onDragLeaveHandle = () => {
-
-    // borders
-    dispatch(setActiveNodeList(null));
-    setHoveredElement(false);
-
-    dispatch(
-      updateElementStyles({
-        id,
-        styles: {paddingTop: "", background: "trasparent", border: "none"},
-        ...(activeParentId && { parentId: activeParentId }),
-        ...(activeColumn && { column: activeColumn }),
-      })
-    );
-
+    setExtraGap(null);
   }
 
   // **********************************************************************************
@@ -304,7 +312,8 @@ const Text = ({ id }) => {
         type="text"
         className={`p-2 w-full transition-all duration-300 ${
           isFocused ? "border rounded border-gray-300" : "border-none bg-transparent"
-        }  focus:outline-none focus:ring-0 bg-transparent`}
+        }  focus:outline-none focus:ring-0 bg-transparent
+        `}
         placeholder="Text Field"
         value={val}
         style={{
@@ -312,6 +321,7 @@ const Text = ({ id }) => {
           overflow: "hidden",
           resize: "none",
           whiteSpace: "pre-wrap",
+          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
 
         }} // Apply dynamic styles
       />
