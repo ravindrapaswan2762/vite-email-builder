@@ -180,7 +180,7 @@ const Space = ({ id, parentId, column }) => {
 
       `}
 
-      style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })}}
+      style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })}}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}

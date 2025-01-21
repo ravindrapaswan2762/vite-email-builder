@@ -25,6 +25,8 @@ import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
 
 
 
@@ -40,7 +42,7 @@ const componentMap = {
 };
 
 const ColumnOne = ({ handleDelete, id }) => {
-  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const {columnOneExtraPadding} = useSelector((state) => state.coditionalCssSlice);
@@ -52,6 +54,8 @@ const ColumnOne = ({ handleDelete, id }) => {
 
   const [hoveredColumn, setHoveredColumn] = useState(false); // Track hover state for the column
   const [hoveredChild, setHoveredChild] = useState(null); // Track hover state for children
+  const [paddingTop, setPaddingTop] = useState(null);
+
 
 
   const parent = droppedItems.find((item) => item.id === id);
@@ -62,9 +66,9 @@ const ColumnOne = ({ handleDelete, id }) => {
     // e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
+    setPaddingTop(null);
     // console.log("handleDrop called");
 
-  
     if (!activeWidgetName) return;
 
     const defaultContent =
@@ -98,6 +102,9 @@ const ColumnOne = ({ handleDelete, id }) => {
           isActive: null,
         })
       );
+    }
+    else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
+      return;
     }
 
     dispatch(setActiveWidgetId(null));
@@ -173,18 +180,29 @@ const ColumnOne = ({ handleDelete, id }) => {
   // ***************************************** write extra logic for hilight drop area while dragEnter
   const [isDragging, setIsDragging] = useState(false); // NEW: Track if an element is being dragged into the column
 
-  const handleDragEnter = () => {
-    // console.log("handleDragEnter called");
-    setIsDragging(true); // NEW: Trigger only once when the element enters
+  const handleDragEnter = (e) => {
+    e.stopPropagation();
+    console.log("handleDragEnter called in columnOne: ",paddingTop);
 
-    dispatch(dispatch(setActiveBorders(true)));
-    dispatch(setColumnOneExtraPadding(true));
+    if (!isDragging) {
+      setPaddingTop(true);
+      setIsDragging(true);
+      dispatch(setActiveBorders(true)); // Add active borders for visual feedback
+      dispatch(setColumnOneExtraPadding(true)); // Optional Redux state update
+    }
 
   };
   
-  const handleDragLeave = () => {
-    // console.log("handleDragLeave called");
-    setIsDragging(false); // NEW: Reset when the draggable element leaves
+  const handleDragLeave = (e) => {
+    e.stopPropagation();
+    console.log("handleDragLeave called in columnOne: ",paddingTop);
+ 
+    if (oneColumnRef.current && !oneColumnRef.current.contains(e.relatedTarget)) {
+      setIsDragging(false);
+      setPaddingTop(false);
+      dispatch(setColumnOneExtraPadding(false)); // Optional Redux state update
+    }
+
   };
   
 
@@ -218,6 +236,8 @@ const ColumnOne = ({ handleDelete, id }) => {
         })
       );
       e.dataTransfer.effectAllowed = "move";
+
+      dispatch(setWidgetOrElement("column"));
     
     };
     
@@ -227,6 +247,8 @@ const ColumnOne = ({ handleDelete, id }) => {
       const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
       console.log("droppedData: ", droppedData);
       console.log("droppedData.name: ", droppedData.name);
+
+      paddingTop(null);
 
       const restrictedWidgets = ["2-columns", "3-columns"];
 
@@ -260,11 +282,44 @@ const ColumnOne = ({ handleDelete, id }) => {
       // console.log("onDragOver called in Text");
       e.preventDefault(); // Allow dropping
     };
-    //******************************************************************************** */ 
+    //******************************************************************************** drop Into PaddingTop */ 
+    const dropInPaddingTop = (e)=>{
+      e.stopPropagation();
+
+      const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+      setIsDragging(false);
+      setPaddingTop(null);
+
+      if(widgetOrElement && widgetOrElement==='widget'){
+        dispatch(
+          addElementAtLocation({
+            draggedNodeId: Date.now(), 
+            draggedName: droppedData.name, 
+            dragableType: droppedData.type,
+            
+            targetParentId: null, 
+            targetColumn: null, 
+            targetNodeId: id, 
+          })
+        )
+      }
+      else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          }) 
+        );
+      }
+    }
+    
 
   return (
     <div
-      onDrop={handleDrop}
+      onDrop={dropInPaddingTop}
       ref={oneColumnRef}
 
       onDragOver={handleDragOver}
@@ -274,7 +329,7 @@ const ColumnOne = ({ handleDelete, id }) => {
       onDragEnter={handleDragEnter} 
       onDragLeave={handleDragLeave}
    
-      className={`text-center min-h-[150px] relative group`}
+      className={`text-center min-h-[150px] relative group transition-all duration-300`}
       onClick={(e) => {
         e.stopPropagation();
         dispatch(setActiveWidgetId(id));
@@ -285,6 +340,7 @@ const ColumnOne = ({ handleDelete, id }) => {
       style={{
         ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
+        ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
       }}
 
       draggable
@@ -316,7 +372,9 @@ const ColumnOne = ({ handleDelete, id }) => {
                       ${isDragging ? "bg-blue-100 border-blue-400" : ""}
                       ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
                       ${columnOneExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
-                      `}>
+                      `}
+                      onDrop={handleDrop}
+                      >
 
         {/* Render Children */}
         {children.length > 0 ? (
@@ -348,7 +406,8 @@ const ColumnOne = ({ handleDelete, id }) => {
             </div>
           ))
         ) : (
-          <div className="border-dashed rounded-md text-center text-gray-400 font-semibold">
+          <div className="border-dashed rounded-md text-center text-gray-400 font-semibold"
+          >
             Drop an element here
           </div>
         )}

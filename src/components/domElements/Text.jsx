@@ -321,7 +321,7 @@ const Text = ({ id, parentId, column}) => {
           overflow: "hidden",
           resize: "none",
           whiteSpace: "pre-wrap",
-          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
+          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })
 
         }} // Apply dynamic styles
       />

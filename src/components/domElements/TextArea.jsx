@@ -309,7 +309,7 @@ const TextArea = ({ id, parentId, column}) => {
           resize: "none", // Disable manual resizing
           whiteSpace: "pre-wrap", // Preserve line breaks and spaces
           wordWrap: "break-word", // Break long words
-          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
+          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })
         }} // Apply dynamic styles
       />
     </div>

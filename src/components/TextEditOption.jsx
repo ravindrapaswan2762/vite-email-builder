@@ -38,12 +38,47 @@ const TextEditOption = () => {
 
   useEffect(() => {
     if (selectedElement.styles) {
-      setFields((prev) => ({
-        ...prev,
-        ...selectedElement.styles,
-      }));
+      setFields({
+        height: selectedElement.styles.height || "",
+        paddingTop: selectedElement.styles.paddingTop || "",
+        paddingLeft: selectedElement.styles.paddingLeft || "",
+        paddingBottom: selectedElement.styles.paddingBottom || "",
+        paddingRight: selectedElement.styles.paddingRight || "",
+        color: selectedElement.styles.color || "#000000",
+        backgroundColor: selectedElement.styles.backgroundColor || "#ffffff",
+        fontFamily: selectedElement.styles.fontFamily || "",
+        fontSize: selectedElement.styles.fontSize || "25px", // Default value in px
+        lineHeight: selectedElement.styles.lineHeight || "",
+        letterSpacing: selectedElement.styles.letterSpacing || "",
+        textDecoration: selectedElement.styles.textDecoration || "none",
+        fontWeight: selectedElement.styles.fontWeight || "normal",
+        textAlign: selectedElement.styles.textAlign || "left",
+        fontStyle: selectedElement.styles.fontStyle || "normal",
+        className: selectedElement.styles.className || "",
+      });
+    } else {
+      // Reset fields if no styles are found
+      setFields({
+        height: "",
+        paddingTop: "",
+        paddingLeft: "",
+        paddingBottom: "",
+        paddingRight: "",
+        color: "#000000",
+        backgroundColor: "#ffffff",
+        fontFamily: "",
+        fontSize: "25px", // Default value in px
+        lineHeight: "",
+        letterSpacing: "",
+        textDecoration: "none",
+        fontWeight: "normal",
+        textAlign: "left",
+        fontStyle: "normal",
+        className: "",
+      });
     }
-  }, [selectedElement]);
+  }, [selectedElement, activeWidgetId]);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

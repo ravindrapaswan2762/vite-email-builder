@@ -315,7 +315,7 @@ const WrapperAttribute = () => {
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
             onDragEnter={()=>{
-              console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
+              // console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
               dispatch(setWrapperExtraPadding(true));
             }}
             className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all h-auto

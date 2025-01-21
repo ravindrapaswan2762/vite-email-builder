@@ -222,7 +222,7 @@ const Divider = ({ id, parentId, column }) => {
         
         ref={dividerRef}
         style={{
-          ...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
+          ...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })
         }}
         className="w-full transition-all duration-300"
       />

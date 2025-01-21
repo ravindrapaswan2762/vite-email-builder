@@ -233,7 +233,7 @@ const Button = ({ id, parentId, column }) => {
           alignItems: "center",
           justifyContent: `${currentStyles.textAlign || "center"}`,
           height: "auto",
-          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
+          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })
         }}
       >
         {/* Button Content */}

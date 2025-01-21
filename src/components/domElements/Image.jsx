@@ -252,7 +252,7 @@ const Image = ({ id, parentId, column}) => {
             src={currentStyles.imageUrl}
             alt="Uploaded"
             className="w-full h-full object-contain rounded transition-all duration-300"
-            style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })}}
+            style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })}}
             
           />
         </a>

@@ -205,7 +205,7 @@ const SocialMedia = ({ id, parentId, column}) => {
 
       style={{...currentStyles, 
         ...(view === "Desktop" ? {display: "flex", flexDirection: "column" } : {}),
-        ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })
+        ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop})
       }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}

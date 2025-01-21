@@ -1,5 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+const contentMapping = {
+  Text: "Design Beautiful Emails.",
+  TextArea: "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns.",
+};
+
 const initialState = {
   activeWidgetId: null,
   activeWidgetName: "",
@@ -304,191 +309,191 @@ const cardDragableSlice = createSlice({
     },
 
     
-    // replaceDroppedItem: (state, action) => {
-    //   const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
-
-    //   console.log(
-    //     `draggedNodeId: ${draggedNodeId}, targetNodeId: ${targetNodeId}, parentId: ${parentId}, column: ${column}`
-    //   );
-
-    //   const findAndInsert = (items, parentId, column, draggedNodeId, targetNodeId) => {
-    //     // Helper function to handle reordering
-    //     const reorderItems = (list, draggedIndex, targetIndex) => {
-    //       const [draggedItem] = list.splice(draggedIndex, 1); // Remove dragged item
-
-    //       // Adjust targetIndex for upward movement
-    //       if (draggedIndex < targetIndex) {
-    //         targetIndex -= 1;
-    //       }
-
-    //       // Place dragged item at target position
-    //       list.splice(targetIndex, 0, draggedItem);
-
-    //       // Move target item to the position below the dragged item
-    //       const [targetItem] = list.splice(targetIndex + 1, 1);
-    //       list.splice(targetIndex + 1, 0, targetItem);
-
-    //       return list;
-    //     };
-
-    //     if (parentId && column) {
-    //       return items.map((item) => {
-    //         if (item.id === parentId) {
-    //           const columnItems = [...item[column]];
-    //           const draggedIndex = columnItems.findIndex((child) => child.id === draggedNodeId);
-    //           const targetIndex = columnItems.findIndex((child) => child.id === targetNodeId);
-
-    //           if (draggedIndex !== -1 && targetIndex !== -1) {
-    //             reorderItems(columnItems, draggedIndex, targetIndex);
-    //             console.log(`Reordered in column: ${column}`);
-    //           }
-
-    //           return { ...item, [column]: columnItems };
-    //         }
-    //         return item;
-    //       });
-    //     }
-
-    //     if (!parentId && !column) {
-    //       const draggedIndex = items.findIndex((item) => item.id === draggedNodeId);
-    //       const targetIndex = items.findIndex((item) => item.id === targetNodeId);
-
-    //       if (draggedIndex !== -1 && targetIndex !== -1) {
-    //         reorderItems(items, draggedIndex, targetIndex);
-    //         console.log(`Reordered at the top level`);
-    //       }
-
-    //       return items;
-    //     }
-
-    //     if (parentId && !column) {
-    //       return items.map((item) => {
-    //         if (item.id === parentId && item.children) {
-    //           const children = [...item.children];
-    //           const draggedIndex = children.findIndex((child) => child.id === draggedNodeId);
-    //           const targetIndex = children.findIndex((child) => child.id === targetNodeId);
-
-    //           if (draggedIndex !== -1 && targetIndex !== -1) {
-    //             reorderItems(children, draggedIndex, targetIndex);
-    //             console.log(`Reordered in children of parentId: ${parentId}`);
-    //           }
-
-    //           return { ...item, children };
-    //         }
-    //         return item;
-    //       });
-    //     }
-
-    //     return items;
-    //   };
-
-    //   state.droppedItems = findAndInsert(
-    //     state.droppedItems,
-    //     parentId,
-    //     column,
-    //     draggedNodeId,
-    //     targetNodeId
-    //   );
-
-    //   console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
-    // },
-
     replaceDroppedItem: (state, action) => {
-      const {
-        draggedParentId, // Parent ID of the dragged element
-        draggedColumn, // Column of the dragged element
-        draggedNodeId, // ID of the dragged element
-        targetParentId, // Parent ID of the target position
-        targetColumn, // Column of the target position
-        targetNodeId, // ID of the target element
-      } = action.payload;
-    
+      const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
+
       console.log(
-        `Dragged: parentId=${draggedParentId}, column=${draggedColumn}, nodeId=${draggedNodeId}`
+        `draggedNodeId::: ${draggedNodeId}, targetNodeId::: ${targetNodeId}, parentId::: ${parentId}, column::: ${column} in replaceDroppedItem action`
       );
-      console.log(
-        `Target: parentId=${targetParentId}, column=${targetColumn}, nodeId=${targetNodeId}`
-      );
-    
-      // Helper function to remove an item from the source location
-      const findAndRemove = (items, parentId, column, nodeId) => {
-        for (let item of items) {
-          if (item.id === parentId) {
-            const columnItems = column ? item[column] || [] : item.children || [];
-            const draggedIndex = columnItems.findIndex((child) => child.id === nodeId);
-            if (draggedIndex !== -1) {
-              const [draggedItem] = columnItems.splice(draggedIndex, 1);
-              return draggedItem;
+
+      const findAndInsert = (items, parentId, column, draggedNodeId, targetNodeId) => {
+        // Helper function to handle reordering
+        const reorderItems = (list, draggedIndex, targetIndex) => {
+          const [draggedItem] = list.splice(draggedIndex, 1); // Remove dragged item
+
+          // Adjust targetIndex for upward movement
+          if (draggedIndex < targetIndex) {
+            targetIndex -= 1;
+          }
+
+          // Place dragged item at target position
+          list.splice(targetIndex, 0, draggedItem);
+
+          // Move target item to the position below the dragged item
+          const [targetItem] = list.splice(targetIndex + 1, 1);
+          list.splice(targetIndex + 1, 0, targetItem);
+
+          return list;
+        };
+
+        if (parentId && column) {
+          return items.map((item) => {
+            if (item.id === parentId) {
+              const columnItems = [...item[column]];
+              const draggedIndex = columnItems.findIndex((child) => child.id === draggedNodeId);
+              const targetIndex = columnItems.findIndex((child) => child.id === targetNodeId);
+
+              if (draggedIndex !== -1 && targetIndex !== -1) {
+                reorderItems(columnItems, draggedIndex, targetIndex);
+                console.log(`Reordered in column: ${column}`);
+              }
+
+              return { ...item, [column]: columnItems };
             }
-          }
-    
-          const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
-          for (let key of nestedKeys) {
-            const draggedItem = findAndRemove(item[key], parentId, column, nodeId);
-            if (draggedItem) return draggedItem;
-          }
+            return item;
+          });
         }
-        return null;
-      };
-    
-      // Helper function to insert an item at the target location
-      const findAndInsert = (items, parentId, column, nodeId, itemToInsert) => {
-        for (let item of items) {
-          if (item.id === parentId) {
-            const columnItems = column ? item[column] || [] : item.children || [];
-            const targetIndex = columnItems.findIndex((child) => child.id === nodeId);
-    
-            if (targetIndex !== -1) {
-              // Insert at the target index
-              columnItems.splice(targetIndex, 0, itemToInsert);
-            } else {
-              // Append if targetNodeId is not found
-              columnItems.push(itemToInsert);
-            }
-    
-            return true;
+
+        if (!parentId && !column) {
+          const draggedIndex = items.findIndex((item) => item.id === draggedNodeId);
+          const targetIndex = items.findIndex((item) => item.id === targetNodeId);
+
+          if (draggedIndex !== -1 && targetIndex !== -1) {
+            reorderItems(items, draggedIndex, targetIndex);
+            console.log(`Reordered at the top level`);
           }
-    
-          const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
-          for (let key of nestedKeys) {
-            if (findAndInsert(item[key], parentId, column, nodeId, itemToInsert)) {
-              return true;
-            }
-          }
+
+          return items;
         }
-        return false;
+
+        if (parentId && !column) {
+          return items.map((item) => {
+            if (item.id === parentId && item.children) {
+              const children = [...item.children];
+              const draggedIndex = children.findIndex((child) => child.id === draggedNodeId);
+              const targetIndex = children.findIndex((child) => child.id === targetNodeId);
+
+              if (draggedIndex !== -1 && targetIndex !== -1) {
+                reorderItems(children, draggedIndex, targetIndex);
+                console.log(`Reordered in children of parentId: ${parentId}`);
+              }
+
+              return { ...item, children };
+            }
+            return item;
+          });
+        }
+
+        return items;
       };
-    
-      // Step 1: Remove the dragged element from its original location
-      const draggedItem = findAndRemove(
+
+      state.droppedItems = findAndInsert(
         state.droppedItems,
-        draggedParentId,
-        draggedColumn,
-        draggedNodeId
+        parentId,
+        column,
+        draggedNodeId,
+        targetNodeId
       );
-    
-      if (!draggedItem) {
-        console.warn(`Dragged node not found: ${draggedNodeId}`);
-        return;
-      }
-    
-      // Step 2: Insert the dragged element into the target location
-      const success = findAndInsert(
-        state.droppedItems,
-        targetParentId,
-        targetColumn,
-        targetNodeId,
-        draggedItem
-      );
-    
-      if (!success) {
-        console.warn(
-          `Target parent or node not found: parentId=${targetParentId}, nodeId=${targetNodeId}`
-        );
-      }
-    
+
       console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
     },
+
+    // replaceDroppedItem: (state, action) => {
+    //   const {
+    //     draggedParentId, // Parent ID of the dragged element
+    //     draggedColumn, // Column of the dragged element
+    //     draggedNodeId, // ID of the dragged element
+    //     targetParentId, // Parent ID of the target position
+    //     targetColumn, // Column of the target position
+    //     targetNodeId, // ID of the target element
+    //   } = action.payload;
+    
+    //   console.log(
+    //     `Dragged: parentId=${draggedParentId}, column=${draggedColumn}, nodeId=${draggedNodeId}`
+    //   );
+    //   console.log(
+    //     `Target: parentId=${targetParentId}, column=${targetColumn}, nodeId=${targetNodeId}`
+    //   );
+    
+    //   // Helper function to remove an item from the source location
+    //   const findAndRemove = (items, parentId, column, nodeId) => {
+    //     for (let item of items) {
+    //       if (item.id === parentId) {
+    //         const columnItems = column ? item[column] || [] : item.children || [];
+    //         const draggedIndex = columnItems.findIndex((child) => child.id === nodeId);
+    //         if (draggedIndex !== -1) {
+    //           const [draggedItem] = columnItems.splice(draggedIndex, 1);
+    //           return draggedItem;
+    //         }
+    //       }
+    
+    //       const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+    //       for (let key of nestedKeys) {
+    //         const draggedItem = findAndRemove(item[key], parentId, column, nodeId);
+    //         if (draggedItem) return draggedItem;
+    //       }
+    //     }
+    //     return null;
+    //   };
+    
+    //   // Helper function to insert an item at the target location
+    //   const findAndInsert = (items, parentId, column, nodeId, itemToInsert) => {
+    //     for (let item of items) {
+    //       if (item.id === parentId) {
+    //         const columnItems = column ? item[column] || [] : item.children || [];
+    //         const targetIndex = columnItems.findIndex((child) => child.id === nodeId);
+    
+    //         if (targetIndex !== -1) {
+    //           // Insert at the target index
+    //           columnItems.splice(targetIndex, 0, itemToInsert);
+    //         } else {
+    //           // Append if targetNodeId is not found
+    //           columnItems.push(itemToInsert);
+    //         }
+    
+    //         return true;
+    //       }
+    
+    //       const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+    //       for (let key of nestedKeys) {
+    //         if (findAndInsert(item[key], parentId, column, nodeId, itemToInsert)) {
+    //           return true;
+    //         }
+    //       }
+    //     }
+    //     return false;
+    //   };
+    
+    //   // Step 1: Remove the dragged element from its original location
+    //   const draggedItem = findAndRemove(
+    //     state.droppedItems,
+    //     draggedParentId,
+    //     draggedColumn,
+    //     draggedNodeId
+    //   );
+    
+    //   if (!draggedItem) {
+    //     console.warn(`Dragged node not found: ${draggedNodeId}`);
+    //     return;
+    //   }
+    
+    //   // Step 2: Insert the dragged element into the target location
+    //   const success = findAndInsert(
+    //     state.droppedItems,
+    //     targetParentId,
+    //     targetColumn,
+    //     targetNodeId,
+    //     draggedItem
+    //   );
+    
+    //   if (!success) {
+    //     console.warn(
+    //       `Target parent or node not found: parentId=${targetParentId}, nodeId=${targetNodeId}`
+    //     );
+    //   }
+    
+    //   console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    // },
     
     
     updateElementActiveState: (state, action) => {
@@ -554,8 +559,6 @@ const cardDragableSlice = createSlice({
 
       const { draggedNodeId, draggedName, dragableType, targetParentId, targetColumn, targetNodeId } = action.payload;
 
-      console.log("Action Payload: ", action.payload);
-
       // Helper function to find and insert the dragged item
       const findAndInsert = (items, draggedNodeId, draggedName, dragableType, targetParentId, targetColumn, targetNodeId) => {
         for (let item of items) {
@@ -572,7 +575,7 @@ const cardDragableSlice = createSlice({
               id: draggedNodeId,
               name: draggedName,
               type: dragableType, // Specify type if needed
-              content: "",
+              content: "adff",
               styles: {},
               children: [],
             };
@@ -616,7 +619,7 @@ const cardDragableSlice = createSlice({
           id: draggedNodeId,
           name: draggedName,
           type: dragableType, // Specify type if needed
-          content: "",
+          content: contentMapping[draggedName] || "",
           styles: {},
           children: [],
         };

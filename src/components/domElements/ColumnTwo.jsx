@@ -32,6 +32,8 @@ import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 
 
 
@@ -48,7 +50,7 @@ const componentMap = {
 
 const ColumnTwo = ({ handleDelete, id }) => {
 
-  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn  } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const {columnTwoExtraPadding} = useSelector((state) => state.coditionalCssSlice);
@@ -63,6 +65,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
   const [childrenB, setChildrenB] = useState([]);
   const [hoveredChildA, setHoveredChildA] = useState(null); // Track hovered child in Column A
   const [hoveredChildB, setHoveredChildB] = useState(null); // Track hovered child in Column B
+  const [paddingTop, setPaddingTop] = useState(null);
 
   useEffect(() => {
     // Fetch column data from Redux store
@@ -100,6 +103,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
     let droppedData = null;
     try {
       droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+      console.log("droppedData in columnTwo: ",droppedData);
     } catch (error) {
       console.error("Failed to parse dropped data:", error);
       return;
@@ -121,6 +125,9 @@ const ColumnTwo = ({ handleDelete, id }) => {
           isActive: null,
         })
       );
+    }
+    else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
+      return;
     }
 
 
@@ -200,20 +207,28 @@ const ColumnTwo = ({ handleDelete, id }) => {
 
       const handleDragEnter = (column) => {
         // console.log("handleDragEnter called", column);
+    
         if (!isDragging || !column) {
-          setIsDragging(true);
-          setColumn(column);
-        }
-        
-        dispatch(dispatch(setActiveBorders(true)));
-        dispatch(setColumnTwoExtraPadding(true));
-        // console.log("columnTwoExtraPadding: ", columnTwoExtraPadding);
+    
+            setIsDragging(true);
+            setColumn(column);
+
+            setPaddingTop(true);
+            dispatch(dispatch(setActiveBorders(true)));
+            dispatch(setColumnTwoExtraPadding(true));
+          }
+
       };
       
-      const handleDragLeave = () => {
+      const handleDragLeave = (e) => {
         // console.log("handleDragLeave called");
-        setIsDragging(false);
-        setColumn(null);
+        if(twoColumnRef.current && !twoColumnRef.current.contains(e.relatedTarget)){
+          setIsDragging(false);
+          setColumn(null);
+
+          setPaddingTop(null);
+          dispatch(setColumnTwoExtraPadding(false)); // Optional Redux state update
+        }
       };
   
 
@@ -221,6 +236,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
       const onClickOutside = () => {
         dispatch(setActiveNodeList(false));
         dispatch(setColumnTwoExtraPadding(false));
+        setPaddingTop(null);
+        dispatch(setActiveBorders(false)); // Remove active borders
       };
       useEffect(() => {
         const handleClickOutside = (event) => {
@@ -244,6 +261,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
             name: "2-columns"
           })
         );
+
+        dispatch(setWidgetOrElement("column"));
       };
       
       const onDrop = (e) => {
@@ -284,7 +303,51 @@ const ColumnTwo = ({ handleDelete, id }) => {
       const onDragOver = (e) => {
         e.preventDefault(); // Allow dropping
       };
-      //******************************************************************************** */ 
+      //********************************************************************************   drop Into PaddingTop */ 
+      const dropInPaddingTop = (e)=>{
+        e.stopPropagation();
+
+        setIsDragging(false);
+        setPaddingTop(null);
+  
+        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+  
+        if(widgetOrElement && widgetOrElement==='widget'){
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              
+              targetParentId: null, 
+              targetColumn: null, 
+              targetNodeId: id, 
+            })
+          )
+        }
+        else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
+          dispatch(
+            replaceDroppedItem({
+              parentId: activeParentId || null,
+              column: activeColumn || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
+      }
+
+      const leaveFromPaddingTop = (e)=>{
+        e.stopPropagation();
+
+        if (twoColumnRef.current && !twoColumnRef.current.contains(e.relatedTarget)) {
+          setIsDragging(false);
+          setPaddingTop(false);
+          dispatch(setColumnOneExtraPadding(false)); // Optional Redux state update
+        }
+      }
+
+      // ****************************************************************************************************
 
   return (
     // <div className={`relative grid grid-cols-2 gap-1 group bg-transparent`}
@@ -430,15 +493,12 @@ const ColumnTwo = ({ handleDelete, id }) => {
     // </div>
 
     <div
-    className={`relative grid gap-1 group bg-transparent
+    className={`relative grid gap-1 group bg-transparent transition-all duration-300
       sm:grid-cols-1 
       md:grid-cols-2
       lg:grid-cols-2
     `}
 
-  // Tailwind classes:
-  // - `grid-cols-2`: Default for non-mobile (two columns horizontally).
-  // - `sm:grid-cols-1`: Vertically align columns for small screens (mobile).
   onClick={(e) => {
     e.stopPropagation();
     dispatch(setActiveWidgetId(id));
@@ -454,6 +514,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
     backgroundSize: "cover",
     borderRadius: currentStyles.borderRadius,
     ...(view === "mobile" ? { padding: "12px", display: "flex", flexDirection: "column" } : {}),
+    ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
   }}
   ref={twoColumnRef}
   draggable
@@ -462,7 +523,27 @@ const ColumnTwo = ({ handleDelete, id }) => {
     e.stopPropagation();
     onDragOver(e);
   }}
+  onDrop={dropInPaddingTop}
+  onDragLeave={leaveFromPaddingTop}
 >
+
+   {/* Drag Icon */}
+    {(activeWidgetId==id) ? (
+        <AiOutlineDrag
+          style={{
+            position: "absolute",
+            left: "-20px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            cursor: "grab",
+            zIndex: 10,
+            backgroundColor: "white",
+            borderRadius: "50%", 
+          }}
+          // className="bg-gray-100"
+        />
+      ) : ""}
+
   {/* Column A */}
   <div
     onDrop={handleDrop("columnA")}

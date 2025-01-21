@@ -30,6 +30,8 @@ import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
 
 
 // Component Mapping
@@ -44,12 +46,13 @@ const componentMap = {
 };
 
 const ColumnThree = ({ handleDelete, id }) => {
-  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
 
   const { activeBorders } = useSelector((state) => state.borderSlice);
   const { activeNodeList } = useSelector((state) => state.treeViewSlice);
   const {columnThreeExtraPadding} = useSelector((state) => state.coditionalCssSlice);
   const {view} = useSelector( (state) => state.navbar );
+  const [paddingTop, setPaddingTop] = useState(null);
   
 
   const dispatch = useDispatch();
@@ -100,6 +103,8 @@ const ColumnThree = ({ handleDelete, id }) => {
         styles = {height: "135px"}
     }
 
+    setPaddingTop(false);
+
     // Safely parse dropped data
     let droppedData = null;
     try {
@@ -125,6 +130,9 @@ const ColumnThree = ({ handleDelete, id }) => {
           isActive: null,
         })
       );
+    }
+    else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
+      return;
     }
 
     dispatch(setActiveWidgetId(null));
@@ -199,26 +207,36 @@ const ColumnThree = ({ handleDelete, id }) => {
       const [column, setColumn] = useState(null);
 
         const handleDragEnter = (column) => {
-          // console.log("columnThree handleDragEnter called");
+          console.log("columnThree handleDragEnter called");
           if (!isDragging || !column) {
+
             setIsDragging(true);
             setColumn(column);
-          }
 
-          dispatch(dispatch(setActiveBorders(true)));
-          dispatch(setColumnThreeExtraPadding(true));
+            setPaddingTop(true);
+            dispatch(dispatch(setActiveBorders(true)));
+            dispatch(setColumnThreeExtraPadding(true));
+          }
         };
         
-        const handleDragLeave = () => {
-          // console.log("handleDragLeave called");
-          setIsDragging(false); 
-          setColumn(null);
+        const handleDragLeave = (e) => {
+          console.log("columnThree handleDragLeave called");
+
+          if(threeColumnRef.current && !threeColumnRef.current.contains(e.relatedTarget)){
+            setIsDragging(false);
+            setColumn(null);
+            setPaddingTop(null);
+            dispatch(setColumnThreeExtraPadding(false)); // Optional Redux state update
+          }
         };
           
     // ************************************************************************ 
       const onClickOutside = () => {
         dispatch(setActiveNodeList(false));
         dispatch(setColumnThreeExtraPadding(false));
+
+        setPaddingTop(null);
+        dispatch(setActiveBorders(false)); // Remove active borders
         
       };
       useEffect(() => {
@@ -246,12 +264,15 @@ const ColumnThree = ({ handleDelete, id }) => {
             name: "3-columns"
           })
         );
+
+        dispatch(setWidgetOrElement("column"));
       };
       
       const onDrop = (e) => {
         e.stopPropagation();
 
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+
         console.log("droppedData: ", droppedData);
         console.log("droppedData.name: ", droppedData.name);
 
@@ -287,11 +308,55 @@ const ColumnThree = ({ handleDelete, id }) => {
         // console.log("onDragOver called in Text");
         e.preventDefault(); // Allow dropping
       };
-      //******************************************************************************** */ 
+      // ************************************************************************************** drop Into PaddingTop
+      const dropInPaddingTop = (e)=>{
+        e.stopPropagation();
+  
+        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+  
+        setIsDragging(false);
+        setPaddingTop(null);
+  
+        if(widgetOrElement && widgetOrElement==='widget'){
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              
+              targetParentId: null, 
+              targetColumn: null, 
+              targetNodeId: id, 
+            })
+          )
+        }
+        else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
+          dispatch(
+            replaceDroppedItem({
+              parentId: activeParentId || null,
+              column: activeColumn || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
+      }
+
+      const leaveFromPaddingTop = (e)=>{
+        e.stopPropagation();
+
+        if (threeColumnRef.current && !threeColumnRef.current.contains(e.relatedTarget)) {
+          setIsDragging(false);
+          setPaddingTop(false);
+          dispatch(setColumnOneExtraPadding(false)); // Optional Redux state update
+        }
+      }
+
+    // ****************************************************************************************
       
 
   return (
-    <div className={`relative grid gap-1 group bg-transparent
+    <div className={`relative grid gap-1 group bg-transparent transition-all duration-300
       sm:grid-cols-1
       md:grid-cols-3
       lg:grid-cols-3
@@ -308,6 +373,7 @@ const ColumnThree = ({ handleDelete, id }) => {
         ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
         ...(view === "mobile" ? { padding: "30px", display: "flex", flexDirection: "column" } : {}),
+        ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
       }}
       ref={threeColumnRef}
 
@@ -317,6 +383,9 @@ const ColumnThree = ({ handleDelete, id }) => {
         e.stopPropagation();
         onDragOver(e);
       }}
+
+      onDrop={dropInPaddingTop}
+      onDragLeave={leaveFromPaddingTop}
       
     >
 
