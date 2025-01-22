@@ -34,7 +34,7 @@ import { replaceDroppedItem } from "../redux/cardDragableSlice";
 
 const WrapperAttribute = () => {
 
-  const { activeWidgetName, droppedItems, activeWidgetId, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
+  const { activeWidgetName, droppedItems, activeWidgetId, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
   const {wrapperExtraPadding} = useSelector((state) => state.coditionalCssSlice);
   const {view} = useSelector( (state) => state.navbar );
 
@@ -61,7 +61,7 @@ const WrapperAttribute = () => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!activeWidgetName) return;
+    // if (!activeWidgetName) return;
 
     const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
@@ -72,26 +72,36 @@ const WrapperAttribute = () => {
               ? "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns."
               : null; // Default to null if no specific content is needed
       
-    dispatch(
-      setDroppedItems({
-        id: Date.now(),
-        name: activeWidgetName,
-        type: activeWidgetName.includes("column") ? activeWidgetName : "widget",
-        parentId: null,
-        content: defaultContent,
-        styles: {},
-        isActive: null,
-      })
-    );
+    if(widgetOrElement === 'element'){
+      dispatch(
+          setDroppedItems({
+            id: Date.now(), 
+            name: droppedData.name, 
+            type: droppedData.type, 
+            parentId: droppedData.parentId || null, 
+            styles: droppedData.styles, 
+            content: droppedData.content, 
+            isActive: null
+          }) 
+        );
 
-    // dispatch(
-    //       replaceDroppedItem({
-    //         parentId: activeParentId || null,
-    //         column: activeColumn || null,
-    //         draggedNodeId: droppedData.id,
-    //         targetNodeId: id,
-    //       }) 
-    //     );
+        dispatch(deleteDroppedItemById(
+          {parentId: droppedData.id, childId: null, columnName: null }
+        ));
+    }
+    else{
+      dispatch(
+        setDroppedItems({
+          id: Date.now(),
+          name: activeWidgetName,
+          type: activeWidgetName.includes("column") ? activeWidgetName : "widget",
+          parentId: null,
+          content: defaultContent,
+          styles: {},
+          isActive: null,
+        })
+      );
+    }
 
     dispatch(setActiveEditor(activeWidgetName));
     dispatch(setActiveWidgetName(activeWidgetName));
@@ -261,27 +271,15 @@ const WrapperAttribute = () => {
     ? (
       <div className="flex justify-center items-center mt-[50px]">
         <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-          onDragEnter={() => {
-            console.log(
-              "wrapperExtraPadding*****************: ",
-              wrapperExtraPadding
-            );
-            dispatch(setWrapperExtraPadding(true));
-          }}
+          
           className={`relative w-[375px] min-h-[700px] bg-gray-100 mx-auto rounded-[50px] border-4 border-black shadow-lg overflow-hidden ${
             wrapperExtraPadding ? "pb-[100px] border-dashed" : ""
           }`}
-          style={{
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.5)",
-          }}
-          ref={wrapperRef}
+          
         >
           {/* Mobile App Bar */}
           <div className="absolute inset-0 h-[50px] bg-gray-500 flex items-center justify-center font-bold text-lg z-20 text-black">
             <PiCircleNotchFill />
-            
           </div>
 
           {/* Scrollable Content */}
@@ -326,6 +324,7 @@ const WrapperAttribute = () => {
           >
             {/* Render Dropped Items */}
             {droppedItems.map((item) => {
+              console.log("widgetOrElement in wrapperAttribute: ", widgetOrElement);
               if(item){
                 return renderWidget(item.id, item.name);
               }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementStyles } from "../redux/cardDragableSlice";
+import { useMemo } from "react";
 
 const TextAreaEditOption = () => {
   const [isDimensionOpen, setIsDimensionOpen] = useState(true);
@@ -12,9 +13,26 @@ const TextAreaEditOption = () => {
   const dispatch = useDispatch();
   const { activeWidgetId, activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
 
-  // Find the currently selected element from Redux state
-  const selectedElement =
-    droppedItems.find((item) => item.id === activeWidgetId) || {};
+  // Find the currently selected element from Redux state recursively
+    const findElementById = (items, widgetId) => {
+      for (const item of items) {
+        if (item.id === widgetId) {
+          return item;
+        }
+        // Check for nested children
+        const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+        for (const key of nestedKeys) {
+          const found = findElementById(item[key], widgetId);
+          if (found) {
+            return found;
+          }
+        }
+      }
+      return null;
+    }
+  
+    // Memoized selectedElement to ensure stability
+    const selectedElement = useMemo(() => findElementById(droppedItems, activeWidgetId) || {}, [droppedItems, activeWidgetId]);
 
   const [fields, setFields] = useState({
     height: "",
@@ -37,16 +55,60 @@ const TextAreaEditOption = () => {
     boxShadow: "none", // Box shadow property
   });
 
-  // Update local fields state when the selected element changes
   useEffect(() => {
     if (selectedElement.styles) {
-      setFields((prev) => ({
-        ...prev,
-        ...selectedElement.styles,
-      }));
+      const newFields = {
+        height: selectedElement.styles.height || "",
+        paddingTop: selectedElement.styles.paddingTop || "0px",
+        paddingLeft: selectedElement.styles.paddingLeft || "",
+        paddingBottom: selectedElement.styles.paddingBottom || "",
+        paddingRight: selectedElement.styles.paddingRight || "",
+        color: selectedElement.styles.color || "#000000",
+        backgroundColor: selectedElement.styles.backgroundColor || "#ffffff",
+        fontFamily: selectedElement.styles.fontFamily || "",
+        fontSize: selectedElement.styles.fontSize || "25px",
+        lineHeight: selectedElement.styles.lineHeight || "",
+        letterSpacing: selectedElement.styles.letterSpacing || "",
+        textDecoration: selectedElement.styles.textDecoration || "none",
+        fontWeight: selectedElement.styles.fontWeight || "normal",
+        textAlign: selectedElement.styles.textAlign || "left",
+        fontStyle: selectedElement.styles.fontStyle || "normal",
+        border: selectedElement.styles.border || "1px solid #000000",
+        borderRadius: selectedElement.styles.borderRadius || "4px",
+        boxShadow: selectedElement.styles.boxShadow || "none",
+      };
+  
+      // Only update fields if the new values are different
+      if (JSON.stringify(fields) !== JSON.stringify(newFields)) {
+        setFields(newFields);
+      }
+    } else {
+      // Reset fields to default values if no styles are found
+      setFields({
+        height: "",
+        paddingTop: "0px",
+        paddingLeft: "",
+        paddingBottom: "",
+        paddingRight: "",
+        color: "#000000",
+        backgroundColor: "#ffffff",
+        fontFamily: "",
+        fontSize: "25px",
+        lineHeight: "",
+        letterSpacing: "",
+        textDecoration: "none",
+        fontWeight: "normal",
+        textAlign: "left",
+        fontStyle: "normal",
+        border: "1px solid #000000",
+        borderRadius: "4px",
+        boxShadow: "none",
+      });
     }
-    console.log("activeWidgetId and droppedItems: ", activeWidgetId, droppedItems);
-  }, [selectedElement]);
+  }, [selectedElement.styles]); // Depend on selectedElement.styles to avoid unnecessary re-renders
+  
+  
+  
 
   // Handle input changes dynamically
   const handleInputChange = (e) => {

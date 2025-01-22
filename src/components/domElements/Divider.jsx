@@ -95,8 +95,12 @@ const Divider = ({ id, parentId, column }) => {
           "text/plain",
           JSON.stringify({
             id,
-            parentId: activeParentId || null,
-            column: activeColumn || null,
+            name: "Divider",
+            styles: currentStyles,
+            type: "widget",
+            content: null,
+            parentId: parentId || null,
+            column: column || null,
           })
         );
 

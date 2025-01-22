@@ -90,8 +90,12 @@ const Space = ({ id, parentId, column }) => {
           "text/plain",
           JSON.stringify({
             id,
-            parentId: activeParentId || null,
-            column: activeColumn || null,
+            name: "Space",
+            styles: currentStyles,
+            type: "widget",
+            content: null,
+            parentId: parentId || null,
+            column: column || null,
           })
         );
 

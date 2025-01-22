@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementStyles } from "../redux/cardDragableSlice";
+import { useMemo } from "react";
 
 const TextEditOption = () => {
   const [isDimensionOpen, setIsDimensionOpen] = useState(true);
@@ -12,9 +13,26 @@ const TextEditOption = () => {
   const dispatch = useDispatch();
   const { activeWidgetId, activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
 
-  // Find the currently selected element from Redux state
-  const selectedElement =
-    droppedItems.find((item) => item.id === activeWidgetId) || {};
+  // Find the currently selected element from Redux state recursively
+  const findElementById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === widgetId) {
+        return item;
+      }
+      // Check for nested children
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const found = findElementById(item[key], widgetId);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Memoized selectedElement to ensure stability
+  const selectedElement = useMemo(() => findElementById(droppedItems, activeWidgetId) || {}, [droppedItems, activeWidgetId]);
 
   const [fields, setFields] = useState({
     height: "",
@@ -38,7 +56,7 @@ const TextEditOption = () => {
 
   useEffect(() => {
     if (selectedElement.styles) {
-      setFields({
+      const newFields = {
         height: selectedElement.styles.height || "",
         paddingTop: selectedElement.styles.paddingTop || "",
         paddingLeft: selectedElement.styles.paddingLeft || "",
@@ -47,7 +65,7 @@ const TextEditOption = () => {
         color: selectedElement.styles.color || "#000000",
         backgroundColor: selectedElement.styles.backgroundColor || "#ffffff",
         fontFamily: selectedElement.styles.fontFamily || "",
-        fontSize: selectedElement.styles.fontSize || "25px", // Default value in px
+        fontSize: selectedElement.styles.fontSize || "25px",
         lineHeight: selectedElement.styles.lineHeight || "",
         letterSpacing: selectedElement.styles.letterSpacing || "",
         textDecoration: selectedElement.styles.textDecoration || "none",
@@ -55,9 +73,14 @@ const TextEditOption = () => {
         textAlign: selectedElement.styles.textAlign || "left",
         fontStyle: selectedElement.styles.fontStyle || "normal",
         className: selectedElement.styles.className || "",
-      });
+      };
+  
+      // Update fields only if there's a meaningful change
+      if (JSON.stringify(fields) !== JSON.stringify(newFields)) {
+        setFields(newFields);
+      }
     } else {
-      // Reset fields if no styles are found
+      // Reset fields to default values if no styles are found
       setFields({
         height: "",
         paddingTop: "",
@@ -67,7 +90,7 @@ const TextEditOption = () => {
         color: "#000000",
         backgroundColor: "#ffffff",
         fontFamily: "",
-        fontSize: "25px", // Default value in px
+        fontSize: "25px",
         lineHeight: "",
         letterSpacing: "",
         textDecoration: "none",
@@ -77,7 +100,8 @@ const TextEditOption = () => {
         className: "",
       });
     }
-  }, [selectedElement, activeWidgetId]);
+  }, [selectedElement.styles]); // Depend only on selectedElement.styles
+  
   
 
   const handleInputChange = (e) => {

@@ -87,21 +87,42 @@ const ColumnOne = ({ handleDelete, id }) => {
       return;
     }
 
-    console.log("droppedData: ", droppedData);
-    console.log("droppedData.name: ", droppedData?.name);
+    console.log("droppedData in columnOne:::: ", droppedData);
 
     if(!['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
-      dispatch(
-        setDroppedItems({
-          id: Date.now(), // Unique ID for the dropped child
-          name: activeWidgetName,
-          type: "widget",
-          parentId: id, // Parent ID to identify the column
-          content: defaultContent,
-          styles: {}, // Additional styles if needed
-          isActive: null,
-        })
-      );
+      if(widgetOrElement === 'element'){
+        dispatch(
+          setDroppedItems({
+            id: Date.now(), 
+            name: droppedData.name, 
+            type: droppedData.type, 
+            parentId: id, 
+            content: droppedData.content, 
+            styles: droppedData.styles, 
+            isActive: null
+          }) 
+        );
+
+        dispatch(deleteDroppedItemById(
+          {
+            parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
+            childId: droppedData.parentId ?  droppedData.id : null, 
+            columnName: droppedData.column ? droppedData.column : null}
+        ));
+      }
+      else{
+        dispatch(
+          setDroppedItems({
+            id: Date.now(), // Unique ID for the dropped child
+            name: activeWidgetName,
+            type: "widget",
+            parentId: id, // Parent ID to identify the column
+            content: defaultContent,
+            styles: {}, // Additional styles if needed
+            isActive: null,
+          })
+        );
+      }
     }
     else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
       return;

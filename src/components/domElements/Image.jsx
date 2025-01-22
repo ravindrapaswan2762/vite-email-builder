@@ -87,6 +87,8 @@ const Image = ({ id, parentId, column}) => {
     setIsFocused(true);
     dispatch(setActiveNodeList(true));
 
+    console.log("currentStyles in image:::::: ", currentStyles);
+
   };
 
   // ************************************************************************ 
@@ -117,8 +119,12 @@ const Image = ({ id, parentId, column}) => {
           "text/plain",
           JSON.stringify({
             id,
-            parentId: activeParentId || null,
-            column: activeColumn || null,
+            name: "Image",
+            styles: currentStyles,
+            type: "widget",
+            content: null,
+            parentId: parentId || null,
+            column: column || null,
           })
         );
 
@@ -197,7 +203,7 @@ const Image = ({ id, parentId, column}) => {
     <div
       ref={imageRef}
       // Removed "flex items-center justify-center" so the image can span the full width
-      className={`rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent
+      className={`rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent transition-all duration-300
           
         ${
           isFocused
@@ -247,12 +253,16 @@ const Image = ({ id, parentId, column}) => {
           href={currentStyles.href || "#"} 
           target={currentStyles.target || "_self"} 
           rel="noopener noreferrer"
+          className="transition-all duration-300"
         >
           <img
             src={currentStyles.imageUrl}
             alt="Uploaded"
             className="w-full h-full object-contain rounded transition-all duration-300"
-            style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })}}
+            style={{
+              ...currentStyles, 
+              ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })
+            }}
             
           />
         </a>
@@ -263,7 +273,9 @@ const Image = ({ id, parentId, column}) => {
           alt="Uploaded"
           // Ensures the image takes the full width, auto height, and retains aspect ratio
           className="w-full h-full object-contain rounded transition-all duration-300"
-          style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })}}
+          style={{
+            ...currentStyles, 
+            ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })}}
         />
       ) : (
         <div className="flex flex-col items-center justify-center text-gray-500 transition-all duration-300">
@@ -271,7 +283,9 @@ const Image = ({ id, parentId, column}) => {
             src={placeholderImage}
             alt="Placeholder"
             className="w-full h-auto object-contain rounded opacity-90"
-            style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: "" })}}
+            style={{
+              ...currentStyles, 
+              ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })}}
           />
         </div>
       )}

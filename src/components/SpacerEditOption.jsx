@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementStyles } from "../redux/cardDragableSlice";
+import { useMemo } from "react";
 
 const SpacerEditOption = () => {
   const [isDimensionOpen, setIsDimensionOpen] = useState(true);
@@ -11,8 +12,26 @@ const SpacerEditOption = () => {
   const dispatch = useDispatch();
   const { activeWidgetId, activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
 
-  const selectedElement =
-    droppedItems.find((item) => item.id === activeWidgetId) || {};
+  // Find the currently selected element from Redux state recursively
+  const findElementById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === widgetId) {
+        return item;
+      }
+      // Check for nested children
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const found = findElementById(item[key], widgetId);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Memoized selectedElement to ensure stability
+  const selectedElement = useMemo(() => findElementById(droppedItems, activeWidgetId) || {}, [droppedItems, activeWidgetId]);
 
   const [fields, setFields] = useState({
     height: "20px",
@@ -25,13 +44,38 @@ const SpacerEditOption = () => {
   });
 
   useEffect(() => {
+    const defaultFields = {
+      height: "20px",
+      paddingTop: "",
+      paddingBottom: "",
+      paddingLeft: "",
+      paddingRight: "",
+      backgroundColor: "",
+      className: "",
+    };
+  
     if (selectedElement.styles) {
-      setFields((prev) => ({
-        ...prev,
-        ...selectedElement.styles,
-      }));
+      const newFields = {
+        height: selectedElement.styles.height || "20px",
+        paddingTop: selectedElement.styles.paddingTop || "",
+        paddingBottom: selectedElement.styles.paddingBottom || "",
+        paddingLeft: selectedElement.styles.paddingLeft || "",
+        paddingRight: selectedElement.styles.paddingRight || "",
+        backgroundColor: selectedElement.styles.backgroundColor || "",
+        className: selectedElement.styles.className || "",
+      };
+  
+      // Update fields only if they are different from the current state
+      if (JSON.stringify(fields) !== JSON.stringify(newFields)) {
+        setFields(newFields);
+      }
+    } else if (JSON.stringify(fields) !== JSON.stringify(defaultFields)) {
+      // Reset to default values if no styles are found
+      setFields(defaultFields);
     }
-  }, [selectedElement]);
+  }, [selectedElement.styles]);
+  
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

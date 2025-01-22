@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { setActiveWidgetName } from "../../redux/cardDragableSlice";
+import { deleteDroppedItemById, setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 
 import { useDispatch, useSelector } from "react-redux";
@@ -21,6 +21,7 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { styled } from "@mui/material";
 // import { setTextExtraPadding } from "../../redux/condtionalCssSlice";
 
 
@@ -104,6 +105,7 @@ const Text = ({ id, parentId, column}) => {
     dispatch(setActiveNodeList(true));
 
     console.log("dropedItems: ",droppedItems);
+    console.log("currentStyles in text:::: ",currentStyles);
   };
 
   const onChangeHandle = (e) => {
@@ -163,13 +165,17 @@ const Text = ({ id, parentId, column}) => {
       "text/plain",
       JSON.stringify({
         id,
+        name: "Text",
+        styles: currentStyles,
+        type: "widget",
+        content: val,
         parentId: parentId || null,
         column: column || null,
       })
+
     );
 
     dispatch(setWidgetOrElement("element"));
-
   };
   
   const onDrop = (e) => {

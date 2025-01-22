@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementStyles } from "../redux/cardDragableSlice";
+import { useMemo } from "react";
 
 const SocialMediaEditOption = () => {
   const [isSettingOpen, setIsSettingOpen] = useState(true);
@@ -13,8 +14,26 @@ const SocialMediaEditOption = () => {
   const dispatch = useDispatch();
   const { activeWidgetId,activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
 
-  const selectedElement =
-    droppedItems.find((item) => item.id === activeWidgetId) || {};
+  // Find the currently selected element from Redux state recursively
+  const findElementById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === widgetId) {
+        return item;
+      }
+      // Check for nested children
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const found = findElementById(item[key], widgetId);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
+
+  // Memoized selectedElement to ensure stability
+  const selectedElement = useMemo(() => findElementById(droppedItems, activeWidgetId) || {}, [droppedItems, activeWidgetId]);
 
   const [fields, setFields] = useState({
     mode: "horizontal",
@@ -47,12 +66,78 @@ const SocialMediaEditOption = () => {
 
   useEffect(() => {
     if (selectedElement.styles) {
-      setFields((prev) => ({
-        ...prev,
-        ...selectedElement.styles,
-      }));
+      const newFields = {
+        mode: selectedElement.styles.mode || "horizontal",
+        align: selectedElement.styles.align || "center",
+        fontFamily: selectedElement.styles.fontFamily || "",
+        fontSize: selectedElement.styles.fontSize || "13px",
+        fontWeight: selectedElement.styles.fontWeight || "normal",
+        lineHeight: selectedElement.styles.lineHeight || "22px",
+        color: selectedElement.styles.color || "#333333",
+        backgroundColor: selectedElement.styles.backgroundColor || "#ffffff",
+        textDecoration: selectedElement.styles.textDecoration || "none",
+        fontStyle: selectedElement.styles.fontStyle || "normal",
+        iconWidth: selectedElement.styles.iconWidth || "20px",
+        borderRadius: selectedElement.styles.borderRadius || "3px",
+        paddingTop: selectedElement.styles.paddingTop || "10px",
+        paddingBottom: selectedElement.styles.paddingBottom || "10px",
+        paddingLeft: selectedElement.styles.paddingLeft || "25px",
+        paddingRight: selectedElement.styles.paddingRight || "25px",
+        iconPaddingTop: selectedElement.styles.iconPaddingTop || "4px",
+        iconPaddingBottom: selectedElement.styles.iconPaddingBottom || "4px",
+        iconPaddingLeft: selectedElement.styles.iconPaddingLeft || "4px",
+        iconPaddingRight: selectedElement.styles.iconPaddingRight || "4px",
+        textPaddingTop: selectedElement.styles.textPaddingTop || "4px",
+        textPaddingBottom: selectedElement.styles.textPaddingBottom || "4px",
+        textPaddingLeft: selectedElement.styles.textPaddingLeft || "0px",
+        textPaddingRight: selectedElement.styles.textPaddingRight || "4px",
+        className: selectedElement.styles.className || "",
+        socialItems: selectedElement.styles.socialItems || [{ id: 1, icon: "", content: "Facebook", link: "#" }],
+      };
+  
+      // Only update fields if there's a meaningful difference
+      if (JSON.stringify(fields) !== JSON.stringify(newFields)) {
+        setFields(newFields);
+      }
+    } else {
+      // Reset fields to default values when no styles are found
+      const defaultFields = {
+        mode: "horizontal",
+        align: "center",
+        fontFamily: "",
+        fontSize: "13px",
+        fontWeight: "normal",
+        lineHeight: "22px",
+        color: "#333333",
+        backgroundColor: "#ffffff",
+        textDecoration: "none",
+        fontStyle: "normal",
+        iconWidth: "20px",
+        borderRadius: "3px",
+        paddingTop: "10px",
+        paddingBottom: "10px",
+        paddingLeft: "25px",
+        paddingRight: "25px",
+        iconPaddingTop: "4px",
+        iconPaddingBottom: "4px",
+        iconPaddingLeft: "4px",
+        iconPaddingRight: "4px",
+        textPaddingTop: "4px",
+        textPaddingBottom: "4px",
+        textPaddingLeft: "0px",
+        textPaddingRight: "4px",
+        className: "",
+        socialItems: [{ id: 1, icon: "", content: "Facebook", link: "#" }],
+      };
+  
+      // Only reset fields if they are different
+      if (JSON.stringify(fields) !== JSON.stringify(defaultFields)) {
+        setFields(defaultFields);
+      }
     }
-  }, [selectedElement]);
+  }, [selectedElement.styles]);
+  
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

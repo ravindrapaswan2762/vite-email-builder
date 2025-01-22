@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementStyles } from "../redux/cardDragableSlice";
+import { useMemo } from "react";
 
 const ButtonEditOption = () => {
   const [isSettingOpen, setIsSettingOpen] = useState(true);
@@ -16,9 +17,26 @@ const ButtonEditOption = () => {
     (state) => state.cardDragable
   );
 
-  // Find the currently selected element from Redux state
-  const selectedElement =
-    droppedItems.find((item) => item.id === activeWidgetId) || {};
+  // Find the currently selected element from Redux state recursively
+    const findElementById = (items, widgetId) => {
+      for (const item of items) {
+        if (item.id === widgetId) {
+          return item;
+        }
+        // Check for nested children
+        const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+        for (const key of nestedKeys) {
+          const found = findElementById(item[key], widgetId);
+          if (found) {
+            return found;
+          }
+        }
+      }
+      return null;
+    }
+  
+    // Memoized selectedElement to ensure stability
+    const selectedElement = useMemo(() => findElementById(droppedItems, activeWidgetId) || {}, [droppedItems, activeWidgetId]);
 
   const [fields, setFields] = useState({
     content: "",
@@ -53,15 +71,79 @@ const ButtonEditOption = () => {
     className: "",
   });
 
-  // Update local fields state when the selected element changes
   useEffect(() => {
     if (selectedElement.styles) {
-      setFields((prev) => ({
-        ...prev,
-        ...selectedElement.styles,
-      }));
+      const newFields = {
+        content: selectedElement.styles.content || "",
+        href: selectedElement.styles.href || "#",
+        target: selectedElement.styles.target || "_self",
+        width: selectedElement.styles.width || "",
+        paddingTop: selectedElement.styles.paddingTop || "10px",
+        paddingLeft: selectedElement.styles.paddingLeft || "25px",
+        paddingBottom: selectedElement.styles.paddingBottom || "10px",
+        paddingRight: selectedElement.styles.paddingRight || "25px",
+        marginTop: selectedElement.styles.marginTop || "10px",
+        marginLeft: selectedElement.styles.marginLeft || "25px",
+        marginBottom: selectedElement.styles.marginBottom || "10px",
+        marginRight: selectedElement.styles.marginRight || "25px",
+        color: selectedElement.styles.color || "#ffffff",
+        buttonColor: selectedElement.styles.buttonColor || "#414141",
+        backgroundColor: selectedElement.styles.backgroundColor || "#ffffff",
+        fontFamily: selectedElement.styles.fontFamily || "",
+        fontSize: selectedElement.styles.fontSize || "13px",
+        fontWeight: selectedElement.styles.fontWeight || "normal",
+        lineHeight: selectedElement.styles.lineHeight || "120%",
+        textDecoration: selectedElement.styles.textDecoration || "none",
+        letterSpacing: selectedElement.styles.letterSpacing || "",
+        textAlign: selectedElement.styles.textAlign || "center",
+        fontStyle: selectedElement.styles.fontStyle || "normal",
+        border: selectedElement.styles.border || "none",
+        borderRadius: selectedElement.styles.borderRadius || "3px",
+        title: selectedElement.styles.title || "",
+        alt: selectedElement.styles.alt || "",
+        className: selectedElement.styles.className || "",
+      };
+  
+      // Update fields only if there are meaningful changes
+      if (JSON.stringify(fields) !== JSON.stringify(newFields)) {
+        setFields(newFields);
+      }
+    } else {
+      // Reset fields to default values if no styles are found
+      setFields({
+        content: "",
+        href: "#",
+        target: "_self",
+        width: "",
+        paddingTop: "10px",
+        paddingLeft: "25px",
+        paddingBottom: "10px",
+        paddingRight: "25px",
+        marginTop: "10px",
+        marginLeft: "25px",
+        marginBottom: "10px",
+        marginRight: "25px",
+        color: "#ffffff",
+        buttonColor: "#414141",
+        backgroundColor: "#ffffff",
+        fontFamily: "",
+        fontSize: "13px",
+        fontWeight: "normal",
+        lineHeight: "120%",
+        textDecoration: "none",
+        letterSpacing: "",
+        textAlign: "center",
+        fontStyle: "normal",
+        border: "none",
+        borderRadius: "3px",
+        title: "",
+        alt: "",
+        className: "",
+      });
     }
-  }, [selectedElement]);
+  }, [selectedElement.styles]); // Dependency array ensures proper updates
+  
+  
 
   // Handle input changes dynamically
   const handleInputChange = (e) => {

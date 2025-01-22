@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementStyles } from "../redux/cardDragableSlice";
+import { useMemo } from "react";
 
 const ImageEditOption = () => {
   const [isSettingOpen, setIsSettingOpen] = useState(true);
@@ -15,7 +16,26 @@ const ImageEditOption = () => {
     (state) => state.cardDragable
   );
 
-  const selectedElement = droppedItems.find((item) => item.id === activeWidgetId) || {};
+  // Find the currently selected element from Redux state recursively
+    const findElementById = (items, widgetId) => {
+      for (const item of items) {
+        if (item.id === widgetId) {
+          return item;
+        }
+        // Check for nested children
+        const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+        for (const key of nestedKeys) {
+          const found = findElementById(item[key], widgetId);
+          if (found) {
+            return found;
+          }
+        }
+      }
+      return null;
+    }
+  
+    // Memoized selectedElement to ensure stability
+    const selectedElement = useMemo(() => findElementById(droppedItems, activeWidgetId) || {}, [droppedItems, activeWidgetId]);
 
   const [fields, setFields] = useState({
     imageUrl: "",
@@ -39,12 +59,60 @@ const ImageEditOption = () => {
 
   useEffect(() => {
     if (selectedElement.styles) {
-      setFields((prev) => ({
-        ...prev,
-        ...selectedElement.styles,
-      }));
+      const newFields = {
+        imageUrl: selectedElement.styles.imageUrl || "",
+        backgroundColor: selectedElement.styles.backgroundColor || "#ffffff",
+        fullWidthMobile: selectedElement.styles.fullWidthMobile || false,
+        width: selectedElement.styles.width || "",
+        height: selectedElement.styles.height || "",
+        paddingTop: selectedElement.styles.paddingTop || "",
+        paddingLeft: selectedElement.styles.paddingLeft || "",
+        paddingBottom: selectedElement.styles.paddingBottom || "",
+        paddingRight: selectedElement.styles.paddingRight || "",
+        align: selectedElement.styles.align || "left",
+        href: selectedElement.styles.href || "",
+        target: selectedElement.styles.target || "_self",
+        border: selectedElement.styles.border || "",
+        borderRadius: selectedElement.styles.borderRadius || "",
+        title: selectedElement.styles.title || "",
+        alt: selectedElement.styles.alt || "",
+        className: selectedElement.styles.className || "",
+      };
+  
+      // Update fields only if they have changed to avoid unnecessary re-renders
+      if (JSON.stringify(fields) !== JSON.stringify(newFields)) {
+        setFields(newFields);
+      }
+    } else {
+      // Reset fields to default values when no styles are found
+      const defaultFields = {
+        imageUrl: "",
+        backgroundColor: "#ffffff",
+        fullWidthMobile: false,
+        width: "",
+        height: "",
+        paddingTop: "",
+        paddingLeft: "",
+        paddingBottom: "",
+        paddingRight: "",
+        align: "left",
+        href: "",
+        target: "_self",
+        border: "",
+        borderRadius: "",
+        title: "",
+        alt: "",
+        className: "",
+      };
+  
+      // Update fields only if they are different from the current state
+      if (JSON.stringify(fields) !== JSON.stringify(defaultFields)) {
+        setFields(defaultFields);
+      }
     }
-  }, [selectedElement]);
+  }, [selectedElement.styles]); // Dependency array ensures proper updates
+  
+  
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;

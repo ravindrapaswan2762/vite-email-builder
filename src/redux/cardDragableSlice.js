@@ -58,8 +58,8 @@ const cardDragableSlice = createSlice({
     setDroppedItems: (state, action) => {
       const { id, name, type, parentId, styles, columnName, children, content, isActive } = action.payload;
     
-      console.log("columnName from reducer: ", columnName);
-      console.log("Payload: ", action.payload); // Debug log to check payload
+      console.log("setDroppedItems called:::: ", action.payload);
+      
     
       if (!parentId) {
         // Add top-level item
@@ -89,20 +89,20 @@ const cardDragableSlice = createSlice({
               // Use columnName to identify the correct children array
               if (columnName === "columnA" || columnName === "childrenA") {
                 item.childrenA = item.childrenA || [];
-                item.childrenA.push({ id, name, type, content, children: children || [], styles: styles || {}, isActive });
+                item.childrenA.push({ id, name, type, content, styles: styles || {}, isActive });
                 console.log("Child added to childrenA: ", item.childrenA);
               } else if (columnName === "columnB" || columnName === "childrenB") {
                 item.childrenB = item.childrenB || [];
-                item.childrenB.push({ id, name, type, content, children: children || [], styles: styles || {}, isActive });
+                item.childrenB.push({ id, name, type, content, styles: styles || {}, isActive });
                 console.log("Child added to childrenB: ", item.childrenB);
               }
               else if (columnName === "columnC" || columnName === "childrenC") {
                 item.childrenC = item.childrenC || [];
-                item.childrenC.push({ id, name, type, content, children: children || [], styles: styles || {}, isActive });
+                item.childrenC.push({ id, name, type, content, styles: styles || {}, isActive });
                 console.log("Child added to childrenC: ", item.childrenC);
               }else{
                 item.children = item.children || [];
-                item.children.push({ id, name, type, content, children: children || [], styles: styles || {}, isActive });
+                item.children.push({ id, name, type, content, styles: styles || {}, isActive });
               }
               console.log("Updated Item: ", item);
               return true;
@@ -194,7 +194,8 @@ const cardDragableSlice = createSlice({
     deleteDroppedItemById: (state, action) => {
 
       const { parentId, childId, columnName } = action.payload;
-      console.log("parentId:", parentId, "childId:", childId, "columnName:", columnName, "in redux action");
+
+      console.log("parentId:", parentId, "childId:", childId, "columnName:", columnName, "in deleteDroppedItemById action");
     
       if (!childId && parentId) {
         // Case 1: Delete the parent item

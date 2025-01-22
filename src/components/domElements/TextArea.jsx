@@ -114,6 +114,7 @@ const TextArea = ({ id, parentId, column}) => {
     dispatch(setActiveNodeList(true));
     
     console.log("droppedItems: ",droppedItems);
+    console.log("currentStyles::::: ",currentStyles);
   };
 
   const onMouseEnterHandler = () => setHoveredElement(true);
@@ -177,8 +178,12 @@ const TextArea = ({ id, parentId, column}) => {
           "text/plain",
           JSON.stringify({
             id,
-            parentId: activeParentId || null,
-            column: activeColumn || null,
+            name: "TextArea",
+            styles: currentStyles,
+            type: "widget",
+            content: val,
+            parentId: parentId || null,
+            column: column || null,
           })
         );
 
@@ -309,7 +314,8 @@ const TextArea = ({ id, parentId, column}) => {
           resize: "none", // Disable manual resizing
           whiteSpace: "pre-wrap", // Preserve line breaks and spaces
           wordWrap: "break-word", // Break long words
-          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })
+          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop }),
+          paddingBottom: currentStyles.paddingBottom || "",
         }} // Apply dynamic styles
       />
     </div>

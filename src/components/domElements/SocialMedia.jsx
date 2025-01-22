@@ -111,8 +111,12 @@ const SocialMedia = ({ id, parentId, column}) => {
           "text/plain",
           JSON.stringify({
             id,
-            parentId: activeParentId || null,
-            column: activeColumn || null,
+            name: "SocialMedia",
+            styles: currentStyles,
+            type: "widget",
+            content: null,
+            parentId: parentId || null,
+            column: column || null,
           })
         );
 
