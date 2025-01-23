@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
-import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
@@ -20,6 +19,8 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
+import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 
 
 const Space = ({ id, parentId, column }) => {
@@ -29,7 +30,6 @@ const Space = ({ id, parentId, column }) => {
   const [extraGap, setExtraGap] = useState(null);
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
-  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
   // Recursive function to find the styles based on activeWidgetId
@@ -66,7 +66,6 @@ const Space = ({ id, parentId, column }) => {
 
   // ************************************************************************ 
     const onClickOutside = () => {
-      dispatch(setActiveNodeList(false));
       setIsFocused(false);
     };
     useEffect(() => {
@@ -99,8 +98,8 @@ const Space = ({ id, parentId, column }) => {
           })
         );
 
-        dispatch(setColumnOneExtraPadding(false));
         dispatch(setWidgetOrElement("element"));
+        dispatch(setSmallGapInTop(true));
       };
       
       const onDrop = (e) => {
@@ -117,7 +116,46 @@ const Space = ({ id, parentId, column }) => {
 
         setExtraGap(null);
 
-        if(widgetOrElement && widgetOrElement === "widget"){
+        if(widgetOrElement && widgetOrElement === "element"){
+                      
+          if(parentId === droppedData.parentId && column===droppedData.column){
+            // for element already exist in the perticular column and changing the positiion.
+            dispatch(
+              replaceDroppedItem({
+                parentId: activeParentId || null,
+                column: activeColumn || null,
+                draggedNodeId: droppedData.id,
+                targetNodeId: id,
+              }) 
+            );
+          }
+          else{
+            // draging element from another columns or parent and adding it.
+            dispatch(
+              addElementAtLocation({
+                draggedNodeId: Date.now(), 
+                draggedName: droppedData.name, 
+                dragableType: droppedData.type,
+                styles: droppedData.styles, 
+                content: droppedData.content, 
+                
+                targetParentId: parentId, 
+                targetColumn: column, 
+                targetNodeId: id, 
+              })
+            )
+
+            dispatch(deleteDroppedItemById(
+              {
+                parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+                childId: droppedData.parentId ? droppedData.id : null, 
+                columnName: droppedData.column ? droppedData.column : null }
+            ));
+
+          }
+
+        }
+        else{
           // for droped widgets from left panel
           dispatch(
             addElementAtLocation({
@@ -130,16 +168,7 @@ const Space = ({ id, parentId, column }) => {
               targetNodeId: id, 
             })
           )
-        }
-        else{
-          dispatch(
-            replaceDroppedItem({
-              parentId: activeParentId || null,
-              column: activeColumn || null,
-              draggedNodeId: droppedData.id,
-              targetNodeId: id,
-            }) 
-          );
+          
         }
 
         // initialize the application after exchage the position
@@ -180,17 +209,21 @@ const Space = ({ id, parentId, column }) => {
             ? "border-dashed border border-blue-500"
             : ""
           } 
-          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+          ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
 
       `}
 
-      style={{...currentStyles, ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })}}
+      style={{...currentStyles, ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })}}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}
 
       draggable
       onDragStart={onDragStart}
+      onDragEnd={()=>{
+        dispatch(setSmallGapInTop(null));
+      }}
+      
       onDrop={onDrop}
       onDragOver={onDragOver}
 

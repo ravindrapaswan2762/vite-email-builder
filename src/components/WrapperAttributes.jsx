@@ -64,6 +64,7 @@ const WrapperAttribute = () => {
     // if (!activeWidgetName) return;
 
     const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+    console.log("droppedData in wrapperAttribute: ", droppedData);
 
     const defaultContent =
             activeWidgetName === "Text"
@@ -78,7 +79,6 @@ const WrapperAttribute = () => {
             id: Date.now(), 
             name: droppedData.name, 
             type: droppedData.type, 
-            parentId: droppedData.parentId || null, 
             styles: droppedData.styles, 
             content: droppedData.content, 
             isActive: null
@@ -86,7 +86,10 @@ const WrapperAttribute = () => {
         );
 
         dispatch(deleteDroppedItemById(
-          {parentId: droppedData.id, childId: null, columnName: null }
+          {
+            parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+            childId: droppedData.parentId ? droppedData.id : null, 
+            columnName: droppedData.column ? droppedData.column : null }
         ));
     }
     else{
@@ -316,11 +319,12 @@ const WrapperAttribute = () => {
               // console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
               dispatch(setWrapperExtraPadding(true));
             }}
-            className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 absolute hover:border-blue-500 transition-all h-auto
-              ${wrapperExtraPadding ? "pb-[100px] border-2 border-dashed-500" : ""}
+            className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 mb-[300px] absolute hover:border-blue-500 transition-all h-auto
+              ${wrapperExtraPadding ? "pb-[150px] border-2 border-dashed-500" : ""}
             `}
 
             ref={wrapperRef}
+           
           >
             {/* Render Dropped Items */}
             {droppedItems.map((item) => {

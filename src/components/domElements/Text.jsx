@@ -4,7 +4,6 @@ import { setActiveEditor } from "../../redux/cardToggleSlice";
 
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementContent } from "../../redux/cardDragableSlice";
-import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem} from "../../redux/cardDragableSlice";
@@ -21,8 +20,7 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
-import { styled } from "@mui/material";
-// import { setTextExtraPadding } from "../../redux/condtionalCssSlice";
+import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 
 
 const Text = ({ id, parentId, column}) => {
@@ -33,7 +31,7 @@ const Text = ({ id, parentId, column}) => {
   const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
-  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
+
     // const {textExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
   const dispatch = useDispatch();
@@ -102,8 +100,6 @@ const Text = ({ id, parentId, column}) => {
     dispatch(setActiveWidgetId(id));
 
     setIsFocused(true);
-    dispatch(setActiveNodeList(true));
-
     console.log("dropedItems: ",droppedItems);
     console.log("currentStyles in text:::: ",currentStyles);
   };
@@ -142,7 +138,7 @@ const Text = ({ id, parentId, column}) => {
 
   // ************************************************************************ 
   const onClickOutside = () => {
-    dispatch(setActiveNodeList(false));
+
   };
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -176,6 +172,7 @@ const Text = ({ id, parentId, column}) => {
     );
 
     dispatch(setWidgetOrElement("element"));
+    dispatch(setSmallGapInTop(true));
   };
   
   const onDrop = (e) => {
@@ -196,7 +193,46 @@ const Text = ({ id, parentId, column}) => {
 
     setExtraGap(null);
 
-    if(widgetOrElement && widgetOrElement === "widget"){
+    if(widgetOrElement && widgetOrElement === "element"){
+                  
+      if(parentId === droppedData.parentId && column===droppedData.column){
+        // for element already exist in the perticular column and changing the positiion.
+        dispatch(
+          replaceDroppedItem({
+            parentId: activeParentId || null,
+            column: activeColumn || null,
+            draggedNodeId: droppedData.id,
+            targetNodeId: id,
+          }) 
+        );
+      }
+      else{
+        // draging element from another columns or parent and adding it.
+        dispatch(
+          addElementAtLocation({
+            draggedNodeId: Date.now(), 
+            draggedName: droppedData.name, 
+            dragableType: droppedData.type,
+            styles: droppedData.styles, 
+            content: droppedData.content, 
+            
+            targetParentId: parentId, 
+            targetColumn: column, 
+            targetNodeId: id, 
+          })
+        )
+
+        dispatch(deleteDroppedItemById(
+          {
+            parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+            childId: droppedData.parentId ? droppedData.id : null, 
+            columnName: droppedData.column ? droppedData.column : null }
+        ));
+
+      }
+
+    }
+    else{
       // for droped widgets from left panel
       dispatch(
         addElementAtLocation({
@@ -209,29 +245,7 @@ const Text = ({ id, parentId, column}) => {
           targetNodeId: id, 
         })
       )
-    }
-    else{
-      // for droped element from ui
-      dispatch(
-        replaceDroppedItem({
-          parentId: activeParentId || null,
-          column: activeColumn || null,
-          draggedNodeId: droppedData.id,
-          targetNodeId: id,
-        }) 
-      );
-
-      // dispatch(
-      //   replaceDroppedItem({
-      //     draggedParentId: droppedData.parentId, 
-      //     draggedColumn: droppedData.column, 
-      //     draggedNodeId: droppedData.id,
-
-      //     targetParentId: parentId,
-      //     targetColumn: column,
-      //     targetNodeId: id,
-      //   }) 
-      // );
+      
     }
 
     // initialize the application
@@ -273,7 +287,7 @@ const Text = ({ id, parentId, column}) => {
           ? "border-dashed border border-blue-500"
           : ""
         } 
-        ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+        ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
                         
       `}
                         
@@ -289,6 +303,9 @@ const Text = ({ id, parentId, column}) => {
 
       onDragEnter={onDragEnterHandle}
       onDragLeave={onDragLeaveHandle}
+      onDragEnd={()=>{
+        dispatch(setSmallGapInTop(null));
+      }}
 
     >
 
@@ -327,7 +344,7 @@ const Text = ({ id, parentId, column}) => {
           overflow: "hidden",
           resize: "none",
           whiteSpace: "pre-wrap",
-          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })
+          ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })
 
         }} // Apply dynamic styles
       />

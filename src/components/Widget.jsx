@@ -2,6 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetId, setActiveWidgetName } from "../redux/cardDragableSlice";
 import { setWidgetOrElement } from "../redux/cardDragableSlice";
+import { setSmallGapInTop } from "../redux/condtionalCssSlice";
 
 const Widget = ({ id, name, icon: Icon }) => {
   const dispatch = useDispatch();
@@ -31,10 +32,13 @@ const Widget = ({ id, name, icon: Icon }) => {
         
         dispatch(setActiveWidgetName(name));
         dispatch(setWidgetOrElement("widget"));
+        dispatch(setActiveWidgetId(null));
+        dispatch(setSmallGapInTop(true));
       }}
       
       onDragEnd={() => {
         dispatch(setActiveWidgetId(null));
+        dispatch(setSmallGapInTop(null));
       }} // Reset active widget
       className={`flex flex-col items-center justify-center p-5 m-2 border rounded-lg shadow-md cursor-move w-[115px] h-[90px] transition-all ${
         isActive

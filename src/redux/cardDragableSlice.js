@@ -1,9 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const contentMapping = {
-  Text: "Design Beautiful Emails.",
-  TextArea: "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns.",
-};
 
 const initialState = {
   activeWidgetId: null,
@@ -558,7 +554,16 @@ const cardDragableSlice = createSlice({
     addElementAtLocation: (state, action) => {
       console.log("addElementAtLocation called: ", action.payload);
 
-      const { draggedNodeId, draggedName, dragableType, targetParentId, targetColumn, targetNodeId } = action.payload;
+      const { 
+        draggedNodeId, 
+        draggedName, 
+        dragableType, 
+        content, 
+        styles,
+
+        targetParentId, 
+        targetColumn, 
+        targetNodeId} = action.payload;
 
       // Helper function to find and insert the dragged item
       const findAndInsert = (items, draggedNodeId, draggedName, dragableType, targetParentId, targetColumn, targetNodeId) => {
@@ -576,8 +581,8 @@ const cardDragableSlice = createSlice({
               id: draggedNodeId,
               name: draggedName,
               type: dragableType, // Specify type if needed
-              content: "adff",
-              styles: {},
+              content: content,
+              styles: styles,
               children: [],
             };
 
@@ -620,8 +625,8 @@ const cardDragableSlice = createSlice({
           id: draggedNodeId,
           name: draggedName,
           type: dragableType, // Specify type if needed
-          content: contentMapping[draggedName] || "",
-          styles: {},
+          content: content,
+          styles: styles,
           children: [],
         };
 

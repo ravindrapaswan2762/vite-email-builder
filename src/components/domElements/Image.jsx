@@ -6,7 +6,6 @@ import {setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { useRef } from "react";
 
 import img from '../../assets/placeholder.png';
-import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
@@ -24,6 +23,8 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
+import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 
 
 const Image = ({ id, parentId, column}) => {
@@ -35,7 +36,6 @@ const Image = ({ id, parentId, column}) => {
   const imageRef = useRef(null);
 
   const { activeWidgetId, droppedItems, activeParentId , activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
-  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
 
   // Find the styles associated with the widget by its ID
   const findStylesById = (items, widgetId) => {
@@ -85,7 +85,6 @@ const Image = ({ id, parentId, column}) => {
     dispatch(setActiveWidgetId(id));
 
     setIsFocused(true);
-    dispatch(setActiveNodeList(true));
 
     console.log("currentStyles in image:::::: ", currentStyles);
 
@@ -94,9 +93,6 @@ const Image = ({ id, parentId, column}) => {
   // ************************************************************************ 
     const onClickOutside = () => {
       setIsFocused(false);
-      dispatch(setActiveNodeList(false));
-
-      console.log("Image outside called!!: ",activeNodeList);
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -128,8 +124,8 @@ const Image = ({ id, parentId, column}) => {
           })
         );
 
-        dispatch(setColumnOneExtraPadding(false));
         dispatch(setWidgetOrElement("element"));
+        dispatch(dispatch(setSmallGapInTop(true)));
       };
       
       const onDrop = (e) => {
@@ -146,30 +142,60 @@ const Image = ({ id, parentId, column}) => {
 
         setExtraGap(null);
         
-        if(widgetOrElement && widgetOrElement === "widget"){
-              // for droped widgets from left panel
-              dispatch(
-                addElementAtLocation({
-                  draggedNodeId: Date.now(), 
-                  draggedName: droppedData.name, 
-                  dragableType: droppedData.type,
-                  
-                  targetParentId: parentId, 
-                  targetColumn: column, 
-                  targetNodeId: id, 
-                })
-              )
-            }
-          else{
-              dispatch(
-                replaceDroppedItem({
-                  parentId: activeParentId || null,
-                  column: activeColumn || null,
-                  draggedNodeId: droppedData.id,
-                  targetNodeId: id,
-                }) 
-              );
+        if(widgetOrElement && widgetOrElement === "element"){
+                      
+          if(parentId === droppedData.parentId && column===droppedData.column){
+            // for element already exist in the perticular column and changing the positiion.
+            dispatch(
+              replaceDroppedItem({
+                parentId: activeParentId || null,
+                column: activeColumn || null,
+                draggedNodeId: droppedData.id,
+                targetNodeId: id,
+              }) 
+            );
           }
+          else{
+            // draging element from another columns or parent and adding it.
+            dispatch(
+              addElementAtLocation({
+                draggedNodeId: Date.now(), 
+                draggedName: droppedData.name, 
+                dragableType: droppedData.type,
+                styles: droppedData.styles, 
+                content: droppedData.content, 
+                
+                targetParentId: parentId, 
+                targetColumn: column, 
+                targetNodeId: id, 
+              })
+            )
+
+            dispatch(deleteDroppedItemById(
+              {
+                parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+                childId: droppedData.parentId ? droppedData.id : null, 
+                columnName: droppedData.column ? droppedData.column : null }
+            ));
+
+          }
+
+        }
+        else{
+          // for droped widgets from left panel
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+          
+        }
 
         // initialize the application after exchage the position
         dispatch(setActiveWidgetId(null));
@@ -212,7 +238,7 @@ const Image = ({ id, parentId, column}) => {
             ? "border-dashed border border-blue-500"
             : ""
           } 
-          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+          ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
 
         `}
       onMouseEnter={onMouseEnterHandler}
@@ -221,6 +247,10 @@ const Image = ({ id, parentId, column}) => {
 
       draggable
       onDragStart={onDragStart}
+      onDragEnd={()=>{
+        dispatch(setSmallGapInTop(null));
+      }}
+
       onDrop={onDrop}
       onDragOver={onDragOver}
 
@@ -275,7 +305,7 @@ const Image = ({ id, parentId, column}) => {
           className="w-full h-full object-contain rounded transition-all duration-300"
           style={{
             ...currentStyles, 
-            ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop })}}
+            ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })}}
         />
       ) : (
         <div className="flex flex-col items-center justify-center text-gray-500 transition-all duration-300">

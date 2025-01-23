@@ -42,7 +42,7 @@ const PageAttribute = () => {
     <div
       className={`w-full h-full border-2 border-blue-300 rounded-lg bg-gray-100 flex flex-col items-center hover:border-blue-500 transition-all relative
         h-screen overflow-y-auto`}
-      style={{ paddingBottom: "10px", height: "100vh" }}
+      style={{ paddingBottom: "10px", height: "100vh"}}
       onClick={onClickHandle}
     >
       {/* WrapperAttribute Component */}

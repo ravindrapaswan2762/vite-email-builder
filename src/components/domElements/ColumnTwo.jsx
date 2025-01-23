@@ -21,7 +21,6 @@ import {  setDroppedItems,
         } from "../../redux/cardDragableSlice";
 
 import { setActiveBorders } from "../../redux/activeBorderSlice";
-import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
@@ -34,6 +33,7 @@ import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
+import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 
 
 
@@ -52,13 +52,14 @@ const ColumnTwo = ({ handleDelete, id }) => {
 
   const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
-  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
-  const {columnTwoExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+  const {columnTwoExtraPadding, smallGapInTop} = useSelector((state) => state.coditionalCssSlice);
   const {view} = useSelector( (state) => state.navbar );
 
 
   const dispatch = useDispatch();
 
+  const columnARef = useRef(null);
+  const columnBRef = useRef(null);
   const twoColumnRef = useRef(null);
 
   const [childrenA, setChildrenA] = useState([]);
@@ -66,6 +67,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
   const [hoveredChildA, setHoveredChildA] = useState(null); // Track hovered child in Column A
   const [hoveredChildB, setHoveredChildB] = useState(null); // Track hovered child in Column B
   const [paddingTop, setPaddingTop] = useState(null);
+  const [dragState, setDragState] = useState({ isDragging: false, column: null });
+
 
   useEffect(() => {
     // Fetch column data from Redux store
@@ -84,9 +87,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    setIsDragging(false);
-    setColumn(null);
-
+    setDragState({ isDragging: false, column: null });
     if (!activeWidgetName) return;
 
     // Prefill content and styles based on activeWidgetName
@@ -225,46 +226,36 @@ const ColumnTwo = ({ handleDelete, id }) => {
 
 
   // ***************************************** write extra logic for hilight drop area while dragEnter
-      const [isDragging, setIsDragging] = useState(false); // NEW: Track if an element is being dragged into the column
-      const [column, setColumn] = useState(null);
-
-      const handleDragEnter = (column) => {
+      const handleDragEnter = (column, ref) => {
         // console.log("handleDragEnter called", column);
     
-        if (!isDragging || !column) {
+        if (dragState.column !== column) {
     
-            setIsDragging(true);
-            setColumn(column);
-
-            setPaddingTop(true);
+            setDragState({ isDragging: true, column });
             dispatch(dispatch(setActiveBorders(true)));
             dispatch(setColumnTwoExtraPadding(true));
           }
 
       };
       
-      const handleDragLeave = (e) => {
+      const handleDragLeave = (e, ref) => {
         // console.log("handleDragLeave called");
-        if(twoColumnRef.current && !twoColumnRef.current.contains(e.relatedTarget)){
-          setIsDragging(false);
-          setColumn(null);
-
-          setPaddingTop(null);
-          dispatch(setColumnTwoExtraPadding(false)); // Optional Redux state update
+        if(ref && ref.current && (!e.relatedTarget || !ref.current.contains(e.relatedTarget))){
+          setDragState({ isDragging: false, column: null });
+          dispatch(setColumnTwoExtraPadding(false));
         }
       };
   
 
       // ************************************************************************ 
       const onClickOutside = () => {
-        dispatch(setActiveNodeList(false));
         dispatch(setColumnTwoExtraPadding(false));
-        setPaddingTop(null);
         dispatch(setActiveBorders(false)); // Remove active borders
       };
       useEffect(() => {
         const handleClickOutside = (event) => {
-          if (twoColumnRef.current && !twoColumnRef.current.contains(event.target)) {
+          if ((columnARef.current && !columnARef.current.contains(event.target)) &&
+          (columnBRef.current && !columnBRef.current.contains(event.target))) {
             onClickOutside(); // Call the function when clicking outside
           }
         };
@@ -330,7 +321,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
       const dropInPaddingTop = (e)=>{
         e.stopPropagation();
 
-        setIsDragging(false);
+        setDragState({ isDragging: false, column: null });
         setPaddingTop(null);
   
         const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
@@ -349,174 +340,64 @@ const ColumnTwo = ({ handleDelete, id }) => {
           )
         }
         else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
-          dispatch(
-            replaceDroppedItem({
-              parentId: activeParentId || null,
-              column: activeColumn || null,
-              draggedNodeId: droppedData.id,
-              targetNodeId: id,
-            }) 
-          );
-        }
-      }
+          if(droppedData.parentId){
+            dispatch(
+              addElementAtLocation({
+                draggedNodeId: Date.now(), 
+                draggedName: droppedData.name, 
+                dragableType: droppedData.type,
+                styles: droppedData.styles, 
+                content: droppedData.content, 
+                
+                targetParentId: null, 
+                targetColumn: null, 
+                targetNodeId: id, 
+              })
+            )
+            dispatch(deleteDroppedItemById(
+              {
+                parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+                childId: droppedData.parentId ? droppedData.id : null, 
+                columnName: droppedData.column ? droppedData.column : null }
+            ));
+  
+          }
+          else{
+            dispatch(
+              replaceDroppedItem({
+                parentId: activeParentId || null,
+                column: activeColumn || null,
+                draggedNodeId: droppedData.id,
+                targetNodeId: id,
+              }) 
+            );
+          }
 
+        }//else if widgetOrElement==='element'
+      } //dropInPaddingTop
+
+      const enterInPaddingTop = (e)=>{
+        e.stopPropagation();
+        console.log("enterInTop called");
+        setPaddingTop(true);
+      }
       const leaveFromPaddingTop = (e)=>{
         e.stopPropagation();
-
-        if (twoColumnRef.current && !twoColumnRef.current.contains(e.relatedTarget)) {
-          setIsDragging(false);
-          setPaddingTop(false);
-          dispatch(setColumnOneExtraPadding(false)); // Optional Redux state update
-        }
+        console.log("leaveFromTop called");
+        setPaddingTop(null);
       }
 
       // ****************************************************************************************************
 
   return (
-    // <div className={`relative grid grid-cols-2 gap-1 group bg-transparent`}
-
-    //     onClick={(e) => {
-    //       e.stopPropagation();
-    //       dispatch(setActiveWidgetId(id));
-    //       dispatch(setActiveWidgetName("2-column"));
-    //       dispatch(setActiveEditor("sectionEditor"));
-    //       dispatch(setActiveBorders(true));
-    //     }}
-    //     style={{
-    //       ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
-    //       backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
-    //     }}
-
-    //     ref={twoColumnRef}
-
-    //     draggable
-    //     onDragStart={onDragStart}
-    //     onDragOver={(e)=>{
-    //       e.stopPropagation();
-    //       onDragOver(e);
-    //     }}
-    // >
-
-    //   {/* Drag Icon */}
-    //   {(activeWidgetId==id) ? (
-    //     <AiOutlineDrag
-    //       style={{
-    //         position: "absolute",
-    //         left: "-20px",
-    //         top: "50%",
-    //         transform: "translateY(-50%)",
-    //         cursor: "grab",
-    //         zIndex: 10,
-    //         backgroundColor: "white",
-    //         borderRadius: "50%", 
-    //       }}
-    //       // className="bg-gray-100"
-    //     />
-    //   ) : ""}
-
-
-    //   {/* Column A */}
-    //   <div
-    //     onDrop={handleDrop("columnA")}
-    //     onDragOver={handleDragOver}
-    //     onDragEnter={()=>handleDragEnter("columnA")} 
-    //     onDragLeave={handleDragLeave}
-
-    //     className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
-    //                 ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-    //                 ${ (isDragging && column==="columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-    //                 ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-    //                 ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
-    //               `}
-    //   >
-    //     {childrenA.map((child) => (
-    //       <div
-    //         key={child.id}
-    //         className="w-full mb-1 relative"
-    //         onMouseEnter={() => setHoveredChildA(child.id)} 
-    //         onMouseLeave={() => setHoveredChildA(null)}   
-    //         onClick={(e) => {
-    //           e.stopPropagation();
-    //           onclickHandler(id, child.id, "childrenA");
-    //         }}
-    //       >
-    //         {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
-            
-       
-    //         {hoveredChildA === child.id && (
-    //           <button
-    //             onClick={(e) => {
-    //               e.stopPropagation();
-    //               handleDeleteChild("childrenA", child.id);
-    //             }}
-    //             className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-    //           >
-    //             <RxCross2 size={14} />
-    //           </button>
-    //         )}
-    //       </div>
-    //     ))}
-
-
-    //     {childrenA.length === 0 && (
-    //       <>
-    //         <p className="text-gray-400">Column A</p>
-    //         <p className="text-gray-400">Drop elements here</p>
-    //       </>
-    //     )}
-    //   </div>
-
-    //   {/* Column B */}
-    //   <div
-    //     onDrop={handleDrop("columnB")}
-    //     onDragOver={handleDragOver}
-    //     onDragEnter={()=>handleDragEnter("columnB")} 
-    //     onDragLeave={handleDragLeave}
-
-    //     className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
-    //                 ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-    //                 ${(isDragging && column==="columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-    //                 ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
-    //                 ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
-    //               `}
-    //   >
-    //     {childrenB.map((child) => (
-    //       <div
-    //         key={child.id}
-    //         className="w-full mb-1 relative"
-    //         onMouseEnter={() => setHoveredChildB(child.id)}  // Set hover state for the child
-    //         onMouseLeave={() => setHoveredChildB(null)}    // Reset hover state when mouse leaves
-    //         onClick={(e) => {
-    //           e.stopPropagation();
-    //           onclickHandler(id, child.id, "childrenB");
-    //         }}
-    //       >
-    //         {componentMap[child.name] ? componentMap[child.name]({ id: child.id }) : <div>Unknown Component</div>}
-    //         {/* Delete Button for Child in Column B */}
-    //         {hoveredChildB === child.id && (
-    //           <button
-    //             onClick={(e) => {
-    //               e.stopPropagation();
-    //               handleDeleteChild("childrenB", child.id);
-    //             }}
-    //             className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-    //           >
-    //             <RxCross2 size={14} />
-    //           </button>
-    //         )}
-    //       </div>
-    //     ))}
-    //     {childrenB.length === 0 && (
-    //       <>
-    //         <p className="text-gray-400">Column B</p>
-    //         <p className="text-gray-400">Drop elements here</p>
-    //       </>
-    //     )}
-    //   </div>
-    // </div>
-
     <div
-    className={`relative grid gap-1 group bg-transparent transition-all duration-300
+
+    onDrop={dropInPaddingTop}
+    onDragEnter={enterInPaddingTop}
+    onDragLeave={leaveFromPaddingTop}
+
+    ref={twoColumnRef}
+    className={`relative grid gap-1 group bg-transparent transition-all duration-300 ${smallGapInTop ? 'pt-3' : ""}
       sm:grid-cols-1 
       md:grid-cols-2
       lg:grid-cols-2
@@ -539,15 +420,13 @@ const ColumnTwo = ({ handleDelete, id }) => {
     ...(view === "mobile" ? { padding: "12px", display: "flex", flexDirection: "column" } : {}),
     ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
   }}
-  ref={twoColumnRef}
+  
   draggable
   onDragStart={onDragStart}
   onDragOver={(e) => {
     e.stopPropagation();
     onDragOver(e);
   }}
-  onDrop={dropInPaddingTop}
-  onDragLeave={leaveFromPaddingTop}
 >
 
    {/* Drag Icon */}
@@ -569,14 +448,15 @@ const ColumnTwo = ({ handleDelete, id }) => {
 
   {/* Column A */}
   <div
+    ref={columnARef}
     onDrop={handleDrop("columnA")}
     onDragOver={handleDragOver}
-    onDragEnter={() => handleDragEnter("columnA")}
-    onDragLeave={handleDragLeave}
-    className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
+    onDragEnter={() => handleDragEnter("columnA", columnARef)}
+    onDragLeave={(e)=>handleDragLeave(e, columnARef)}
+    className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500
                 ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                ${(isDragging && column === "columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-                ${(activeWidgetId == id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                ${(dragState.isDragging && dragState.column === "columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                ${(activeWidgetId == id) ? "border-2 border-blue-500" : ""}
                 ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
               `}
   >
@@ -615,14 +495,15 @@ const ColumnTwo = ({ handleDelete, id }) => {
 
   {/* Column B */}
   <div
+    ref={columnBRef}
     onDrop={handleDrop("columnB")}
     onDragOver={handleDragOver}
-    onDragEnter={() => handleDragEnter("columnB")}
-    onDragLeave={handleDragLeave}
-    className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-400
+    onDragEnter={() => handleDragEnter("columnB", columnBRef)}
+    onDragLeave={(e)=>handleDragLeave(e, columnBRef)}
+    className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500
                 ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                ${(isDragging && column === "columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-                ${(activeWidgetId == id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                ${(dragState.isDragging && dragState.column === "columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                ${(activeWidgetId == id) ? "border-2 border-blue-500" : ""}
                 ${columnTwoExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
               `}
   >

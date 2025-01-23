@@ -8,6 +8,7 @@ const initialState = {
     wrapperExtraPadding: false,
 
     textExtraPadding: false,
+    smallGapInTop: false,
 }
 
 const conditionalCssSlice = createSlice({
@@ -35,6 +36,10 @@ const conditionalCssSlice = createSlice({
         setTextExtraPadding: (state, action) => {
             console.log("setTextExtraPadding called: ", action.payload);
             state.textExtraPadding = action.payload;
+        },
+        setSmallGapInTop: (state, action) =>{
+            console.log("setSmallGapInTop called: ", action.payload);
+            state.smallGapInTop = action.payload;
         }
 
     }
@@ -47,6 +52,7 @@ export const {
     setWrapperExtraPadding,
 
     setTextExtraPadding,
+    setSmallGapInTop,
     
  } = conditionalCssSlice.actions;
 export default conditionalCssSlice.reducer;

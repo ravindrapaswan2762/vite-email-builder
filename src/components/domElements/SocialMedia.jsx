@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import {setActiveBorders} from '../../redux/activeBorderSlice'
-import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
@@ -22,6 +21,8 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
+import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 
 
 
@@ -36,7 +37,6 @@ const SocialMedia = ({ id, parentId, column}) => {
   const {view} = useSelector( (state) => state.navbar );
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
-  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
   // Recursive function to find the styles based on activeWidgetId
@@ -88,7 +88,7 @@ const SocialMedia = ({ id, parentId, column}) => {
 
    // ************************************************************************ 
     const onClickOutside = () => {
-      dispatch(setActiveNodeList(false));
+
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -120,8 +120,8 @@ const SocialMedia = ({ id, parentId, column}) => {
           })
         );
 
-        dispatch(setColumnOneExtraPadding(false));
         dispatch(setWidgetOrElement("element"));
+        dispatch(setSmallGapInTop(true));
       };
       
       const onDrop = (e) => {
@@ -138,7 +138,46 @@ const SocialMedia = ({ id, parentId, column}) => {
 
         setExtraGap(null);
         
-        if(widgetOrElement && widgetOrElement === "widget"){
+        if(widgetOrElement && widgetOrElement === "element"){
+                      
+          if(parentId === droppedData.parentId && column===droppedData.column){
+            // for element already exist in the perticular column and changing the positiion.
+            dispatch(
+              replaceDroppedItem({
+                parentId: activeParentId || null,
+                column: activeColumn || null,
+                draggedNodeId: droppedData.id,
+                targetNodeId: id,
+              }) 
+            );
+          }
+          else{
+            // draging element from another columns or parent and adding it.
+            dispatch(
+              addElementAtLocation({
+                draggedNodeId: Date.now(), 
+                draggedName: droppedData.name, 
+                dragableType: droppedData.type,
+                styles: droppedData.styles, 
+                content: droppedData.content, 
+                
+                targetParentId: parentId, 
+                targetColumn: column, 
+                targetNodeId: id, 
+              })
+            )
+
+            dispatch(deleteDroppedItemById(
+              {
+                parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+                childId: droppedData.parentId ? droppedData.id : null, 
+                columnName: droppedData.column ? droppedData.column : null }
+            ));
+
+          }
+
+        }
+        else{
           // for droped widgets from left panel
           dispatch(
             addElementAtLocation({
@@ -151,16 +190,7 @@ const SocialMedia = ({ id, parentId, column}) => {
               targetNodeId: id, 
             })
           )
-        }
-        else{
-          dispatch(
-            replaceDroppedItem({
-              parentId: activeParentId || null,
-              column: activeColumn || null,
-              draggedNodeId: droppedData.id,
-              targetNodeId: id,
-            }) 
-          );
+          
         }
 
         // initialize the application after exchage the position
@@ -204,12 +234,12 @@ const SocialMedia = ({ id, parentId, column}) => {
                     ? "border-dashed border border-blue-500"
                     : ""
                   } 
-                  ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+                  ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
         `}
 
       style={{...currentStyles, 
         ...(view === "Desktop" ? {display: "flex", flexDirection: "column" } : {}),
-        ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop})
+        ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop})
       }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -217,6 +247,9 @@ const SocialMedia = ({ id, parentId, column}) => {
 
       draggable
       onDragStart={onDragStart}
+      onDragEnd={()=>{
+        dispatch(setSmallGapInTop(null));
+      }}
       onDrop={onDrop}
       onDragOver={onDragOver}
 
@@ -255,71 +288,6 @@ const SocialMedia = ({ id, parentId, column}) => {
         <span className="text-sm">Twitter</span>
       </div>
     </div>
-
-//     <div
-//   ref={containerRef}
-//   className={`grid grid-cols-2 gap-4 p-3 rounded transition-all duration-300 sm:grid-cols-1 sm:gap-2
-//          ${
-//            isFocused
-//              ? "border-2 border-blue-500 bg-gray-100"
-//              : hoveredElement
-//              ? "border-dashed border border-blue-500"
-//              : ""
-//          } ${(activeWidgetId == id && activeNodeList) ? "border-2 border-blue-500" : ""}`}
-
-//   onMouseEnter={onMouseEnterHandler}
-//   onMouseLeave={onMouseLeaveHandler}
-//   onClick={onClickHandle}
-
-//   draggable
-//   onDragStart={onDragStart}
-//   onDrop={onDrop}
-//   onDragOver={onDragOver}
-
-//   onDragEnter={onDragEnterHandle}
-//   onDragLeave={onDragLeaveHandle}
-// >
-//   {/* Drag Icon */}
-//   {activeWidgetId == id ? (
-//     <AiOutlineDrag
-//       style={{
-//         position: "absolute",
-//         left: "-10px",
-//         top: "50%",
-//         transform: "translateY(-50%)",
-//         cursor: "grab",
-//         zIndex: 10,
-//         backgroundColor: "white",
-//         borderRadius: "50%",
-//       }}
-//     />
-//   ) : (
-//     ""
-//   )}
-
-//   {/* Grid Items */}
-//   <div
-//     className="flex items-center gap-2 cursor-pointer"
-//     onClick={() => dispatch(setActiveBorders(true))}
-//   >
-//     <FaFacebook className="text-xl text-blue-600" />
-//     <span className="text-sm">Facebook</span>
-//   </div>
-//   <div
-//     className="flex items-center gap-2 cursor-pointer"
-//     onClick={() => dispatch(setActiveBorders(true))}
-//   >
-//     <FaGoogle className="text-xl text-red-600" />
-//     <span className="text-sm">Google</span>
-//   </div>
-//   <div
-//     className="flex items-center gap-2 cursor-pointer"
-//     onClick={() => dispatch(setActiveBorders(true))}
-//   >
-//     <FaTwitter className="text-xl text-blue-400" />
-//     <span className="text-sm">Twitter</span>
-//   </div>
-// </div>
 
   );
 

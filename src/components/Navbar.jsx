@@ -14,6 +14,7 @@ import { setActiveParentId } from "../redux/cardDragableSlice";
 import { setActiveColumn } from "../redux/cardDragableSlice";
 import { setActiveNodeList } from "../redux/treeViewSlice";
 
+
 const Navbar = () => {
 
   const {view} = useSelector( (state) => state.navbar );
@@ -22,7 +23,7 @@ const Navbar = () => {
   const dispatch = useDispatch();
 
   return (
-    <div className="flex justify-between items-center bg-gray-100 text-gray-700 p-6 shadow-lg">
+    <div className="flex justify-between items-center bg-gray-100 text-gray-700 p-6 shadow-lg" onClick={()=>dispatch(setActiveWidgetId(null))}>
       {/* Left Navbar Section */}
       <div className="flex items-center gap-6 pr-8">
         {["Contents", "Elements"].map((tab) => (

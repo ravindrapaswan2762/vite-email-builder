@@ -4,7 +4,6 @@ import { RxCross2 } from "react-icons/rx";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { updateElementContent, updateElementStyles } from "../../redux/cardDragableSlice";
-import { setActiveNodeList } from "../../redux/treeViewSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
@@ -22,6 +21,8 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
+import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 
 
 
@@ -33,7 +34,6 @@ const TextArea = ({ id, parentId, column}) => {
   const [extraGap, setExtraGap] = useState(null);
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
-  const {activeNodeList} = useSelector((state) => state.treeViewSlice);
   const dispatch = useDispatch();
 
   // *****************************************************************************************************************
@@ -111,7 +111,6 @@ const TextArea = ({ id, parentId, column}) => {
     dispatch(setActiveWidgetId(id));
 
     setIsFocused(true); // Set focus state
-    dispatch(setActiveNodeList(true));
     
     console.log("droppedItems: ",droppedItems);
     console.log("currentStyles::::: ",currentStyles);
@@ -154,7 +153,7 @@ const TextArea = ({ id, parentId, column}) => {
 
   // ************************************************************************ 
     const onClickOutside = () => {
-      dispatch(setActiveNodeList(false));
+
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -188,6 +187,7 @@ const TextArea = ({ id, parentId, column}) => {
         );
 
         dispatch(setWidgetOrElement("element"));
+        dispatch(setSmallGapInTop(true));
       };
       
       const onDrop = (e) => {
@@ -205,31 +205,60 @@ const TextArea = ({ id, parentId, column}) => {
 
         setExtraGap(null);
         
-        if(widgetOrElement && widgetOrElement === "widget"){
-              // for droped widgets from left panel
-              dispatch(
-                addElementAtLocation({
-                  draggedNodeId: Date.now(), 
-                  draggedName: droppedData.name, 
-                  dragableType: droppedData.type,
-                  
-                  targetParentId: parentId, 
-                  targetColumn: column, 
-                  targetNodeId: id, 
-                })
-              )
-            }
-            else{
-              dispatch(
-                replaceDroppedItem({
-                  parentId: activeParentId || null,
-                  column: activeColumn || null,
-                  draggedNodeId: droppedData.id,
-                  targetNodeId: id,
-                }) 
-              );
+        if(widgetOrElement && widgetOrElement === "element"){
+                      
+          if(parentId === droppedData.parentId && column===droppedData.column){
+            // for element already exist in the perticular column and changing the positiion.
+            dispatch(
+              replaceDroppedItem({
+                parentId: activeParentId || null,
+                column: activeColumn || null,
+                draggedNodeId: droppedData.id,
+                targetNodeId: id,
+              }) 
+            );
+          }
+          else{
+            // draging element from another columns or parent and adding it.
+            dispatch(
+              addElementAtLocation({
+                draggedNodeId: Date.now(), 
+                draggedName: droppedData.name, 
+                dragableType: droppedData.type,
+                styles: droppedData.styles, 
+                content: droppedData.content, 
+                
+                targetParentId: parentId, 
+                targetColumn: column, 
+                targetNodeId: id, 
+              })
+            )
+
+            dispatch(deleteDroppedItemById(
+              {
+                parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+                childId: droppedData.parentId ? droppedData.id : null, 
+                columnName: droppedData.column ? droppedData.column : null }
+            ));
+
           }
 
+        }
+        else{
+          // for droped widgets from left panel
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+          
+        }
 
         // initialize the application after exchage the position
         dispatch(setActiveWidgetId(null));
@@ -266,7 +295,7 @@ const TextArea = ({ id, parentId, column}) => {
             ? "border-dashed border border-blue-500"
             : ""
           } 
-          ${(activeWidgetId==id && activeNodeList) ? "border-2 border-blue-500" : ""}
+          ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
       `}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -279,6 +308,9 @@ const TextArea = ({ id, parentId, column}) => {
 
       onDragEnter={onDragEnterHandle}
       onDragLeave={onDragLeaveHandle}
+      onDragEnd={()=>{
+        dispatch(setSmallGapInTop(null));
+      }}
     >
 
       {/* Drag Icon */}
@@ -314,7 +346,7 @@ const TextArea = ({ id, parentId, column}) => {
           resize: "none", // Disable manual resizing
           whiteSpace: "pre-wrap", // Preserve line breaks and spaces
           wordWrap: "break-word", // Break long words
-          ...(extraGap ? { paddingTop: "150px" } : { paddingTop: currentStyles.paddingTop }),
+          ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop }),
           paddingBottom: currentStyles.paddingBottom || "",
         }} // Apply dynamic styles
       />
