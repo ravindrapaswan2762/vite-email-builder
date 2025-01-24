@@ -309,9 +309,7 @@ const cardDragableSlice = createSlice({
     replaceDroppedItem: (state, action) => {
       const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
 
-      console.log(
-        `draggedNodeId::: ${draggedNodeId}, targetNodeId::: ${targetNodeId}, parentId::: ${parentId}, column::: ${column} in replaceDroppedItem action`
-      );
+      console.log("replaceDroppedItem called:::: ",action.body);
 
       const findAndInsert = (items, parentId, column, draggedNodeId, targetNodeId) => {
         // Helper function to handle reordering
@@ -663,7 +661,32 @@ const cardDragableSlice = createSlice({
     setWidgetOrElement: (state, action) =>{
       console.log("setWidgetOrElement called: ", action.payload);
       state.widgetOrElement = action.payload;
-    }
+    },
+
+    replaceElementInlast: (state, action) => {
+      const id = action.payload;
+
+      console.log(`Moving item with id::: ${id} to the end of the list`);
+
+      const moveToLast = (items, id) => {
+        const itemIndex = items.findIndex((item) => item.id === id);
+
+        if (itemIndex !== -1) {
+          // Remove the item from its current position
+          const [item] = items.splice(itemIndex, 1);
+
+          // Push the item to the end of the list
+          items.push(item);
+        }
+
+        return items;
+      };
+
+      // Update droppedItems by moving the specified item to the end
+      state.droppedItems = moveToLast(state.droppedItems, id);
+
+      console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    },
     
 
   },
@@ -685,6 +708,7 @@ export const {
   updateElementActiveState,
   addElementAtLocation,
   setWidgetOrElement,
+  replaceElementInlast
 } = cardDragableSlice.actions;
 
 export default cardDragableSlice.reducer;

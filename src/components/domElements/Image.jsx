@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { RxCross2 } from "react-icons/rx";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import {setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { useRef } from "react";
@@ -25,6 +24,10 @@ import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
+
+import { PiDotsSixBold } from "react-icons/pi";
+import { FiEdit } from "react-icons/fi";
+import { RxCross2 } from "react-icons/rx";
 
 
 const Image = ({ id, parentId, column}) => {
@@ -181,6 +184,18 @@ const Image = ({ id, parentId, column}) => {
           }
 
         }
+        // for columns droping on element
+        else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
+          console.log("dragableColumn if else called in button");
+          dispatch(
+            replaceDroppedItem({
+              parentId: activeParentId || null,
+              column: activeColumn || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
         else{
           // for droped widgets from left panel
           dispatch(
@@ -208,28 +223,43 @@ const Image = ({ id, parentId, column}) => {
         dispatch(setWrapperExtraPadding(false));
       };
       
-      const onDragOver = (e) => {
-        console.log("onDragOver called in Text");
-        e.preventDefault(); // Allow dropping
-      };
       //******************************************************************************** */ 
       const onDragEnterHandle = () => {
-        console.log("onDragEnterHandle called in Image");
-
-        setExtraGap(true);
-      }
-    
+        console.log("onDragEnterHandle called in Button");
+      
+        // Add padding if not already active
+        if (!extraGap) {
+          setExtraGap(true);
+        }
+      };
+      
+      const onDragOver = (e) => {
+        e.preventDefault(); // Prevent default to allow dropping
+        console.log("onDragOver called in Button");
+      
+        // Ensure padding is added immediately when dragging over
+        if (!extraGap) {
+          setExtraGap(true);
+        }
+      };
+      
       const onDragLeaveHandle = () => {
+        console.log("onDragLeaveHandle called in Button");
+      
+        // Remove padding when dragging out
         setExtraGap(null);
-    
-      }
+      };
     // ****************************************************************************************
 
   return (
     <div
       ref={imageRef}
+      style={{
+        position: "relative",
+        overflow: "visible"
+      }}  
       // Removed "flex items-center justify-center" so the image can span the full width
-      className={`rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent transition-all duration-300
+      className={`relative rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent transition-all duration-300
           
         ${
           isFocused
@@ -259,22 +289,62 @@ const Image = ({ id, parentId, column}) => {
 
     >
 
-      {/* Drag Icon */}
-      {(activeWidgetId==id) ? (
-        <AiOutlineDrag
+      {/* top icons */}
+      {(activeWidgetId === id) && (
+        <div
+          className="absolute -top-[20px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
           style={{
-            position: "absolute",
-            // left: "-10px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "grab",
-            zIndex: 10,
-            backgroundColor: "white",
-            borderRadius: "50%",
+            position: "absolute", // Ensure the trapezoid is absolutely positioned
+            zIndex: 99999, // Place above other elements
+            width: "90px", // Trapezoid width
+            height: "20px", // Trapezoid height
+            clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Trapezoid shape
+            borderTopLeftRadius: "8px", // Top corners rounded
+            borderTopRightRadius: "8px",
           }}
-          // className="bg-gray-100"
-        />
-      ) : ""}
+        >
+          {/* Icon Container */}
+          <div className="flex items-center justify-between w-full h-full">
+            {/* Add Icon */}
+            <button
+              className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("Add icon clicked");
+              }}
+            >
+              <FiEdit size={12} />
+            </button>
+
+            {/* Drag Icon */}
+            <button
+              className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <PiDotsSixBold size={16} />
+            </button>
+
+            {/* Delete Icon */}
+            <button
+              className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                dispatch(
+                  deleteDroppedItemById({
+                    parentId: parentId ? parentId : id,
+                    childId: parentId ? id : null,
+                    columnName: column ? column : null,
+                  })
+                );
+              }}
+            >
+              <RxCross2 size={12} />
+            </button>
+          </div>
+        </div>
+      )}
+
+
       
 
       {/* Image or Placeholder */}

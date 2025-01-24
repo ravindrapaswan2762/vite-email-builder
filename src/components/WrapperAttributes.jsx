@@ -30,6 +30,7 @@ import { useRef } from "react";
 import { setWrapperExtraPadding } from "../redux/condtionalCssSlice";
 import { PiCircleNotchFill } from "react-icons/pi";
 import { replaceDroppedItem } from "../redux/cardDragableSlice";
+import { replaceElementInlast } from "../redux/cardDragableSlice";
 
 
 const WrapperAttribute = () => {
@@ -45,11 +46,6 @@ const WrapperAttribute = () => {
   const [showPopup, setShowPopup] = useState(false);
 
   const wrapperRef = useRef();
-
-
-  // useEffect( ()=> {
-  //   dispatch(saveState(data));
-  // }, []);
 
   useEffect(() => {
     renderWidget(activeWidgetName);
@@ -91,6 +87,10 @@ const WrapperAttribute = () => {
             childId: droppedData.parentId ? droppedData.id : null, 
             columnName: droppedData.column ? droppedData.column : null }
         ));
+    }
+    else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
+      console.log("dragableColumn if else called: ",droppedData.id);
+      dispatch(replaceElementInlast(droppedData.id));
     }
     else{
       dispatch(
@@ -195,19 +195,6 @@ const WrapperAttribute = () => {
       }}
       >
         {WidgetComponent}
-        
-        {/* Delete Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (view === "tablet" || view === "mobile") return;
-            dispatch(deleteDroppedItemById({ parentId: id }));
-          }}
-          className="absolute top-2 right-2 text-white rounded-full opacity-0 bg-red-500 group-hover:opacity-100 transition-all duration-200"
-          style={additionalStyles}
-        >
-          <RxCross2 size={14} />
-        </button>
       </div>
     );
   };

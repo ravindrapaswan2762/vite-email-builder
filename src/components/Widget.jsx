@@ -37,8 +37,8 @@ const Widget = ({ id, name, icon: Icon }) => {
       }}
       
       onDragEnd={() => {
-        dispatch(setActiveWidgetId(null));
         dispatch(setSmallGapInTop(null));
+        dispatch(setActiveWidgetId(null));
       }} // Reset active widget
       className={`flex flex-col items-center justify-center p-5 m-2 border rounded-lg shadow-md cursor-move w-[115px] h-[90px] transition-all ${
         isActive

@@ -34,6 +34,8 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
+import { PiDotsSixBold } from "react-icons/pi";
+import { FiEdit } from "react-icons/fi";
 
 
 
@@ -272,11 +274,42 @@ const ColumnTwo = ({ handleDelete, id }) => {
           "text/plain",
           JSON.stringify({
             id,
-            name: "2-columns"
+            name: "2-columns",
+            dragableName: "dragableColumn"
           })
         );
+        e.dataTransfer.effectAllowed = "move";
+        
+        // *******************************************************
+        const dragPreview = document.createElement("div");
+        dragPreview.style.width = `${twoColumnRef.current.offsetWidth}px`;
+        dragPreview.style.height = `${twoColumnRef.current.offsetHeight}px`;
+        dragPreview.style.backgroundColor = currentStyles.backgroundColor || "#e0e0e0";
+        dragPreview.style.border = "2px solid #1d4ed8"; // Same as active border color
+        dragPreview.style.borderRadius = currentStyles.borderRadius || "4px";
+        dragPreview.style.opacity = "0.8"; // Slightly translucent
+        dragPreview.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
+        dragPreview.style.display = "flex";
+        dragPreview.style.alignItems = "center";
+        dragPreview.style.justifyContent = "center";
+        dragPreview.style.color = "#1d4ed8";
+        dragPreview.style.fontSize = "16px";
+        dragPreview.style.fontWeight = "bold";
+        dragPreview.innerText = activeWidgetName || "Dragging"; // Optional: Add text
+
+        document.body.appendChild(dragPreview);
+
+        // Set the custom drag image
+        e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
+
+        // Cleanup after drag starts
+        setTimeout(() => {
+          document.body.removeChild(dragPreview);
+        }, 0);
+      // ****************************************************
 
         dispatch(setWidgetOrElement("column"));
+        dispatch(setSmallGapInTop(true));
       };
       
       const onDrop = (e) => {
@@ -395,9 +428,11 @@ const ColumnTwo = ({ handleDelete, id }) => {
     onDrop={dropInPaddingTop}
     onDragEnter={enterInPaddingTop}
     onDragLeave={leaveFromPaddingTop}
-
+    
     ref={twoColumnRef}
-    className={`relative grid gap-1 group bg-transparent transition-all duration-300 ${smallGapInTop ? 'pt-3' : ""}
+    className={`relative grid gap-1 group bg-transparent transition-all duration-300 
+      ${smallGapInTop ? 'pt-3' : ""}
+      ${activeWidgetId===id ? 'border-2 border-blue-500 p-2': ""}
       sm:grid-cols-1 
       md:grid-cols-2
       lg:grid-cols-2
@@ -420,31 +455,75 @@ const ColumnTwo = ({ handleDelete, id }) => {
     ...(view === "mobile" ? { padding: "12px", display: "flex", flexDirection: "column" } : {}),
     ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
   }}
-  
-  draggable
-  onDragStart={onDragStart}
   onDragOver={(e) => {
     e.stopPropagation();
     onDragOver(e);
   }}
 >
 
-   {/* Drag Icon */}
-    {(activeWidgetId==id) ? (
-        <AiOutlineDrag
-          style={{
-            position: "absolute",
-            left: "-20px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "grab",
-            zIndex: 10,
-            backgroundColor: "white",
-            borderRadius: "50%", 
-          }}
-          // className="bg-gray-100"
-        />
-      ) : ""}
+   
+{/* Trapezoid Icon Section */}
+{(activeWidgetId === id) && (
+  <div
+    className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
+    style={{
+      width: "90px", // Base width of the trapezoid
+      height: "20px", // Adjusted height
+      clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
+      borderTopLeftRadius: "8px", // Rounded top-left corner
+      borderTopRightRadius: "8px", // Rounded top-right corner
+    }}
+  >
+    {/* Icon Container */}
+    <div className="flex items-center justify-between w-full h-full">
+      {/* Add Icon */}
+      <button
+        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log("Add icon clicked");
+        }}
+      >
+        <FiEdit size={12} />
+      </button>
+
+      {/* Drag Icon */}
+      <button
+        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+        onClick={(e) => e.stopPropagation()}
+        draggable
+        onDragStart={onDragStart}
+        onDragEnd={()=>{
+          dispatch(setSmallGapInTop(null));
+        }}
+      >
+        <PiDotsSixBold size={16} />
+      </button>
+
+      {/* Delete Icon */}
+      <button
+        className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDeleteChild(id);
+
+          dispatch(deleteDroppedItemById(
+            {
+              parentId: id, 
+              childId: null, 
+              columnName: null}
+          ));
+        }}
+      >
+        <RxCross2 size={12} />
+      </button>
+    </div>
+  </div>
+)}
+
+
+
+
 
   {/* Column A */}
   <div
@@ -472,17 +551,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
         }}
       >
         {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA" }) : <div>Unknown Component</div>}
-        {hoveredChildA === child.id && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteChild("childrenA", child.id);
-            }}
-            className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-          >
-            <RxCross2 size={14} />
-          </button>
-        )}
+        
       </div>
     ))}
     {childrenA.length === 0 && (
@@ -519,17 +588,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
         }}
       >
         {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB"}) : <div>Unknown Component</div>}
-        {hoveredChildB === child.id && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDeleteChild("childrenB", child.id);
-            }}
-            className="absolute top-3 right-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-          >
-            <RxCross2 size={14} />
-          </button>
-        )}
+        
       </div>
     ))}
     {childrenB.length === 0 && (

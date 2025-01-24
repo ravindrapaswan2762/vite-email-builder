@@ -26,6 +26,11 @@ import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
+import { MdOutlineInsertDriveFile, MdDragIndicator } from "react-icons/md";
+import { PiDotsSixBold } from "react-icons/pi";
+import { FiEdit } from "react-icons/fi";
+
 
 
 
@@ -43,7 +48,7 @@ const componentMap = {
 const ColumnOne = ({ handleDelete, id }) => {
   const { activeWidgetId, activeWidgetName, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
   const { activeBorders } = useSelector((state) => state.borderSlice);
-  const {columnOneExtraPadding} = useSelector((state) => state.coditionalCssSlice);
+  const {columnOneExtraPadding, smallGapInTop} = useSelector((state) => state.coditionalCssSlice);
 
 
   const oneColumnRef = useRef(null);
@@ -65,7 +70,7 @@ const ColumnOne = ({ handleDelete, id }) => {
     // e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    setPaddingTop(null);
+    // setPaddingTop(null);
 
 
     if (!activeWidgetName) return;
@@ -203,7 +208,7 @@ const ColumnOne = ({ handleDelete, id }) => {
     console.log("handleDragEnter called in columnOne: ",paddingTop);
 
     if (!isDragging) {
-      setPaddingTop(true);
+      // setPaddingTop(true);
       setIsDragging(true);
       dispatch(setActiveBorders(true)); // Add active borders for visual feedback
       dispatch(setColumnOneExtraPadding(true)); // Optional Redux state update
@@ -217,7 +222,7 @@ const ColumnOne = ({ handleDelete, id }) => {
  
     if (oneColumnRef.current && !oneColumnRef.current.contains(e.relatedTarget)) {
       setIsDragging(false);
-      setPaddingTop(false);
+      // setPaddingTop(false);
       dispatch(setColumnOneExtraPadding(false)); // Optional Redux state update
     }
 
@@ -249,12 +254,14 @@ const ColumnOne = ({ handleDelete, id }) => {
         "text/plain",
         JSON.stringify({
             id,
-            name: "1-column"
+            name: "1-column",
+            dragableName: "dragableColumn"
         })
       );
       e.dataTransfer.effectAllowed = "move";
 
       dispatch(setWidgetOrElement("column"));
+      dispatch(setSmallGapInTop(true));
     
     };
     
@@ -265,7 +272,7 @@ const ColumnOne = ({ handleDelete, id }) => {
       console.log("droppedData: ", droppedData);
       console.log("droppedData.name: ", droppedData.name);
 
-      setPaddingTop(null);
+      // setPaddingTop(null);
 
       const restrictedWidgets = ["2-columns", "3-columns"];
 
@@ -307,6 +314,7 @@ const ColumnOne = ({ handleDelete, id }) => {
 
       setIsDragging(false);
       setPaddingTop(null);
+
 
       if(widgetOrElement && widgetOrElement==='widget'){
         dispatch(
@@ -357,21 +365,39 @@ const ColumnOne = ({ handleDelete, id }) => {
         }
       }
     }
+
+    const enterInPaddingTop = (e)=>{
+      e.stopPropagation();
+      console.log("enterInTop called");
+      setPaddingTop(true);
+    }
+    const leaveFromPaddingTop = (e)=>{
+      e.stopPropagation();
+      console.log("leaveFromTop called");
+      setPaddingTop(null);
+    }
+
+    // *********************************************************************************************
     
 
   return (
     <div
       onDrop={dropInPaddingTop}
+      onDragEnter={enterInPaddingTop}
+      onDragLeave={leaveFromPaddingTop}
+      
       ref={oneColumnRef}
 
       onDragOver={handleDragOver}
       onMouseEnter={() => setHoveredColumn(true)}
       onMouseLeave={() => setHoveredColumn(false)}
 
-      onDragEnter={handleDragEnter} 
-      onDragLeave={handleDragLeave}
+      
    
-      className={`text-center min-h-[150px] relative group transition-all duration-300`}
+      className={`text-center min-h-[150px] relative group transition-all duration-300 
+        ${smallGapInTop ? 'pt-3' : ""}
+        ${activeWidgetId===id ? 'border-2 border-blue-500 p-2': ""}
+      `}
       onClick={(e) => {
         e.stopPropagation();
         dispatch(setActiveWidgetId(id));
@@ -387,26 +413,69 @@ const ColumnOne = ({ handleDelete, id }) => {
 
       draggable
       onDragStart={onDragStart}
+      onDragEnd={()=>{
+        dispatch(setSmallGapInTop(null));
+      }}
+
 
       
     >
 
+{/* Trapezoid Icon Section */}
+{(activeWidgetId === id) && (
+  <div
+    className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
+    style={{
+      width: "90px", // Base width of the trapezoid
+      height: "20px", // Adjusted height
+      clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
+      borderTopLeftRadius: "8px", // Rounded top-left corner
+      borderTopRightRadius: "8px", // Rounded top-right corner
+    }}
+  >
+    {/* Icon Container */}
+    <div className="flex items-center justify-between w-full h-full">
+      {/* Add Icon */}
+      <button
+        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log("Add icon clicked");
+        }}
+      >
+        <FiEdit size={12} />
+      </button>
+
       {/* Drag Icon */}
-      {(activeWidgetId==id) ? (
-        <AiOutlineDrag
-          style={{
-            position: "absolute",
-            left: "-20px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "grab",
-            zIndex: 10,
-            backgroundColor: "white",
-            borderRadius: "50%", 
-          }}
-          // className="bg-gray-100"
-        />
-      ) : ""}
+      <button
+        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <PiDotsSixBold size={16} />
+      </button>
+
+      {/* Delete Icon */}
+      <button
+        className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDeleteChild(id);
+
+          dispatch(deleteDroppedItemById(
+            {
+              parentId: id, 
+              childId: null, 
+              columnName: null}
+          ));
+        }}
+      >
+        <RxCross2 size={12} />
+      </button>
+    </div>
+  </div>
+)}
+
+
 
 
       <div className={`rounded-md text-center hover:border-2 hover:border-dashed hover:border-blue-500 min-h-[150px] p-1
@@ -416,6 +485,8 @@ const ColumnOne = ({ handleDelete, id }) => {
                       ${columnOneExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
                       `}
                       onDrop={handleDrop}
+                      onDragEnter={handleDragEnter} 
+                      onDragLeave={handleDragLeave}
                       >
 
         {/* Render Children */}
@@ -432,19 +503,7 @@ const ColumnOne = ({ handleDelete, id }) => {
               className="w-full rounded-md relative group"
             >
               {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id}) : ""}
-
-              {/* Delete Button for Each Child */}
-              {hoveredChild === child.id && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteChild(child.id);
-                  }}
-                  className="absolute right-2 top-4 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-                >
-                  <RxCross2 size={14} />
-                </button>
-              )}
+              
             </div>
           ))
         ) : (
@@ -459,7 +518,6 @@ const ColumnOne = ({ handleDelete, id }) => {
 };
 
 export default ColumnOne;
-
 
 
 

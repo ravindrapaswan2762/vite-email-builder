@@ -27,6 +27,10 @@ import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
+import { MdOutlineInsertDriveFile, MdDragIndicator } from "react-icons/md";
+import { PiDotsSixBold } from "react-icons/pi";
+import { FiEdit } from "react-icons/fi";
+
 
 
 
@@ -145,7 +149,6 @@ const ColumnOne = ({ handleDelete, id }) => {
 
   const handleDragOver = (e) => {
     e.preventDefault();
-    onDragOver(e);
   };
 
   const handleDeleteChild = (childId) => {
@@ -250,12 +253,44 @@ const ColumnOne = ({ handleDelete, id }) => {
         "text/plain",
         JSON.stringify({
             id,
-            name: "1-column"
+            name: "1-column",
+            dragableName: "dragableColumn"
         })
       );
       e.dataTransfer.effectAllowed = "move";
 
+      // **************************************
+      // Create a virtual drag image (using the drag icon)
+
+      const dragPreview = document.createElement("div");
+      dragPreview.style.width = `${oneColumnRef.current.offsetWidth}px`;
+      dragPreview.style.height = `${oneColumnRef.current.offsetHeight}px`;
+      dragPreview.style.backgroundColor = currentStyles.backgroundColor || "#e0e0e0";
+      dragPreview.style.border = "2px solid #1d4ed8"; // Same as active border color
+      dragPreview.style.borderRadius = currentStyles.borderRadius || "4px";
+      dragPreview.style.opacity = "0.8"; // Slightly translucent
+      dragPreview.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
+      dragPreview.style.display = "flex";
+      dragPreview.style.alignItems = "center";
+      dragPreview.style.justifyContent = "center";
+      dragPreview.style.color = "#1d4ed8";
+      dragPreview.style.fontSize = "16px";
+      dragPreview.style.fontWeight = "bold";
+      dragPreview.innerText = activeWidgetName || "Dragging"; // Optional: Add text
+
+      document.body.appendChild(dragPreview);
+
+      // Set the custom drag image
+      e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
+
+      // Cleanup after drag starts
+      setTimeout(() => {
+        document.body.removeChild(dragPreview);
+      }, 0);
+      // ********************************************
+
       dispatch(setWidgetOrElement("column"));
+      dispatch(setSmallGapInTop(true));
     
     };
     
@@ -296,10 +331,6 @@ const ColumnOne = ({ handleDelete, id }) => {
       }
     };
     
-    const onDragOver = (e) => {
-      // console.log("onDragOver called in Text");
-      e.preventDefault(); // Allow dropping
-    };
     //******************************************************************************** drop Into PaddingTop */
     const dropInPaddingTop = (e)=>{
       e.stopPropagation();
@@ -370,7 +401,7 @@ const ColumnOne = ({ handleDelete, id }) => {
       console.log("leaveFromTop called");
       setPaddingTop(null);
     }
-
+    
     // *********************************************************************************************
     
 
@@ -388,7 +419,10 @@ const ColumnOne = ({ handleDelete, id }) => {
 
       
    
-      className={`text-center min-h-[150px] relative group transition-all duration-300 ${smallGapInTop ? 'pt-3' : ""}`}
+      className={`text-center min-h-[150px] relative group transition-all duration-300 
+        ${smallGapInTop ? 'pt-3' : ""}
+        ${activeWidgetId===id ? 'border-2 border-blue-500 p-2': ""}
+      `}
       onClick={(e) => {
         e.stopPropagation();
         dispatch(setActiveWidgetId(id));
@@ -402,28 +436,71 @@ const ColumnOne = ({ handleDelete, id }) => {
         ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
       }}
 
-      draggable
-      onDragStart={onDragStart}
 
       
     >
 
+{/* Trapezoid Icon Section */}
+{(activeWidgetId === id) && (
+  <div
+    className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
+    style={{
+      width: "90px", // Base width of the trapezoid
+      height: "20px", // Adjusted height
+      clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
+      borderTopLeftRadius: "8px", // Rounded top-left corner
+      borderTopRightRadius: "8px", // Rounded top-right corner
+    }}
+  >
+    {/* Icon Container */}
+    <div className="flex items-center justify-between w-full h-full">
+      {/* Add Icon */}
+      <button
+        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+        onClick={(e) => {
+          e.stopPropagation();
+          console.log("Add icon clicked");
+        }}
+      >
+        <FiEdit size={12} />
+      </button>
+
       {/* Drag Icon */}
-      {(activeWidgetId==id) ? (
-        <AiOutlineDrag
-          style={{
-            position: "absolute",
-            left: "-20px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "grab",
-            zIndex: 10,
-            backgroundColor: "white",
-            borderRadius: "50%", 
-          }}
-          // className="bg-gray-100"
-        />
-      ) : ""}
+      <button
+        draggable
+        onDragStart={onDragStart}
+        onDragEnd={()=>{
+          dispatch(setSmallGapInTop(null));
+        }}
+  
+        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <PiDotsSixBold size={16} />
+      </button>
+
+      {/* Delete Icon */}
+      <button
+        className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
+        onClick={(e) => {
+          e.stopPropagation();
+          handleDeleteChild(id);
+
+          dispatch(deleteDroppedItemById(
+            {
+              parentId: id, 
+              childId: null, 
+              columnName: null}
+          ));
+        }}
+      >
+        <RxCross2 size={12} />
+      </button>
+    </div>
+  </div>
+)}
+
+
 
 
       <div className={`rounded-md text-center hover:border-2 hover:border-dashed hover:border-blue-500 min-h-[150px] p-1
@@ -451,19 +528,7 @@ const ColumnOne = ({ handleDelete, id }) => {
               className="w-full rounded-md relative group"
             >
               {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id}) : ""}
-
-              {/* Delete Button for Each Child */}
-              {hoveredChild === child.id && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteChild(child.id);
-                  }}
-                  className="absolute right-2 top-4 bg-red-500 text-white rounded-full hover:bg-red-600 transition-all duration-200"
-                >
-                  <RxCross2 size={14} />
-                </button>
-              )}
+              
             </div>
           ))
         ) : (
