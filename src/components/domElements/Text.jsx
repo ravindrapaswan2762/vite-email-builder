@@ -24,6 +24,7 @@ import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 import { PiDotsSixBold } from "react-icons/pi";
 import { FiEdit } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
+import { useMemo } from "react";
 
 
 const Text = ({ id, parentId, column}) => {
@@ -59,9 +60,7 @@ const Text = ({ id, parentId, column}) => {
     }
     return null;
   };
-  
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
-  // console.log("text currentStyles: ",currentStyles);
 
   // ********************************************************************************************************************
   // Recursive function to find the content based on activeWidgetId 
@@ -173,6 +172,28 @@ const Text = ({ id, parentId, column}) => {
       })
 
     );
+
+    // Create drag preview
+    const dragPreview = document.createElement("div");
+    dragPreview.style.fontSize = "16px"; // Font size for readability
+    dragPreview.style.fontWeight = "bold"; // Bold text for visibility
+    dragPreview.style.color = "#1d4ed8"; // Text color
+    dragPreview.style.lineHeight = "1"; // Ensure proper line height
+    dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
+    dragPreview.style.width = "100px"; // Allow text to determine width
+    dragPreview.style.height = "20px"; // Automatically adjust height
+    dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
+    dragPreview.innerText = "Heading"; // Set the plain text for the drag preview
+    document.body.appendChild(dragPreview);
+
+    // Set the custom drag image
+    e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
+
+    // Cleanup after drag starts
+    setTimeout(() => {
+      document.body.removeChild(dragPreview);
+    }, 0);
+
 
     dispatch(setWidgetOrElement("element"));
     dispatch(setSmallGapInTop(true));
@@ -324,13 +345,6 @@ const Text = ({ id, parentId, column}) => {
 
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
-
-
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={()=>{
-        dispatch(setSmallGapInTop(null));
-      }}
       onDrop={onDrop}
 
       onDragOver={onDragOver}
@@ -369,6 +383,11 @@ const Text = ({ id, parentId, column}) => {
             <button
               className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
               onClick={(e) => e.stopPropagation()}
+              draggable
+              onDragStart={onDragStart}
+              onDragEnd={()=>{
+                dispatch(setSmallGapInTop(null));
+              }}
             >
               <PiDotsSixBold size={16} />
             </button>

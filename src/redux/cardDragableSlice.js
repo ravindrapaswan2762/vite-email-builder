@@ -687,6 +687,36 @@ const cardDragableSlice = createSlice({
 
       console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
     },
+
+    addCustomColumns: (state, action) => {
+      const { id, name, columnCount, content, styles, isActive } = action.payload;
+    
+      console.log("addCustomColumns called:::: ", action.payload);
+    
+      // Validate the input
+      if (name !== "customColumns" || columnCount < 1) {
+        console.warn("Invalid name or columnCount for custom columns");
+        return;
+      }
+    
+      // Create the new item for custom columns
+      const newItem = { id, name, content, styles: styles || {}, isActive };
+    
+      console.log(`Creating customColumns with ${columnCount} columns`);
+    
+      // Dynamically create children arrays based on columnCount
+      for (let i = 1; i <= columnCount; i++) {
+        const columnKey = `children${String.fromCharCode(64 + i)}`; // Generate keys like childrenA, childrenB, etc.
+        newItem[columnKey] = [];
+      }
+    
+      // Add the new item to droppedItems
+      state.droppedItems.push(newItem);
+    
+      console.log("Custom Columns Added: ", JSON.parse(JSON.stringify(newItem)));
+      console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    },
+    
     
 
   },
@@ -708,7 +738,8 @@ export const {
   updateElementActiveState,
   addElementAtLocation,
   setWidgetOrElement,
-  replaceElementInlast
+  replaceElementInlast,
+  addCustomColumns
 } = cardDragableSlice.actions;
 
 export default cardDragableSlice.reducer;

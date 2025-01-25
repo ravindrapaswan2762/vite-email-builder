@@ -50,7 +50,7 @@ const Widget = ({ id, name, icon: Icon }) => {
         <Icon />
       </div>
       <span className="text-sm font-medium text-gray-800 text-center">
-        {name}
+        {name === 'Text' ? 'Heading' : name}
       </span>
     </div>
   );

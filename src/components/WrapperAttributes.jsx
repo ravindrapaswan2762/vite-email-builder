@@ -14,6 +14,7 @@ import Image from "./domElements/Image";
 import ColumnOne from "./domElements/ColumnOne";
 import ColumnTwo from "./domElements/ColumnTwo";
 import ColumnThree from "./domElements/ColumnThree";
+import CustomColumns from "./domElements/CustomColumns";
 import Button from "./domElements/Button";
 import Divider from "./domElements/Divider";
 import Space from "./domElements/Space";
@@ -100,7 +101,7 @@ const WrapperAttribute = () => {
           type: activeWidgetName.includes("column") ? activeWidgetName : "widget",
           parentId: null,
           content: defaultContent,
-          styles: {},
+          styles: activeWidgetName === 'Text' ? {textAlign: "center", fontWeight: "700", fontSize: "20px"} : {},
           isActive: null,
         })
       );
@@ -181,6 +182,9 @@ const WrapperAttribute = () => {
         WidgetComponent = <ColumnThree id={id} />;
         additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 3-columns
         break;
+      case "custom-columns":
+        WidgetComponent = <CustomColumns id={id} />;
+        additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 2-columns
       default:
         WidgetComponent = <div className="text-gray-500">Unknown Widget</div>;
     }
@@ -188,7 +192,7 @@ const WrapperAttribute = () => {
     return (
       <div key={id} className="relative group mb-2"
       onClick={(e) => {
-        e.stopPropagation();
+        // e.stopPropagation();
         dispatch(setActiveColumn(null));
         dispatch(setActiveParentId(null));
         console.log("WrapperAttributes called");

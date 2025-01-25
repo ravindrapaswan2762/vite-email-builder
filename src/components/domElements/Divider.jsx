@@ -106,6 +106,27 @@ const Divider = ({ id, parentId, column }) => {
           })
         );
 
+        // Create drag preview
+        const dragPreview = document.createElement("div");
+        dragPreview.style.fontSize = "16px"; // Font size for readability
+        dragPreview.style.fontWeight = "bold"; // Bold text for visibility
+        dragPreview.style.color = "#1d4ed8"; // Text color
+        dragPreview.style.lineHeight = "1"; // Ensure proper line height
+        dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
+        dragPreview.style.width = "100px"; // Allow text to determine width
+        dragPreview.style.height = "20px"; // Automatically adjust height
+        dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
+        dragPreview.innerText = "Divider"; // Set the plain text for the drag preview
+        document.body.appendChild(dragPreview);
+
+        // Set the custom drag image
+        e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
+
+        // Cleanup after drag starts
+        setTimeout(() => {
+          document.body.removeChild(dragPreview);
+        }, 0);
+
         dispatch(setWidgetOrElement("element"));
         dispatch(setSmallGapInTop(true));
       };
@@ -248,12 +269,6 @@ const Divider = ({ id, parentId, column }) => {
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}
-
-      draggable
-      onDragStart={onDragStart}
-      onDragEnd={()=>{
-        dispatch(setSmallGapInTop(null));
-      }}
       
       onDrop={onDrop}
       
@@ -290,6 +305,11 @@ const Divider = ({ id, parentId, column }) => {
 
           {/* Drag Icon */}
           <button
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={()=>{
+              dispatch(setSmallGapInTop(null));
+            }}
             className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
             onClick={(e) => e.stopPropagation()}
           >
