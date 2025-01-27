@@ -421,6 +421,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
       }
 
       // ****************************************************************************************************
+      
 
   return (
     <div
@@ -444,6 +445,10 @@ const ColumnTwo = ({ handleDelete, id }) => {
     dispatch(setActiveWidgetName("2-column"));
     dispatch(setActiveEditor("sectionEditor"));
     dispatch(setActiveBorders(true));
+
+    // console.log("activeWidgetId in columnTwo: ", activeWidgetId);
+    // console.log("droppedItems in columnTwo: ",droppedItems);
+    // console.log("activeWidgetName in columnTwo: ",activeWidgetName);
   }}
   style={{
     ...styleWithBackground,

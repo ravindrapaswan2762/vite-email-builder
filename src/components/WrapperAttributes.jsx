@@ -143,6 +143,8 @@ const WrapperAttribute = () => {
 
   // Render widgets with delete functionality
   const renderWidget = (id, name) => {
+
+    console.log(`renderWidget id: ${id}, name: ${name}`);
     let WidgetComponent;
     let additionalStyles = {};
 
@@ -182,17 +184,18 @@ const WrapperAttribute = () => {
         WidgetComponent = <ColumnThree id={id} />;
         additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 3-columns
         break;
-      case "custom-columns":
+      case "customColumns":
         WidgetComponent = <CustomColumns id={id} />;
         additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 2-columns
+        break;
       default:
         WidgetComponent = <div className="text-gray-500">Unknown Widget</div>;
     }
   
     return (
-      <div key={id} className="relative group mb-2"
+      <div key={id} className="relative group mb-2 mt-2"
       onClick={(e) => {
-        // e.stopPropagation();
+        e.stopPropagation();
         dispatch(setActiveColumn(null));
         dispatch(setActiveParentId(null));
         console.log("WrapperAttributes called");

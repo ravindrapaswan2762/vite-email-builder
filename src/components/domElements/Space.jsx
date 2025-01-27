@@ -57,10 +57,14 @@ const Space = ({ id, parentId, column }) => {
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
   const onClickHandle = (e) => {
-    e.preventDefault();
+    e.stopPropagation();
+    
     dispatch(setActiveWidgetName("Space"));
     dispatch(setActiveEditor("Space"));
     dispatch(setActiveWidgetId(id));
+    dispatch(setActiveParentId(parentId));
+    dispatch(setActiveColumn(column));
+
     setIsFocused(true); // Set focus state
 
   };

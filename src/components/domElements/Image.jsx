@@ -81,11 +81,14 @@ const Image = ({ id, parentId, column}) => {
   const onMouseLeaveHandler = () => setHoveredElement(false);
 
   const onClickHandler = (e) => {
-    // e.stopPropagation();
+    e.stopPropagation();
     // e.preventDefault();
+    
     dispatch(setActiveWidgetName("Image"));
     dispatch(setActiveEditor("Image"));
     dispatch(setActiveWidgetId(id));
+    dispatch(setActiveParentId(parentId));
+    dispatch(setActiveColumn(column));
 
     setIsFocused(true);
 

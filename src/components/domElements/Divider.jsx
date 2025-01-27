@@ -59,10 +59,13 @@ const Divider = ({ id, parentId, column }) => {
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
   const onClickHandle = (e) => {
-    e.preventDefault();
+    e.stopPropagation();
+
     dispatch(setActiveWidgetName("Divider"));
     dispatch(setActiveEditor("Divider"));
     dispatch(setActiveWidgetId(id));
+    dispatch(setActiveParentId(parentId));
+    dispatch(setActiveColumn(column));
     
     setIsFocused(true); 
 

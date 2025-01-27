@@ -34,7 +34,7 @@ const Text = ({ id, parentId, column}) => {
   const [extraGap, setExtraGap] = useState(null);
   const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
 
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
 
     // const {textExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
@@ -91,19 +91,21 @@ const Text = ({ id, parentId, column}) => {
   // ******************************************************************************************************************
 
   const onClickHandle = (e) => {
-    e.preventDefault();
-
-    // console.log(
-    //   `[parentId=${parentId}, column=${column}, nodeId=${id}]`
-    // );
+    e.stopPropagation();
+    // e.preventDefault();
 
     dispatch(setActiveWidgetName("Text"));
     dispatch(setActiveEditor("Text"));
     dispatch(setActiveWidgetId(id));
+    dispatch(setActiveColumn(column));
+    dispatch(setActiveParentId(parentId));
+
+    console.log("activeWidgetId in text: ",id);
+    console.log("parentId in text: ",parentId);
+    console.log("column in text: ",column);
+    console.log("droppedItems: ",droppedItems);
 
     setIsFocused(true);
-    console.log("dropedItems: ",droppedItems);
-    console.log("currentStyles in text:::: ",currentStyles);
   };
 
   const onChangeHandle = (e) => {
@@ -265,7 +267,7 @@ const Text = ({ id, parentId, column}) => {
           column: activeColumn || null,
           draggedNodeId: droppedData.id,
           targetNodeId: id,
-        }) 
+        })
       );
 
     }

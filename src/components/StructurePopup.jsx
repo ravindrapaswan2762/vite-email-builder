@@ -94,7 +94,7 @@ import { setActiveBorders } from "../redux/activeBorderSlice";
 
 const StructurePopup = ({ onClose, onAdd, id }) => {
   const dispatch = useDispatch();
-  const [columnCount, setColumnCount] = useState(6); // Tracks number of custom columns
+  const [columnCount, setColumnCount] = useState(4); // Tracks number of custom columns
   const { droppedItems } = useSelector((state) => state.cardDragable);
 
   const structures = [
@@ -125,9 +125,7 @@ const StructurePopup = ({ onClose, onAdd, id }) => {
             id: Date.now(),
             name: "customColumns",
             columnCount, // Specify the number of columns
-            content: "Custom Content",
-            styles: { backgroundColor: "#f0f0f0" },
-            isActive: false,
+            parentId: id
           })
         );
         console.log("Custom Columns Added: ", columnCount);
@@ -186,6 +184,8 @@ const StructurePopup = ({ onClose, onAdd, id }) => {
                 )
               )}
 
+            {/* ********************************************************************************************** */}
+            
             {/* Custom Columns Input UI */}
             {structure.id === "custom-columns" && (
               <div id="t2" className="flex flex-col items-center">

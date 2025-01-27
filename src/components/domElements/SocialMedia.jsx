@@ -64,12 +64,15 @@ const SocialMedia = ({ id, parentId, column}) => {
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
   const onClickHandle = (e) => {
-    e.preventDefault();
+    e.stopPropagation();    
     dispatch(setActiveWidgetName("SocialMedia"));
     dispatch(setActiveEditor("SocialMedia"));
     dispatch(setActiveWidgetId(id));
-    setIsFocused(true); // Set focus state
+    dispatch(setActiveParentId(parentId));
+    dispatch(setActiveColumn(column));
 
+    setIsFocused(true); // Set focus state
+    
     // dispatch(setActiveBorders(true));
   };
 

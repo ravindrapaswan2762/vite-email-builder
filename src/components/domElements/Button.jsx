@@ -60,11 +60,14 @@ const Button = ({ id, parentId, column }) => {
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
 
   const onclickHandle = (e) => {
-    // e.stopPropagation();
-    e.preventDefault();
+    e.stopPropagation();
+    // e.preventDefault();
+    
     dispatch(setActiveWidgetName("Button"));
     dispatch(setActiveEditor("Button"));
     dispatch(setActiveWidgetId(id));
+    dispatch(setActiveParentId(parentId));
+    dispatch(setActiveColumn(column));
 
     setIsFocused(true);
 

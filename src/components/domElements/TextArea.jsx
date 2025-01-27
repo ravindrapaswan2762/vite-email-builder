@@ -106,11 +106,14 @@ const TextArea = ({ id, parentId, column}) => {
   };
 
   const onclickHandle = (e) => {
-    // e.stopPropagation();
-    e.preventDefault();
+    e.stopPropagation();
+    // e.preventDefault();
+
     dispatch(setActiveWidgetName("TextArea"));
     dispatch(setActiveEditor("TextArea"));
     dispatch(setActiveWidgetId(id));
+    dispatch(setActiveParentId(parentId));
+    dispatch(setActiveColumn(column));
 
     setIsFocused(true); // Set focus state
     
