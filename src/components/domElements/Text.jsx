@@ -17,6 +17,9 @@ import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+import { setActiveRightClick } from "../../redux/cardDragableSlice";
+import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
+import { addElementAtLocationInCC } from "../../redux/cardDragableSlice";
 
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
@@ -27,7 +30,7 @@ import { RxCross2 } from "react-icons/rx";
 import { useMemo } from "react";
 
 
-const Text = ({ id, parentId, column}) => {
+const Text = ({ id, parentId, column, parentName}) => {
   const [val, setVal] = useState("");
   const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
   const [isFocused, setIsFocused] = useState(false); // Track focus state
@@ -215,27 +218,119 @@ const Text = ({ id, parentId, column}) => {
 
     // for droped widgets from left panel
     const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-    console.log("droppedData from left panel: ", droppedData);
+    console.log("droppedData: ", droppedData);
+    console.log("parentId in text: ",parentId);
+    console.log("droppedData.parentId in text: ",droppedData.parentId);
+
+    console.log("column in text: ",column);
+    console.log("droppedData.column in text: ",droppedData.column)
 
     setExtraGap(null);
+    console.log("parentName in text: ",parentName);
 
     if(widgetOrElement && widgetOrElement === "element"){
+      console.log("IF PART CALLED");
                   
       if(parentId === droppedData.parentId && column===droppedData.column){
-        // for element already exist in the perticular column and changing the positiion.
-        dispatch(
-          replaceDroppedItem({
-            parentId: activeParentId || null,
-            column: activeColumn || null,
-            draggedNodeId: droppedData.id,
-            targetNodeId: id,
-          }) 
-        );
+        // customCollumns as parent is same.
+        console.log("parentName: ",parentName);
+        if(parentName === 'customColumns'){
+          console.log("parentName === customColumns");
+          dispatch(
+            replaceDroppedItemInCC({
+              parentId: parentId || null,
+              column: column || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
+        else{
+          // 1-column, or 2-columns or 3-columns is same as parent
+          console.log("parentName !== customColumnssss")
+          dispatch(
+            replaceDroppedItem({
+              parentId: parentId || null,
+              column: column || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
       }
       else{
-        // draging element from another columns or parent and adding it.
+        // dragable parent not same, but current parent is "customClumns"
+        if(parentName === 'customColumns'){
+            console.log("dragable parent not same, but current parent is customClumns");
+            dispatch(
+              addElementAtLocationInCC({
+                draggedNodeId: Date.now(), 
+                draggedName: droppedData.name, 
+                dragableType: droppedData.type,
+                styles: droppedData.styles, 
+                content: droppedData.content, 
+                
+                targetParentId: parentId, 
+                targetColumn: column, 
+                targetNodeId: id, 
+              })
+            )
+      
+            dispatch(deleteDroppedItemById(
+              {
+                parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
+                childId: droppedData.parentId ?  droppedData.id : null, 
+                columnName: droppedData.column ? droppedData.column : null}
+            ));
+        }
+        // dragable parent not same, but parent is "1-column or 2-columns or 3-columns"
+        else{
+          console.log("IF PART CALLED 3");
+          console.log("dragable parent not same, but parent is: 1-column or 2-columns or 3-columns")
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              styles: droppedData.styles, 
+              content: droppedData.content, 
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+
+          dispatch(deleteDroppedItemById(
+            {
+              parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+              childId: droppedData.parentId ? droppedData.id : null, 
+              columnName: droppedData.column ? droppedData.column : null }
+          ));
+
+        }
+      }
+
+    }
+    // columns droping on element
+    else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
+      console.log("COLUMN DROPES ON ELEMENT");
+      dispatch(
+        replaceDroppedItem({
+          parentId: null,
+          column: null,
+          draggedNodeId: droppedData.id,
+          targetNodeId: id,
+        })
+      );
+
+    }
+    else{
+      // for droped widgets from left panel
+      console.log("ELSE PART CALLED");
+      if(parentName === 'customColumns'){
         dispatch(
-          addElementAtLocation({
+          addElementAtLocationInCC({
             draggedNodeId: Date.now(), 
             draggedName: droppedData.name, 
             dragableType: droppedData.type,
@@ -247,43 +342,27 @@ const Text = ({ id, parentId, column}) => {
             targetNodeId: id, 
           })
         )
-
+  
         dispatch(deleteDroppedItemById(
           {
-            parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-            childId: droppedData.parentId ? droppedData.id : null, 
-            columnName: droppedData.column ? droppedData.column : null }
+            parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
+            childId: droppedData.parentId ?  droppedData.id : null, 
+            columnName: droppedData.column ? droppedData.column : null}
         ));
-
       }
-
-    }
-    // columns droping on element
-    else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
-      console.log("dragableColumn if else called in button");
-      dispatch(
-        replaceDroppedItem({
-          parentId: activeParentId || null,
-          column: activeColumn || null,
-          draggedNodeId: droppedData.id,
-          targetNodeId: id,
-        })
-      );
-
-    }
-    else{
-      // for droped widgets from left panel
-      dispatch(
-        addElementAtLocation({
-          draggedNodeId: Date.now(), 
-          draggedName: droppedData.name, 
-          dragableType: droppedData.type,
-          
-          targetParentId: parentId, 
-          targetColumn: column, 
-          targetNodeId: id, 
-        })
-      )
+      else{
+        dispatch(
+          addElementAtLocation({
+            draggedNodeId: Date.now(), 
+            draggedName: droppedData.name, 
+            dragableType: droppedData.type,
+            
+            targetParentId: parentId, 
+            targetColumn: column, 
+            targetNodeId: id, 
+          })
+        )
+      }
       
     }
 
@@ -328,6 +407,18 @@ const Text = ({ id, parentId, column}) => {
   };
 
   // **********************************************************************************
+  const handleRightClick = (event) => {
+    event.preventDefault(); // Prevent the default context menu from showing
+    
+    dispatch(setActiveRightClick(true));
+    dispatch(setActiveWidgetId(null));
+    dispatch(setActiveParentId(parentId));
+    dispatch(setActiveColumn(column));
+
+    console.log("handleRightClick in text");
+    setHoveredElement(false);
+
+  };
 
 
   return (
@@ -417,6 +508,7 @@ const Text = ({ id, parentId, column}) => {
 
       {/* Input Field */}
       <input
+        onContextMenu={handleRightClick}
         ref={inputRef}
         onClick={onClickHandle}
         onChange={onChangeHandle}

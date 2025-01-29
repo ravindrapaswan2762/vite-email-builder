@@ -6,9 +6,12 @@ const initialState = {
     columnTwoExtraPadding: false,
     columnThreeExtraPadding: false,
     wrapperExtraPadding: false,
+    customClumnsExtraPadding: false,
 
     textExtraPadding: false,
     smallGapInTop: false,
+
+    elementPaddingTop: null,
 }
 
 const conditionalCssSlice = createSlice({
@@ -40,7 +43,16 @@ const conditionalCssSlice = createSlice({
         setSmallGapInTop: (state, action) =>{
             console.log("setSmallGapInTop called: ", action.payload);
             state.smallGapInTop = action.payload;
+        },
+        setCustomClumnsExtraPadding: (state, action) =>{
+            console.log("setCustomClumnsExtraPadding called: ", action.payload);
+            state.customClumnsExtraPadding = action.payload;
+        },
+        setElementPaddingTop: (state, action) =>{
+            state.elementPaddingTop = action.payload;
+            console.log("setElementPaddingTop called: ",action.payload);
         }
+        
 
     }
 })
@@ -53,6 +65,8 @@ export const {
 
     setTextExtraPadding,
     setSmallGapInTop,
+    setCustomClumnsExtraPadding,
+    setElementPaddingTop,
     
  } = conditionalCssSlice.actions;
 export default conditionalCssSlice.reducer;

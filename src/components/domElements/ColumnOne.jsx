@@ -381,8 +381,8 @@ const ColumnOne = ({ handleDelete, id }) => {
         else{
           dispatch(
             replaceDroppedItem({
-              parentId: activeParentId || null,
-              column: activeColumn || null,
+              parentId: null,
+              column: null,
               draggedNodeId: droppedData.id,
               targetNodeId: id,
             }) 
@@ -527,7 +527,7 @@ const ColumnOne = ({ handleDelete, id }) => {
               }}
               className="w-full rounded-md relative group"
             >
-              {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id}) : ""}
+              {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id,  parentName: "1-column"}) : ""}
               
             </div>
           ))

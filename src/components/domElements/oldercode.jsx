@@ -26,8 +26,6 @@ import { RxCross2 } from "react-icons/rx";
 import { deleteCustomColumn } from "../../redux/cardDragableSlice";
 import { setElementInCustomColumns } from "../../redux/cardDragableSlice";
 import { setCustomClumnsExtraPadding } from "../../redux/condtionalCssSlice";
-import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
-import { setElementPaddingTop } from "../../redux/condtionalCssSlice";
 
 // Component Mapping
 const componentMap = {
@@ -49,14 +47,12 @@ const CustomColumns = ({ id }) => {
   const [popup, setPopup] = useState({ visible: false, x: 0, y: 0, columnId: null });
   const [hoverColumn, setHoverColumn] = useState({parentId: null, column: null});
   const [isDragging, setIsDragging] = useState(false); 
-  const [paddingTop, setPaddingTop] = useState(null);
 
   const dispatch = useDispatch();
   const customColumnRef = useRef(null);
-  const columnRef = useRef();
 
   // Fetch the custom column data from Redux state
-  const { droppedItems, activeWidgetId, activeWidgetName, activeRightClick, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
+  const { droppedItems, activeWidgetId, activeWidgetName, activeRightClick, activeParentId, activeColumn} = useSelector((state) => state.cardDragable);
   const {customClumnsExtraPadding, smallGapInTop} = useSelector((state) => state.coditionalCssSlice);
   const columnData = droppedItems.find((item) => item.id === id);
 
@@ -72,57 +68,52 @@ const CustomColumns = ({ id }) => {
 
   const handleResizeMouseMove = (e) => {
     if (resizingIndex === null) return;
-  
+
     const containerWidth = customColumnRef.current.offsetWidth;
-    const deltaX = e.movementX; // Mouse movement in pixels
-  
+    const deltaX = e.movementX;
+
     setLocalColumns((prevColumns) => {
       const newColumns = [...prevColumns];
       const leftColumn = newColumns[resizingIndex].data.styles;
       const rightColumn = newColumns[resizingIndex + 1].data.styles;
-  
+
       let newLeftWidth = parseFloat(leftColumn.width) + (deltaX / containerWidth) * 100;
       let newRightWidth = parseFloat(rightColumn.width) - (deltaX / containerWidth) * 100;
-  
-      // Enforce minimum width to prevent collapse
-      if (newLeftWidth < 5) {
-        newRightWidth += newLeftWidth - 5;
-        newLeftWidth = 5;
-      } else if (newRightWidth < 5) {
-        newLeftWidth += newRightWidth - 5;
-        newRightWidth = 5;
+
+      if (newLeftWidth < 1) {
+        newRightWidth += newLeftWidth - 1;
+        newLeftWidth = 1;
+      } else if (newRightWidth < 1) {
+        newLeftWidth += newRightWidth - 1;
+        newRightWidth = 1;
       }
-  
-      // Apply smooth transition styles
-      leftColumn.width = `${newLeftWidth.toFixed(2)}%`;
-      rightColumn.width = `${newRightWidth.toFixed(2)}%`;
-  
+
+      if (newLeftWidth >= 1 && newRightWidth >= 1) {
+        leftColumn.width = `${newLeftWidth.toFixed(2)}%`;
+        rightColumn.width = `${newRightWidth.toFixed(2)}%`;
+      }
+
       return newColumns;
     });
   };
 
   const handleResizeMouseUp = () => {
     if (resizingIndex === null) return;
-  
+
     setResizingIndex(null);
     setShowWidthPercentage(false);
-  
-    // Get the updated column widths from local state
-    const updatedColumns = [...localColumns];
-    const leftColumnKey = updatedColumns[resizingIndex].key;
-    const rightColumnKey = updatedColumns[resizingIndex + 1].key;
-  
-    const leftColumnWidth = parseFloat(updatedColumns[resizingIndex].data.styles.width);
-    const rightColumnWidth = parseFloat(updatedColumns[resizingIndex + 1].data.styles.width);
-  
-    // Dispatch updated widths to Redux with a slight delay for smoother UX
-    setTimeout(() => {
-      dispatch(updateColumnWidth({ parentId: id, columnKey: leftColumnKey, width: leftColumnWidth }));
-      dispatch(updateColumnWidth({ parentId: id, columnKey: rightColumnKey, width: rightColumnWidth }));
-    }, 100);
+
+    // Dispatch updated widths to Redux
+    const leftColumnKey = localColumns[resizingIndex].key;
+    const rightColumnKey = localColumns[resizingIndex + 1].key;
+
+    const leftColumnWidth = parseFloat(localColumns[resizingIndex].data.styles.width);
+    const rightColumnWidth = parseFloat(localColumns[resizingIndex + 1].data.styles.width);
+
+    dispatch(updateColumnWidth({ parentId: id, columnKey: leftColumnKey, width: leftColumnWidth }));
+    dispatch(updateColumnWidth({ parentId: id, columnKey: rightColumnKey, width: rightColumnWidth }));
   };
 
-  
   useEffect(() => {
     if (resizingIndex !== null) {
       document.addEventListener("mousemove", handleResizeMouseMove);
@@ -192,7 +183,7 @@ const CustomColumns = ({ id }) => {
       popupY -= popupHeight; // Shift upward
     }
   
-    // Pass column key (e.g., childrenB) instead of the column ID
+    // Pass column key (e.g., `childrenB`) instead of the column ID
     setPopup({ visible: true, x: popupX, y: popupY, columnKey });
 
     dispatch(setActiveRightClick(true));
@@ -217,7 +208,7 @@ const CustomColumns = ({ id }) => {
       "text/plain",
       JSON.stringify({
         id,
-        name: "customColumns",
+        name: "custom-columns",
         dragableName: "dragableColumn"
       })
     );
@@ -317,7 +308,6 @@ const CustomColumns = ({ id }) => {
 const handleDragOver = (e, parentId, column) => {
   e.preventDefault();
   setHoverColumn({parentId, column});
-  dispatch(setCustomClumnsExtraPadding(true));
 
 };
 const handleDrop = (columnKey) => (e) => {
@@ -327,68 +317,21 @@ const handleDrop = (columnKey) => (e) => {
   setHoverColumn({parentId: null, column: null});
   setIsDragging(false);
   dispatch(setCustomClumnsExtraPadding(false));
-  dispatch(setElementPaddingTop(null));
 
-  // Prefill content and styles based on activeWidgetName
-  let content = null;
-  let styles = {};
-  if (activeWidgetName === 'Text') {
-    content = "Lorem Ipsum";
-  } else if (activeWidgetName === 'TextArea') {
-      content = "Liven up your web layout wireframes and mockups with one of these lorem ipsum generators.";
-      styles = {height: "85px"}
-  }
+  const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-  // Safely parse dropped data
-  let droppedData = null;
-  try {
-    droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-    console.log("droppedData in columnTwo: ",droppedData);
-  } catch (error) {
-    console.error("Failed to parse dropped data:", error);
-    return;
-  }
-
-  if(!['1-column','2-columns', '3-columns'].includes(droppedData?.name)){
-        if(widgetOrElement === 'element'){
-            dispatch(
-              setElementInCustomColumns({
-                parentId: id, // ID of the parent customColumns item
-                columnKey, // The column key where the item is dropped (e.g., "childrenA")
-                droppedData: {
-                  id: Date.now(),
-                  name: droppedData.name,
-                  content: droppedData.content || "Default Content",
-                  styles: droppedData.styles || {},
-                },
-              })
-            );
-      
-            dispatch(deleteDroppedItemById(
-              {
-                parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
-                childId: droppedData.parentId ?  droppedData.id : null, 
-                columnName: droppedData.column ? droppedData.column : null}
-            ));
-        }
-        else{
-          dispatch(
-            setElementInCustomColumns({
-              parentId: id, // ID of the parent customColumns item
-              columnKey, // The column key where the item is dropped (e.g., "childrenA")
-              droppedData: {
-                id: Date.now(),
-                name: activeWidgetName,
-                content: content || "Default Content",
-                styles: styles,
-              },
-            })
-          );
-        }
-      }
-      else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
-        return;
-      }
+  dispatch(
+    setElementInCustomColumns({
+      parentId: id, // ID of the parent customColumns item
+      columnKey, // The column key where the item is dropped (e.g., "childrenA")
+      droppedData: {
+        id: Date.now(),
+        name: droppedData.name,
+        content: droppedData.content || "Default Content",
+        styles: droppedData.styles || {},
+      },
+    })
+  );
 
 
   console.log(`Dropped item into column: ${columnKey}`);
@@ -405,99 +348,17 @@ const onDragEnter = (e) =>{
   }
 }
 
-const handleEnter = () =>{
-  dispatch(setCustomClumnsExtraPadding(true));
+const dropInPaddingTop = (e)=>{
+  e.stopPropagation();
+
+  setIsDragging(false);
 }
-const handleLeave = (e, ref)=>{
   
-  if(ref && ref.current && (!e.relatedTarget || !ref.current.contains(e.relatedTarget))){
-    setHoverColumn({parentId: null, column: null});
-    setIsDragging(false);
-    dispatch(setCustomClumnsExtraPadding(false));
-  }
-}
-
- //******************************************************************************** drop Into PaddingTop */
-    const dropInPaddingTop = (e)=>{
-      e.stopPropagation();
-
-      const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-
-      setIsDragging(false);
-      setPaddingTop(null);
-
-
-      if(widgetOrElement && widgetOrElement==='widget'){
-        dispatch(
-          addElementAtLocation({
-            draggedNodeId: Date.now(), 
-            draggedName: droppedData.name, 
-            dragableType: droppedData.type,
-            
-            targetParentId: null, 
-            targetColumn: null, 
-            targetNodeId: id, 
-          })
-        )
-      }
-      else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
-
-        if(droppedData.parentId){
-          dispatch(
-            addElementAtLocation({
-              draggedNodeId: Date.now(), 
-              draggedName: droppedData.name, 
-              dragableType: droppedData.type,
-              styles: droppedData.styles, 
-              content: droppedData.content, 
-              
-              targetParentId: null, 
-              targetColumn: null, 
-              targetNodeId: id, 
-            })
-          )
-          dispatch(deleteDroppedItemById(
-            {
-              parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-              childId: droppedData.parentId ? droppedData.id : null, 
-              columnName: droppedData.column ? droppedData.column : null }
-          ));
-
-        }
-        else{
-          dispatch(
-            replaceDroppedItem({
-              parentId: null,
-              column: null,
-              draggedNodeId: droppedData.id,
-              targetNodeId: id,
-            }) 
-          );
-        }
-      }
-    }
-
-    const enterInPaddingTop = (e)=>{
-      e.stopPropagation();
-      console.log("enterInTop called");
-      setPaddingTop(true);
-    }
-    const leaveFromPaddingTop = (e)=>{
-      e.stopPropagation();
-      console.log("leaveFromTop called");
-      setPaddingTop(null);
-    }
-    
-  // *********************************************************************************************
-    
   
   
 
   return (
     <div
-      onDrop={dropInPaddingTop}
-      onDragEnter={enterInPaddingTop}
-      onDragLeave={leaveFromPaddingTop}
       ref={customColumnRef}
       className={`relative grid gap-1 group bg-transparent
         ${activeParentId===id ? 'border-2 border-blue-500 p-2': ""}
@@ -513,16 +374,13 @@ const handleLeave = (e, ref)=>{
         {/* Trapezoid Icon Section */}
               {(activeParentId === id) && (
                 <div
-                  className={`absolute -top-[29px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center
-                      
-                    `}
+                  className="absolute -top-[29px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
                   style={{
                     width: "90px", // Base width of the trapezoid
                     height: "20px", // Adjusted height
                     clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
                     borderTopLeftRadius: "8px", // Rounded top-left corner
                     borderTopRightRadius: "8px", // Rounded top-right corner
-                    ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
                   }}
                 >
                   {/* Icon Container */}
@@ -573,13 +431,15 @@ const handleLeave = (e, ref)=>{
 
         {localColumns.map((column, index) => (
           <div
-            ref={columnRef}
             onDrag={onDragEnter}
             onDrop={handleDrop(column.key)}
             onDragOver={(e)=>handleDragOver(e, id, column.key)}
-            onDragLeave={(e)=>handleLeave(e, columnRef)}
+            onDragLeave={()=>{
+              setHoverColumn({parentId: null, column: null});
+              setIsDragging(false);
+              dispatch(setCustomClumnsExtraPadding(false));
+            }}
             onClick={onclickHandler}
-            onDragEnter={handleEnter}
 
     
             key={column.data.id}
@@ -593,9 +453,8 @@ const handleLeave = (e, ref)=>{
             onContextMenu={(e) => handleRightClick(e, column.key)}
             style={{
               flexBasis: column.data.styles.width,
-              backgroundColor: column.data.styles.backgroundColor, 
+              backgroundColor: column.data.styles.backgroundColor, // Use bg color from Redux
             }}
-            
           >
              {/* Render placeholder text if no children */}
             {!column.data.children?.length && (
@@ -605,7 +464,7 @@ const handleLeave = (e, ref)=>{
             {/* Render Dropped Items */}
             {column.data.children?.map((child) => (
               <div key={child.id} className="text-sm p-1 bg-transparent">
-                {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: column.key,  parentName: "customColumns" }) : <div>Unknown Component</div>}
+                {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: column.key }) : <div>Unknown Component</div>}
               </div>
             ))}
 

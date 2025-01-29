@@ -18,11 +18,14 @@ import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
+import { addElementAtLocationInCC } from "../../redux/cardDragableSlice";
 
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
+import { setActiveRightClick } from "../../redux/cardDragableSlice";
+import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
 
 import { PiDotsSixBold } from "react-icons/pi";
 import { FiEdit } from "react-icons/fi";
@@ -33,7 +36,7 @@ import { RxCross2 } from "react-icons/rx";
 // Icons (Replace these with your actual logo images or imports)
 import { FaFacebook, FaGoogle, FaTwitter } from "react-icons/fa"; // Example using FontAwesome icons
 
-const SocialMedia = ({ id, parentId, column}) => {
+const SocialMedia = ({ id, parentId, column, parentName}) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const [extraGap, setExtraGap] = useState(null);
@@ -152,99 +155,282 @@ const SocialMedia = ({ id, parentId, column}) => {
         dispatch(setSmallGapInTop(true));
       };
       
-      const onDrop = (e) => {
-        e.stopPropagation();
+      // const onDrop = (e) => {
+      //   e.stopPropagation();
 
-        const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
-        const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
-        if (restrictedWidgets.includes(draggedName)) {
-          alert("Please drop it in an black space.");
-          return;
-        }
+      //   const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
+      //   const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
+      //   if (restrictedWidgets.includes(draggedName)) {
+      //     alert("Please drop it in an black space.");
+      //     return;
+      //   }
 
-        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+      //   const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-        setExtraGap(null);
+      //   setExtraGap(null);
         
-        if(widgetOrElement && widgetOrElement === "element"){
+      //   if(widgetOrElement && widgetOrElement === "element"){
                       
-          if(parentId === droppedData.parentId && column===droppedData.column){
-            // for element already exist in the perticular column and changing the positiion.
-            dispatch(
-              replaceDroppedItem({
-                parentId: activeParentId || null,
-                column: activeColumn || null,
-                draggedNodeId: droppedData.id,
-                targetNodeId: id,
-              }) 
-            );
-          }
-          else{
-            // draging element from another columns or parent and adding it.
-            dispatch(
-              addElementAtLocation({
-                draggedNodeId: Date.now(), 
-                draggedName: droppedData.name, 
-                dragableType: droppedData.type,
-                styles: droppedData.styles, 
-                content: droppedData.content, 
+      //     if(parentId === droppedData.parentId && column===droppedData.column){
+      //       // for element already exist in the perticular column and changing the positiion.
+      //       if(parentName === 'customColumns'){
+      //         console.log("parentName === customColumns");
+      //         dispatch(
+      //           replaceDroppedItemInCC({
+      //             parentId: parentId || null,
+      //             column: column || null,
+      //             draggedNodeId: droppedData.id,
+      //             targetNodeId: id,
+      //           }) 
+      //         );
+      //       }
+      //       else{
+      //         console.log("parentName !== customColumns")
+      //         dispatch(
+      //           replaceDroppedItem({
+      //             parentId: parentId || null,
+      //             column: column || null,
+      //             draggedNodeId: droppedData.id,
+      //             targetNodeId: id,
+      //           }) 
+      //         );
+      //       }
+      //     }
+      //     else{
+      //       // draging element from another columns or parent and adding it.
+      //       dispatch(
+      //         addElementAtLocation({
+      //           draggedNodeId: Date.now(), 
+      //           draggedName: droppedData.name, 
+      //           dragableType: droppedData.type,
+      //           styles: droppedData.styles, 
+      //           content: droppedData.content, 
                 
-                targetParentId: parentId, 
-                targetColumn: column, 
-                targetNodeId: id, 
-              })
-            )
+      //           targetParentId: parentId, 
+      //           targetColumn: column, 
+      //           targetNodeId: id, 
+      //         })
+      //       )
 
-            dispatch(deleteDroppedItemById(
-              {
-                parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-                childId: droppedData.parentId ? droppedData.id : null, 
-                columnName: droppedData.column ? droppedData.column : null }
-            ));
+      //       dispatch(deleteDroppedItemById(
+      //         {
+      //           parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+      //           childId: droppedData.parentId ? droppedData.id : null, 
+      //           columnName: droppedData.column ? droppedData.column : null }
+      //       ));
 
-          }
+      //     }
 
-        }
-        // for columns droping on element
-        else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
-          console.log("dragableColumn if else called in button");
-          dispatch(
-            replaceDroppedItem({
-              parentId: activeParentId || null,
-              column: activeColumn || null,
-              draggedNodeId: droppedData.id,
-              targetNodeId: id,
-            }) 
-          );
-        }
-        else{
-          // for droped widgets from left panel
-          dispatch(
-            addElementAtLocation({
-              draggedNodeId: Date.now(), 
-              draggedName: droppedData.name, 
-              dragableType: droppedData.type,
+      //   }
+      //   // for columns droping on element
+      //   else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
+      //     console.log("dragableColumn if else called in button");
+      //     dispatch(
+      //       replaceDroppedItem({
+      //         parentId: activeParentId || null,
+      //         column: activeColumn || null,
+      //         draggedNodeId: droppedData.id,
+      //         targetNodeId: id,
+      //       }) 
+      //     );
+      //   }
+      //   else{
+      //     // for droped widgets from left panel
+      //     dispatch(
+      //       addElementAtLocation({
+      //         draggedNodeId: Date.now(), 
+      //         draggedName: droppedData.name, 
+      //         dragableType: droppedData.type,
               
-              targetParentId: parentId, 
-              targetColumn: column, 
-              targetNodeId: id, 
-            })
-          )
+      //         targetParentId: parentId, 
+      //         targetColumn: column, 
+      //         targetNodeId: id, 
+      //       })
+      //     )
           
-        }
+      //   }
 
-        // initialize the application after exchage the position
-        dispatch(setActiveWidgetId(null));
-        dispatch(setActiveParentId(null));
-        dispatch(setActiveColumn(null));
+      //   // initialize the application after exchage the position
+      //   dispatch(setActiveWidgetId(null));
+      //   dispatch(setActiveParentId(null));
+      //   dispatch(setActiveColumn(null));
 
-        dispatch(setColumnOneExtraPadding(false));
-        dispatch(setColumnTwoExtraPadding(false));
-        dispatch(setColumnThreeExtraPadding(false));
-        dispatch(setWrapperExtraPadding(false));
-      };
+      //   dispatch(setColumnOneExtraPadding(false));
+      //   dispatch(setColumnTwoExtraPadding(false));
+      //   dispatch(setColumnThreeExtraPadding(false));
+      //   dispatch(setWrapperExtraPadding(false));
+      // };
       
       //******************************************************************************** */ 
+      
+      const onDrop = (e) => {
+          e.stopPropagation();
+      
+          // for changing position from the ui
+          const draggedName = e.dataTransfer.getData("text/plain");
+          console.log("droppedData from the ui: ", draggedName);
+          const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
+          if (restrictedWidgets.includes(draggedName)) {
+            alert("Please drop it in an black space.");
+            return;
+          }
+      
+          // for droped widgets from left panel
+          const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+          console.log("droppedData: ", droppedData);
+      
+          setExtraGap(null);
+          console.log("parentName in text: ",parentName);
+      
+          if(widgetOrElement && widgetOrElement === "element"){
+            console.log("IF PART CALLED");
+                        
+            if(parentId === droppedData.parentId && column===droppedData.column){
+              // customCollumns as parent is same.
+              if(parentName === 'customColumns'){
+                console.log("parentName === customColumns");
+                dispatch(
+                  replaceDroppedItemInCC({
+                    parentId: parentId || null,
+                    column: column || null,
+                    draggedNodeId: droppedData.id,
+                    targetNodeId: id,
+                  }) 
+                );
+              }
+              else{
+                // 1-column, or 2-columns or 3-columns is same as parent
+                console.log("parentName !== customColumns")
+                dispatch(
+                  replaceDroppedItem({
+                    parentId: parentId || null,
+                    column: column || null,
+                    draggedNodeId: droppedData.id,
+                    targetNodeId: id,
+                  }) 
+                );
+              }
+            }
+            else{
+              // dragable parent not same, but current parent is "customClumns"
+              if(parentName === 'customColumns'){
+                  console.log("dragable parent not same, but current parent is customClumns");
+                  dispatch(
+                    addElementAtLocationInCC({
+                      draggedNodeId: Date.now(), 
+                      draggedName: droppedData.name, 
+                      dragableType: droppedData.type,
+                      styles: droppedData.styles, 
+                      content: droppedData.content, 
+                      
+                      targetParentId: parentId, 
+                      targetColumn: column, 
+                      targetNodeId: id, 
+                    })
+                  )
+            
+                  dispatch(deleteDroppedItemById(
+                    {
+                      parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
+                      childId: droppedData.parentId ?  droppedData.id : null, 
+                      columnName: droppedData.column ? droppedData.column : null}
+                  ));
+              }
+              // dragable parent not same, but parent is "1-column or 2-columns or 3-columns"
+              else{
+                console.log("IF PART CALLED 3");
+                console.log("dragable parent not same, but parent is: 1-column or 2-columns or 3-columns")
+                dispatch(
+                  addElementAtLocation({
+                    draggedNodeId: Date.now(), 
+                    draggedName: droppedData.name, 
+                    dragableType: droppedData.type,
+                    styles: droppedData.styles, 
+                    content: droppedData.content, 
+                    
+                    targetParentId: parentId, 
+                    targetColumn: column, 
+                    targetNodeId: id, 
+                  })
+                )
+      
+                dispatch(deleteDroppedItemById(
+                  {
+                    parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+                    childId: droppedData.parentId ? droppedData.id : null, 
+                    columnName: droppedData.column ? droppedData.column : null }
+                ));
+      
+              }
+            }
+      
+          }
+          // columns droping on element
+          else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
+            console.log("COLUMN DROPES ON ELEMENT");
+            dispatch(
+              replaceDroppedItem({
+                parentId: null,
+                column: null,
+                draggedNodeId: droppedData.id,
+                targetNodeId: id,
+              })
+            );
+      
+          }
+          else{
+            // for droped widgets from left panel
+            console.log("ELSE PART CALLED");
+            if(parentName === 'customColumns'){
+              dispatch(
+                addElementAtLocationInCC({
+                  draggedNodeId: Date.now(), 
+                  draggedName: droppedData.name, 
+                  dragableType: droppedData.type,
+                  styles: droppedData.styles, 
+                  content: droppedData.content, 
+                  
+                  targetParentId: parentId, 
+                  targetColumn: column, 
+                  targetNodeId: id, 
+                })
+              )
+        
+              dispatch(deleteDroppedItemById(
+                {
+                  parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
+                  childId: droppedData.parentId ?  droppedData.id : null, 
+                  columnName: droppedData.column ? droppedData.column : null}
+              ));
+            }
+            else{
+              dispatch(
+                addElementAtLocation({
+                  draggedNodeId: Date.now(), 
+                  draggedName: droppedData.name, 
+                  dragableType: droppedData.type,
+                  
+                  targetParentId: parentId, 
+                  targetColumn: column, 
+                  targetNodeId: id, 
+                })
+              )
+            }
+            
+          }
+      
+          // initialize the application
+          dispatch(setActiveWidgetId(null));
+          dispatch(setActiveParentId(null));
+          dispatch(setActiveColumn(null));
+      
+          dispatch(setColumnOneExtraPadding(false));
+          dispatch(setColumnTwoExtraPadding(false));
+          dispatch(setColumnThreeExtraPadding(false));
+          dispatch(setWrapperExtraPadding(false));
+      
+        };
+      
       const onDragEnterHandle = () => {
         console.log("onDragEnterHandle called in Button");
       
@@ -271,12 +457,25 @@ const SocialMedia = ({ id, parentId, column}) => {
         setExtraGap(null);
       };
     // ****************************************************************************************
+    const handleRightClick = (event) => {
+        event.preventDefault(); // Prevent the default context menu from showing
+        
+        dispatch(setActiveRightClick(true));
+        dispatch(setActiveWidgetId(null));
+        dispatch(setActiveParentId(parentId));
+        dispatch(setActiveColumn(column));
+
+        setHoveredElement(false);
+        console.log("handleRightClick in text");
+    
+      };
+    
     
 
   return (
     <div
       ref={containerRef}
-      className={`flex items-center justify-center gap-4 p-3 rounded transition-all duration-300 
+      className={`relative flex items-center justify-center gap-4 p-3 rounded transition-all duration-300 
                   sm:flex-col sm:gap-2 sm:justify-center sm:items-center
                   // deleted for md screen
                   
@@ -296,17 +495,19 @@ const SocialMedia = ({ id, parentId, column}) => {
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}
+      onContextMenu={handleRightClick}
 
       onDrop={onDrop}
       onDragOver={onDragOver}
       onDragEnter={onDragEnterHandle}
       onDragLeave={onDragLeaveHandle}
+
     >
 
       {/* Trapezoid Icon Section */}
       {(activeWidgetId === id) && (
         <div
-          className="absolute -top-[19px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
+          className="absolute -top-[20px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
           style={{
             width: "90px", // Base width of the trapezoid
             height: "20px", // Adjusted height

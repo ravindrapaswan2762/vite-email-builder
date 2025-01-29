@@ -115,7 +115,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
     console.log("droppedData*******************************************: ", droppedData);
     console.log("droppedData.name***************************************: ", droppedData?.name);
 
-    if(!['1-column','2-columns', '3-columns'].includes(droppedData?.name)){
+    if(!['1-column','2-columns', '3-columns', 'customColumns'].includes(droppedData?.name)){
       if(widgetOrElement === 'element'){
           dispatch(
               setDroppedItems({
@@ -152,7 +152,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
         );
       }
     }
-    else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
+    else if(['1-column', '2-columns', '3-columns', 'customColumns'].includes(droppedData?.name)){
       return;
     }
 
@@ -398,8 +398,8 @@ const ColumnTwo = ({ handleDelete, id }) => {
           else{
             dispatch(
               replaceDroppedItem({
-                parentId: activeParentId || null,
-                column: activeColumn || null,
+                parentId: null,
+                column: null,
                 draggedNodeId: droppedData.id,
                 targetNodeId: id,
               }) 
@@ -555,7 +555,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
           onclickHandler(id, child.id, "childrenA");
         }}
       >
-        {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA" }) : <div>Unknown Component</div>}
+        {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA", parentName: "2-columns"}) : <div>Unknown Component</div>}
         
       </div>
     ))}
@@ -592,7 +592,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
           onclickHandler(id, child.id, "childrenB");
         }}
       >
-        {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB"}) : <div>Unknown Component</div>}
+        {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB", parentName: "2-columns"}) : <div>Unknown Component</div>}
         
       </div>
     ))}

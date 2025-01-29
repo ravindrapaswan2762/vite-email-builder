@@ -408,8 +408,8 @@ const ColumnThree = ({ handleDelete, id }) => {
           else{
             dispatch(
               replaceDroppedItem({
-                parentId: activeParentId || null,
-                column: activeColumn || null,
+                parentId: null,
+                column: null,
                 draggedNodeId: droppedData.id,
                 targetNodeId: id,
               }) 
@@ -556,7 +556,7 @@ const ColumnThree = ({ handleDelete, id }) => {
               onclickHandler(id, child.id, "childrenA");
             }}
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA"}) : <div>Unknown Component</div>}
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA",  parentName: "3-columns"}) : <div>Unknown Component</div>}
             
           </div>
         ))}
@@ -595,7 +595,7 @@ const ColumnThree = ({ handleDelete, id }) => {
               onclickHandler(id, child.id, "childrenB");
             }}
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB" }) : <div>Unknown Component</div>}
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB",  parentName: "2-columns" }) : <div>Unknown Component</div>}
             
           </div>
         ))}
@@ -633,7 +633,7 @@ const ColumnThree = ({ handleDelete, id }) => {
               onclickHandler(id, child.id, "childrenC");
             }}
           >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenC" }) : <div>Unknown Component</div>}
+            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenC",  parentName: "2-columns"}) : <div>Unknown Component</div>}
             
           </div>
         ))}

@@ -11,6 +11,7 @@ const initialState = {
   droppedItems: [], // This will store the dropped items
 
   widgetOrElement: null,
+  activeRightClick: null,
 };
 
 
@@ -147,18 +148,44 @@ const cardDragableSlice = createSlice({
         // Case 2: Update styles for a child in a specific column
         state.droppedItems = state.droppedItems.map((item) => {
           if (item.id === parentId) {
-            return {
-              ...item,
-              [column]: item[column].map((child) => {
-                if (child.id === id) {
-                  return {
-                    ...child,
-                    styles: { ...child.styles, ...styles },
-                  };
-                }
-                return child;
-              }),
-            };
+            if(item.name === 'customColumns'){
+              // Update styles for `customColumns`
+              return {
+                ...item,
+                [column]: item[column].map((columnChild) => {
+                  // Check if the `children` array exists and update the matching child inside
+                  if (columnChild.children) {
+                    return {
+                      ...columnChild,
+                      children: columnChild.children.map((child) => {
+                        if (child.id === id) {
+                          return {
+                            ...child,
+                            styles: { ...child.styles, ...styles }, // Update the styles
+                          };
+                        }
+                        return child;
+                      }),
+                    };
+                  }
+                  return columnChild;
+                }),
+              };
+            }
+            else{
+              return {
+                ...item,
+                [column]: item[column].map((child) => {
+                  if (child.id === id) {
+                    return {
+                      ...child,
+                      styles: { ...child.styles, ...styles },
+                    };
+                  }
+                  return child;
+                }),
+              };
+            }
           }
           return item;
         });
@@ -199,17 +226,34 @@ const cardDragableSlice = createSlice({
         console.log(`Parent item deleted, updated droppedItems: `, JSON.parse(JSON.stringify(state.droppedItems)));
         
       } else if (childId && parentId && columnName) {
+        
         // Case 2: Delete the child from the specified parent and column
         state.droppedItems = state.droppedItems.map((item) => {
           if (item.id === parentId) {
-            return {
-              ...item,
-              [columnName]: item[columnName].filter((child) => child.id !== childId),
-            };
+            console.log("item.name: ",item.name);
+            if(item.name === 'customColumns'){
+              // write logic here for deletion from customColumn
+              return {
+                ...item,
+                [columnName]: item[columnName]?.map((column) => ({
+                  ...column,
+                  children: column.children.filter((child) => child.id !== childId),
+                })),
+              };
+            }
+            else{
+              // for 1-column, 2-columns, 3-columns
+              return {
+                ...item,
+                [columnName]: item[columnName].filter((child) => child.id !== childId),
+              };
+            }
           }
           return item;
         });
         console.log(`Child item deleted, updated droppedItems: `, JSON.parse(JSON.stringify(state.droppedItems)));
+
+
       } else if (childId && parentId) {
         // Case 3: Delete the child from the specified parent, without column
         state.droppedItems = state.droppedItems.map((item) => {
@@ -309,7 +353,7 @@ const cardDragableSlice = createSlice({
     replaceDroppedItem: (state, action) => {
       const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
 
-      console.log("replaceDroppedItem called:::: ",action.body);
+      console.log("replaceDroppedItem called:::: ", action.payload);
 
       const findAndInsert = (items, parentId, column, draggedNodeId, targetNodeId) => {
         // Helper function to handle reordering
@@ -393,104 +437,7 @@ const cardDragableSlice = createSlice({
       console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
     },
 
-    // replaceDroppedItem: (state, action) => {
-    //   const {
-    //     draggedParentId, // Parent ID of the dragged element
-    //     draggedColumn, // Column of the dragged element
-    //     draggedNodeId, // ID of the dragged element
-    //     targetParentId, // Parent ID of the target position
-    //     targetColumn, // Column of the target position
-    //     targetNodeId, // ID of the target element
-    //   } = action.payload;
-    
-    //   console.log(
-    //     `Dragged: parentId=${draggedParentId}, column=${draggedColumn}, nodeId=${draggedNodeId}`
-    //   );
-    //   console.log(
-    //     `Target: parentId=${targetParentId}, column=${targetColumn}, nodeId=${targetNodeId}`
-    //   );
-    
-    //   // Helper function to remove an item from the source location
-    //   const findAndRemove = (items, parentId, column, nodeId) => {
-    //     for (let item of items) {
-    //       if (item.id === parentId) {
-    //         const columnItems = column ? item[column] || [] : item.children || [];
-    //         const draggedIndex = columnItems.findIndex((child) => child.id === nodeId);
-    //         if (draggedIndex !== -1) {
-    //           const [draggedItem] = columnItems.splice(draggedIndex, 1);
-    //           return draggedItem;
-    //         }
-    //       }
-    
-    //       const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
-    //       for (let key of nestedKeys) {
-    //         const draggedItem = findAndRemove(item[key], parentId, column, nodeId);
-    //         if (draggedItem) return draggedItem;
-    //       }
-    //     }
-    //     return null;
-    //   };
-    
-    //   // Helper function to insert an item at the target location
-    //   const findAndInsert = (items, parentId, column, nodeId, itemToInsert) => {
-    //     for (let item of items) {
-    //       if (item.id === parentId) {
-    //         const columnItems = column ? item[column] || [] : item.children || [];
-    //         const targetIndex = columnItems.findIndex((child) => child.id === nodeId);
-    
-    //         if (targetIndex !== -1) {
-    //           // Insert at the target index
-    //           columnItems.splice(targetIndex, 0, itemToInsert);
-    //         } else {
-    //           // Append if targetNodeId is not found
-    //           columnItems.push(itemToInsert);
-    //         }
-    
-    //         return true;
-    //       }
-    
-    //       const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
-    //       for (let key of nestedKeys) {
-    //         if (findAndInsert(item[key], parentId, column, nodeId, itemToInsert)) {
-    //           return true;
-    //         }
-    //       }
-    //     }
-    //     return false;
-    //   };
-    
-    //   // Step 1: Remove the dragged element from its original location
-    //   const draggedItem = findAndRemove(
-    //     state.droppedItems,
-    //     draggedParentId,
-    //     draggedColumn,
-    //     draggedNodeId
-    //   );
-    
-    //   if (!draggedItem) {
-    //     console.warn(`Dragged node not found: ${draggedNodeId}`);
-    //     return;
-    //   }
-    
-    //   // Step 2: Insert the dragged element into the target location
-    //   const success = findAndInsert(
-    //     state.droppedItems,
-    //     targetParentId,
-    //     targetColumn,
-    //     targetNodeId,
-    //     draggedItem
-    //   );
-    
-    //   if (!success) {
-    //     console.warn(
-    //       `Target parent or node not found: parentId=${targetParentId}, nodeId=${targetNodeId}`
-    //     );
-    //   }
-    
-    //   console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
-    // },
-    
-    
+
     updateElementActiveState: (state, action) => {
 
       console.log("updateElementActiveState: ",action.payload);
@@ -687,37 +634,18 @@ const cardDragableSlice = createSlice({
 
       console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
     },
+    setActiveRightClick: (state, action) =>{
+      state.activeRightClick = action.payload;
+      console.log("setActiveRightClick: ",action.payload);
+    },
 
-    // addCustomColumns: (state, action) => {
-    //   const { id, name, columnCount, parentId } = action.payload;
-    
-    //   console.log("addCustomColumns called:::: ", action.payload);
-    
-    //   // Validate the input
-    //   if (name !== "customColumns" || columnCount < 1) {
-    //     console.warn("Invalid name or columnCount for custom columns");
-    //     return;
-    //   }
-    
-    //   // Create the new item for custom columns
-    //   const newItem = { id, name, columnCount, parentId, width: 100/columnCount};
-    
-    //   console.log(`Creating customColumns with ${columnCount} columns`);
-    
-    //   // Dynamically create children arrays based on columnCount
-    //   for (let i = 1; i <= columnCount; i++) {
-    //     const columnKey = `children${String.fromCharCode(64 + i)}`; // Generate keys like childrenA, childrenB, etc.
-    //     newItem[columnKey] = [];
-    //   }
-    
-    //   // Add the new item to droppedItems
-    //   state.droppedItems.push(newItem);
-    
-    //   console.log("Custom Columns Added: ", JSON.parse(JSON.stringify(newItem)));
-    //   console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
-    // },
-    
-    
+
+
+
+
+
+    // ******************************************************* custom columns
+
     addCustomColumns: (state, action) => {
       const { id, name, columnCount, parentId } = action.payload;
     
@@ -745,6 +673,7 @@ const cardDragableSlice = createSlice({
           },
         ];
       }
+      state.activeWidgetId = id;
     
       // Add the new item to droppedItems
       state.droppedItems.push(newItem);
@@ -771,6 +700,7 @@ const cardDragableSlice = createSlice({
         return item;
       });
     },
+
     deleteCustomColumn: (state, action) => {
       const { parentId, columnKey } = action.payload;
       console.log("deleteCustomColumn called: ", action.payload);
@@ -808,16 +738,8 @@ const cardDragableSlice = createSlice({
             // Update width and assign random background color
             if (newChildren[newKey]?.[0]) {
               newChildren[newKey][0].styles.width = newWidth;
-              newChildren[newKey][0].styles.backgroundColor =
-                "#" + Math.floor(Math.random() * 16777215).toString(16);
             }
           });
-    
-          // Replace old children keys with reorganized ones
-          // Object.keys(updatedItem)
-          //   .filter((key) => key.startsWith("children"))
-          //   .forEach((key) => delete updatedItem[key]);
-          // Object.assign(updatedItem, newChildren);
     
           return updatedItem; // Return updated parent item
         }
@@ -834,7 +756,6 @@ const cardDragableSlice = createSlice({
     
       state.droppedItems = state.droppedItems.map((item) => {
         if (item.id === parentId) {
-          // Create a deep copy of the item
           const updatedItem = { ...item };
           console.log("updatedItem before duplication: ", updatedItem);
     
@@ -844,7 +765,7 @@ const cardDragableSlice = createSlice({
             return updatedItem;
           }
     
-          // Find the key to duplicate
+          // Find the target child to duplicate
           const targetChild = updatedItem[columnKey]?.[0];
           if (!targetChild) return updatedItem;
     
@@ -854,28 +775,45 @@ const cardDragableSlice = createSlice({
           // Calculate new width for all columns
           const newWidth = (100 / updatedItem.columnCount).toFixed(2) + "%";
     
-          // Assign new widths to existing children
-          Object.keys(updatedItem)
+          // Reorganize all children keys
+          const childrenKeys = Object.keys(updatedItem)
             .filter((key) => key.startsWith("children"))
-            .forEach((key) => {
-              if (updatedItem[key]?.[0]) {
-                updatedItem[key][0].styles.width = newWidth;
-              }
-            });
+            .sort();
     
-          // Create a new child key for the duplicated column
-          const newChildKey = `children${String.fromCharCode(65 + updatedItem.columnCount - 1)}`; // E.g., childrenE
-          updatedItem[newChildKey] = [
+          const newChildren = {};
+          childrenKeys.forEach((key, index) => {
+            const newKey = `children${String.fromCharCode(65 + index)}`;
+            newChildren[newKey] = updatedItem[key];
+    
+            // Update the ID and width of all existing children
+            if (newChildren[newKey]?.[0]) {
+              newChildren[newKey][0].id = `${parentId}-${newKey}`;
+              newChildren[newKey][0].styles.width = newWidth;
+            }
+          });
+    
+          // Generate a new child key and ID for the duplicated column
+          const nextKeyIndex = childrenKeys.length; // Next available child index
+          const newChildKey = `children${String.fromCharCode(65 + nextKeyIndex)}`; // childrenE, childrenF, etc.
+          const newChildId = `${parentId}-${newChildKey}`; // Unique ID
+    
+          // Add the duplicated column with updated styles
+          newChildren[newChildKey] = [
             {
               ...targetChild,
-              id: `${parentId}-${newChildKey}`, // Assign a unique ID
+              id: newChildId, // Assign unique ID
               styles: {
                 ...targetChild.styles,
                 width: newWidth,
-                backgroundColor: "#" + Math.floor(Math.random() * 16777215).toString(16), // Random background color
               },
             },
           ];
+    
+          // Replace old children keys with the updated ones
+          Object.keys(updatedItem)
+            .filter((key) => key.startsWith("children"))
+            .forEach((key) => delete updatedItem[key]); // Remove old children
+          Object.assign(updatedItem, newChildren); // Add updated children keys
     
           console.log("updatedItem after duplication: ", updatedItem);
           return updatedItem;
@@ -887,20 +825,166 @@ const cardDragableSlice = createSlice({
       console.log("Updated droppedItems after duplication:", JSON.stringify(state.droppedItems, null, 2));
     },
     
+    setElementInCustomColumns: (state, action) => {
+      const { parentId, columnKey, droppedData } = action.payload;
+      console.log("setElementInCustomColumns action called: ", action.payload);
+
     
+      state.droppedItems = state.droppedItems.map((item) => {
+        if (item.id === parentId) {
+          const updatedItem = { ...item };
     
+          // Check if the specified column exists in the current item
+          if (updatedItem[columnKey]) {
+            updatedItem[columnKey][0].children = [
+              ...(updatedItem[columnKey][0].children || []),
+              droppedData,
+            ];
+          }
     
+          console.log("droppedItems: ",JSON.stringify(state.droppedItems, null, 2));
+          return updatedItem;
+        }
     
+        return item; // Return unchanged item for all other cases
+      });
+    },
+    replaceDroppedItemInCC: (state, action) => {
+      const { parentId, column, draggedNodeId, targetNodeId } = action.payload;
     
+      console.log("replaceDroppedItemInCC called:::: ", action.payload);
     
+      const reorderItems = (list, draggedIndex, targetIndex) => {
+        if (draggedIndex === -1 || targetIndex === -1) return list; // If either index is invalid, do nothing
+        const [draggedItem] = list.splice(draggedIndex, 1); // Remove dragged item
+        list.splice(targetIndex, 0, draggedItem); // Insert at target index
+        return list;
+      };
     
+      const findAndReorder = (items) => {
+        for (let item of items) {
+          if (item.id === parentId && column && item[column]?.[0]?.children) {
+            // Custom Columns case: Reorder items inside childrenA, childrenB, etc.
+            const columnItems = item[column][0].children;
+            const draggedIndex = columnItems.findIndex(child => child.id === draggedNodeId);
+            const targetIndex = columnItems.findIndex(child => child.id === targetNodeId);
     
+            if (draggedIndex !== -1 && targetIndex !== -1) {
+              item[column][0].children = reorderItems(columnItems, draggedIndex, targetIndex);
+              console.log(`Reordered in custom column: ${column} under parentId: ${parentId}`);
+              return true;
+            }
+          }
     
+          // Recursively check nested columns
+          const customColumnKeys = Object.keys(item).filter(key => key.startsWith("children"));
+          for (let key of customColumnKeys) {
+            const nestedItems = item[key]?.[0]?.children || [];
+            if (findAndReorder(nestedItems)) return true;
+          }
+        }
+        return false;
+      };
     
+      const success = findAndReorder(state.droppedItems);
     
+      if (!success) {
+        console.warn("Could not reorder items: ", action.payload);
+      }
+    
+      console.log("Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    },
+    addElementAtLocationInCC: (state, action) => {
+      console.log("addElementAtLocation called: ", action.payload);
+    
+      const { 
+        draggedNodeId, 
+        draggedName, 
+        dragableType, 
+        content, 
+        styles,
+    
+        targetParentId, 
+        targetColumn, 
+        targetNodeId
+      } = action.payload;
+    
+      // Helper function to find the correct column and insert the item
+      const findAndInsert = (items) => {
+        for (let item of items) {
+          if (item.id === targetParentId && targetColumn && item[targetColumn]?.[0]?.children) {
+            // Handle insertion inside a custom column (childrenA, childrenB, etc.)
+            const columnItems = item[targetColumn][0].children;
+            const targetIndex = columnItems.findIndex(child => child.id === targetNodeId);
+    
+            // Create the new draggable item
+            const newItem = {
+              id: draggedNodeId,
+              name: draggedName,
+              type: dragableType,
+              content: content,
+              styles: styles,
+            };
+    
+            if (targetIndex !== -1) {
+              // Insert the new item at the correct position
+              columnItems.splice(targetIndex, 0, newItem);
+            } else {
+              // Append at the end if targetNodeId is not found
+              columnItems.push(newItem);
+            }
+    
+            console.log(`Item added to ${targetColumn} of parent ID: ${targetParentId}`);
+            return true;
+          }
+    
+          // Recursively search nested custom columns
+          const nestedKeys = Object.keys(item).filter(key => key.startsWith("children"));
+          for (let key of nestedKeys) {
+            const nestedItems = item[key]?.[0]?.children || [];
+            if (findAndInsert(nestedItems)) return true;
+          }
+        }
+        return false;
+      };
+    
+      if (!targetParentId) {
+        // Case: Adding item at the top level
+        const newItem = {
+          id: draggedNodeId,
+          name: draggedName,
+          type: dragableType,
+          content: content,
+          styles: styles,
+        };
+    
+        const targetIndex = state.droppedItems.findIndex(item => item.id === targetNodeId);
+    
+        if (targetIndex !== -1) {
+          state.droppedItems.splice(targetIndex, 0, newItem);
+          console.log("New item inserted at the top level at index: ", targetIndex);
+        } else {
+          state.droppedItems.push(newItem);
+          console.log("New item appended to the top level");
+        }
+      } else {
+        // Find the correct parent and insert inside the specified column
+        const success = findAndInsert(state.droppedItems);
+        if (!success) {
+          console.warn("Parent ID or target not found: ", targetParentId);
+        }
+      }
+    
+      console.log("Updated State: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    },
     
     
 
+
+
+
+    
+  
   },
 });
 
@@ -921,10 +1005,15 @@ export const {
   addElementAtLocation,
   setWidgetOrElement,
   replaceElementInlast,
+
   addCustomColumns,
   updateColumnWidth,
   deleteCustomColumn,
-  duplicateCustomColumn
+  duplicateCustomColumn,
+  setElementInCustomColumns,
+  setActiveRightClick,
+  replaceDroppedItemInCC,
+  addElementAtLocationInCC,
 } = cardDragableSlice.actions;
 
 export default cardDragableSlice.reducer;
