@@ -28,6 +28,8 @@ import { setElementInCustomColumns } from "../../redux/cardDragableSlice";
 import { setCustomClumnsExtraPadding } from "../../redux/condtionalCssSlice";
 import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
 import { setElementPaddingTop } from "../../redux/condtionalCssSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 
 // Component Mapping
 const componentMap = {
@@ -56,7 +58,16 @@ const CustomColumns = ({ id }) => {
   const columnRef = useRef();
 
   // Fetch the custom column data from Redux state
-  const { droppedItems, activeWidgetId, activeWidgetName, activeRightClick, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
+  const { 
+    droppedItems, 
+    activeWidgetId, 
+    activeWidgetName, 
+    activeRightClick, 
+    activeParentId, 
+    activeColumn, 
+    widgetOrElement,
+   } = useSelector((state) => state.cardDragable);
+   
   const {customClumnsExtraPadding, smallGapInTop} = useSelector((state) => state.coditionalCssSlice);
   const columnData = droppedItems.find((item) => item.id === id);
 
@@ -64,10 +75,16 @@ const CustomColumns = ({ id }) => {
     return <div>No columns to display</div>;
   }
 
+  useEffect( ()=>{
+    dispatch(setActiveParentId(id));
+  }, [])
+
   const handleResizeMouseDown = (index) => (e) => {
     e.preventDefault();
     setResizingIndex(index);
     setShowWidthPercentage(true);
+
+    dispatch(setActiveWidgetId(null));
   };
 
   const handleResizeMouseMove = (e) => {
@@ -317,7 +334,7 @@ const CustomColumns = ({ id }) => {
 const handleDragOver = (e, parentId, column) => {
   e.preventDefault();
   setHoverColumn({parentId, column});
-  dispatch(setCustomClumnsExtraPadding(true));
+  // dispatch(setCustomClumnsExtraPadding(true));
 
 };
 const handleDrop = (columnKey) => (e) => {
@@ -406,7 +423,7 @@ const onDragEnter = (e) =>{
 }
 
 const handleEnter = () =>{
-  dispatch(setCustomClumnsExtraPadding(true));
+  // dispatch(setCustomClumnsExtraPadding(true));
 }
 const handleLeave = (e, ref)=>{
   
@@ -480,12 +497,17 @@ const handleLeave = (e, ref)=>{
     const enterInPaddingTop = (e)=>{
       e.stopPropagation();
       console.log("enterInTop called");
-      setPaddingTop(true);
+      // setPaddingTop(true);
     }
     const leaveFromPaddingTop = (e)=>{
       e.stopPropagation();
       console.log("leaveFromTop called");
       setPaddingTop(null);
+    }
+    const dragOverOnPaddingTop = (e) =>{
+      e.stopPropagation();
+      console.log("dragOverOnTop called");
+      // setPaddingTop(true);
     }
     
   // *********************************************************************************************
@@ -499,15 +521,44 @@ const handleLeave = (e, ref)=>{
       onDragEnter={enterInPaddingTop}
       onDragLeave={leaveFromPaddingTop}
       ref={customColumnRef}
-      className={`relative grid gap-1 group bg-transparent
+      className={`relative group bg-transparent 
         ${activeParentId===id ? 'border-2 border-blue-500 p-2': ""}
       `}
+      style={{
+        ...(paddingTop
+          ? { 
+              paddingTop: "50px",  
+              position: "relative",
+            } 
+          : { paddingTop: "" }
+        )
+      }}
       
       onClick={() => setPopup({ visible: false, x: 0, y: 0, columnId: null })}
     >
       <div className="flex w-full h-full relative gap-2" 
       onClick={onclickHandler}
       >
+
+        {/* Add this div for border only on extra padding */}
+        {paddingTop && (
+        <div 
+          style={{
+            position: "absolute",
+            top: "-50px",
+            left: 0,
+            width: "100%",
+            height: "50px",
+            backgroundColor: "rgba(173, 216, 230, 0.3)",
+            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",  
+            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)",
+            pointerEvents: "none",
+            zIndex: 10,
+          }}
+        />
+      )}
 
         {/* *************************************/}
         {/* Trapezoid Icon Section */}
@@ -522,7 +573,6 @@ const handleLeave = (e, ref)=>{
                     clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
                     borderTopLeftRadius: "8px", // Rounded top-left corner
                     borderTopRightRadius: "8px", // Rounded top-right corner
-                    ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
                   }}
                 >
                   {/* Icon Container */}
@@ -546,6 +596,7 @@ const handleLeave = (e, ref)=>{
                       onDragStart={onDragStart}
                       onDragEnd={()=>{
                         dispatch(setSmallGapInTop(null));
+                        setPaddingTop(null);
                       }}
                     >
                       <PiDotsSixBold size={16} />
@@ -556,6 +607,7 @@ const handleLeave = (e, ref)=>{
                       className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log("id in customColumns: ",id)
                         dispatch(deleteDroppedItemById(
                           {
                             parentId: id, 
@@ -583,18 +635,23 @@ const handleLeave = (e, ref)=>{
 
     
             key={column.data.id}
-            className={`relative w-full mb-1 h-auto bg-transparent
+            className={`relative w-full mb-1 bg-transparent
               ${id==activeParentId && activeColumn===column.key  ? "border-2 border-blue-500" : ""}
               
-              ${hoverColumn.parentId===id && hoverColumn.column===column.key ? "border-2 border-blue-500" : ""} 
-              ${!column.data.children.length ? "h-[100px]" : ""}
+              ${hoverColumn.parentId===id && hoverColumn.column===column.key ? "border-2 border-dashed border-blue-500" : ""} 
               ${customClumnsExtraPadding ? "pb-[60px]" : ""}
+
+              ${localColumns.some(col => col.data.children.length > 0) ? 'h-auto' : 'h-[150px]'}
+              ${column.data.children.length === 0 ? "border border-dashed border-blue-500" : ""}
+
+
             `}
             onContextMenu={(e) => handleRightClick(e, column.key)}
             style={{
               flexBasis: column.data.styles.width,
               backgroundColor: column.data.styles.backgroundColor, 
             }}
+            
             
           >
              {/* Render placeholder text if no children */}
@@ -610,7 +667,7 @@ const handleLeave = (e, ref)=>{
             ))}
 
             {showWidthPercentage && (
-              <div className="absolute top-[-20px] left-1/2 transform -translate-x-1/2 text-sm text-gray-700 bg-white px-2 py-1 border rounded shadow">
+              <div className="absolute top-[-20px] left-1/2 transform -translate-x-1/2 text-sm text-gray-700 bg-white px-2 py-1 border rounded shadow z-20">
                 {Math.round(parseFloat(column.data.styles.width))}%
               </div>
             )}

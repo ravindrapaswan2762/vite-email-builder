@@ -454,7 +454,13 @@ const ColumnThree = ({ handleDelete, id }) => {
         ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
         ...(view === "mobile" ? { padding: "30px", display: "flex", flexDirection: "column" } : {}),
-        ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
+        ...(paddingTop
+          ? { 
+              paddingTop: "50px",  
+              position: "relative",
+            } 
+          : { paddingTop: "" }
+        )
       }}
 
       onDragOver={(e)=>{
@@ -468,8 +474,25 @@ const ColumnThree = ({ handleDelete, id }) => {
       
     >
 
-      
-
+      {/* Add this div for border only on extra padding */}
+      {paddingTop && (
+        <div 
+          style={{
+            position: "absolute",
+            top: "-5px",  // ✅ Moves above the element
+            left: 0,
+            width: "100%",
+            height: "50px",  // ✅ Applies only to paddingTop
+            backgroundColor: "rgba(173, 216, 230, 0.3)", // ✅ Background only for extra padding
+            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",  
+            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)",  // ✅ No bottom border to avoid confusion
+            pointerEvents: "none",  // ✅ Prevents interactions
+            zIndex: 10,  // ✅ Ensures it stays above
+          }}
+        />
+      )}
 
 {/* Trapezoid Icon Section */}
 {(activeWidgetId === id) && (
@@ -504,6 +527,7 @@ const ColumnThree = ({ handleDelete, id }) => {
         onDragStart={onDragStart}
         onDragEnd={()=>{
           dispatch(setSmallGapInTop(null));
+          setPaddingTop(null);
         }}
       >
         <PiDotsSixBold size={16} />

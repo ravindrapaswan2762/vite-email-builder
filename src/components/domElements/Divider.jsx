@@ -543,7 +543,7 @@ const Divider = ({ id, parentId, column, parentName}) => {
         onContextMenu={handleRightClick}
         ref={dividerRef}
         style={{
-          ...currentStyles, ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })
+          ...currentStyles,
         }}
         className="w-full transition-all duration-300"
       />

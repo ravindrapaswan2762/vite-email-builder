@@ -134,112 +134,7 @@ const Space = ({ id, parentId, column, parentName}) => {
         dispatch(setSmallGapInTop(true));
       };
       
-      // const onDrop = (e) => {
-      //   e.stopPropagation();
-
-      //   const draggedName = e.dataTransfer.getData("text/plain"); // Get the widget name directly
-      //   const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
-      //   if (restrictedWidgets.includes(draggedName)) {
-      //     alert("Please drop it in an black space.");
-      //     return;
-      //   }
-
-      //   const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-
-      //   setExtraGap(null);
-
-      //   if(widgetOrElement && widgetOrElement === "element"){
-                      
-      //     if(parentId === droppedData.parentId && column===droppedData.column){
-      //       // for element already exist in the perticular column and changing the positiion.
-      //       if(parentName === 'customColumns'){
-      //         console.log("parentName === customColumns");
-      //         dispatch(
-      //           replaceDroppedItemInCC({
-      //             parentId: parentId || null,
-      //             column: column || null,
-      //             draggedNodeId: droppedData.id,
-      //             targetNodeId: id,
-      //           }) 
-      //         );
-      //       }
-      //       else{
-      //         console.log("parentName !== customColumns")
-      //         dispatch(
-      //           replaceDroppedItem({
-      //             parentId: parentId || null,
-      //             column: column || null,
-      //             draggedNodeId: droppedData.id,
-      //             targetNodeId: id,
-      //           }) 
-      //         );
-      //       }
-      //     }
-      //     else{
-      //       // draging element from another columns or parent and adding it.
-      //       dispatch(
-      //         addElementAtLocation({
-      //           draggedNodeId: Date.now(), 
-      //           draggedName: droppedData.name, 
-      //           dragableType: droppedData.type,
-      //           styles: droppedData.styles, 
-      //           content: droppedData.content, 
-                
-      //           targetParentId: parentId, 
-      //           targetColumn: column, 
-      //           targetNodeId: id, 
-      //         })
-      //       )
-
-      //       dispatch(deleteDroppedItemById(
-      //         {
-      //           parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-      //           childId: droppedData.parentId ? droppedData.id : null, 
-      //           columnName: droppedData.column ? droppedData.column : null }
-      //       ));
-
-      //     }
-
-      //   }
-      //   // columns droping on element
-      //   else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
-      //     console.log("dragableColumn if else called in button");
-      //     dispatch(
-      //       replaceDroppedItem({
-      //         parentId: activeParentId || null,
-      //         column: activeColumn || null,
-      //         draggedNodeId: droppedData.id,
-      //         targetNodeId: id,
-      //       }) 
-      //     );
-      //   }
-      //   else{
-      //     // for droped widgets from left panel
-      //     dispatch(
-      //       addElementAtLocation({
-      //         draggedNodeId: Date.now(), 
-      //         draggedName: droppedData.name, 
-      //         dragableType: droppedData.type,
-              
-      //         targetParentId: parentId, 
-      //         targetColumn: column, 
-      //         targetNodeId: id, 
-      //       })
-      //     )
-          
-      //   }
-
-      //   // initialize the application after exchage the position
-      //   dispatch(setActiveWidgetId(null));
-      //   dispatch(setActiveParentId(null));
-      //   dispatch(setActiveColumn(null));
-
-      //   dispatch(setColumnOneExtraPadding(false));
-      //   dispatch(setColumnTwoExtraPadding(false));
-      //   dispatch(setColumnThreeExtraPadding(false));
-      //   dispatch(setWrapperExtraPadding(false));
-      // };
-      
+     
 
       const onDrop = (e) => {
           e.stopPropagation();
@@ -409,18 +304,26 @@ const Space = ({ id, parentId, column, parentName}) => {
       
         };
 
-      const onDragOver = (e) => {
-        console.log("onDragOver called in Text");
-        e.preventDefault(); // Allow dropping
-      };
       //******************************************************************************** */ 
       const onDragEnterHandle = () => {
-        console.log("onDragEnterHandle called in Social-Media");
+        console.log("onDragEnterHandle called in Space");
 
-        setExtraGap(true);
+        if (!extraGap) {
+          setExtraGap(true);
+        }
       }
+
+      const onDragOver = (e) => {
+        console.log("onDragOver called in Space");
+        e.preventDefault(); // Allow dropping
+
+        if (!extraGap) {
+          setExtraGap(true);
+        }
+      };
     
       const onDragLeaveHandle = () => {
+        console.log("onDragLeaveHandle called in Space");
         setExtraGap(null);
       }
     // ****************************************************************************************
@@ -441,7 +344,7 @@ const Space = ({ id, parentId, column, parentName}) => {
     <div
       onContextMenu={handleRightClick}
       ref={containerRef}
-      className={`relative w-full h-4 transition-all duration-300
+      className={`relative w-full h-[20px] transition-all duration-300
         ${
           isFocused
             ? "border-2 border-blue-500 bg-gray-100"
@@ -453,7 +356,7 @@ const Space = ({ id, parentId, column, parentName}) => {
 
       `}
 
-      style={{...currentStyles, ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })}}
+      style={{...currentStyles}}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}
@@ -465,6 +368,28 @@ const Space = ({ id, parentId, column, parentName}) => {
       onDragLeave={onDragLeaveHandle}
 
     >
+
+      {/* Add this div for border only on extra padding */}
+      {extraGap && (
+        <div
+          style={{
+            position: "absolute",
+            top: "-40px",
+            left: 0,
+            width: "100%",
+            height: "40px",
+            backgroundColor: "rgba(173, 216, 230, 0.3)", // ✅ Light highlight for padding area
+            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "none", // ✅ No bottom border to avoid confusion
+            pointerEvents: "none", // ✅ Ensures it doesn’t interfere with interactions
+            zIndex: 0, // ✅ Keeps it visible above the background
+          }}
+        />
+      )}
+
+
         {/* Trapezoid Icon Section */}
         {(activeWidgetId === id) && (
           <div
@@ -496,6 +421,7 @@ const Space = ({ id, parentId, column, parentName}) => {
                 onDragStart={onDragStart}
                 onDragEnd={()=>{
                   dispatch(setSmallGapInTop(null));
+                  setExtraGap(null);
                 }}
                 className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
                 onClick={(e) => e.stopPropagation()}
@@ -521,6 +447,33 @@ const Space = ({ id, parentId, column, parentName}) => {
             </div>
           </div>
         )}
+
+        {/* ✅ Blank Space for extra padding */}
+      <div
+        style={{
+          ...(extraGap 
+            ? { 
+                // paddingTop: "50px", 
+                // backgroundColor: "rgba(173, 216, 230, 0.5)", // Subtle highlight
+                // position: "relative",
+
+                overflow: "hidden",
+                resize: "none",
+                whiteSpace: "pre-wrap",
+                paddingTop: currentStyles.paddingTop, // Input remains normal
+                position: "relative",
+                zIndex: 2, // Keeps input above the extra padding div
+ 
+              } 
+            : { 
+                paddingTop: currentStyles.paddingTop 
+              }
+          )
+        }}
+      />
+
+
+        
       
     </div>
   );

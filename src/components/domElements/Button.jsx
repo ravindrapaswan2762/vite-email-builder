@@ -515,6 +515,7 @@ const Button = ({ id, parentId, column, parentName}) => {
               onDragStart={onDragStart}
               onDragEnd={()=>{
                 dispatch(setSmallGapInTop(null));
+                setExtraGap(null);
               }}
               className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
               onClick={(e) => e.stopPropagation()}
@@ -541,6 +542,25 @@ const Button = ({ id, parentId, column, parentName}) => {
         </div>
       )}
       
+      {/* Add this div for border only on extra padding */}
+      {extraGap && (
+        <div 
+          style={{
+            position: "absolute",
+            top: 0,  
+            left: 0,
+            width: "100%",
+            height: "40px", // Height of extra padding
+            backgroundColor: "rgba(173, 216, 230, 0.3)",  // Light highlight
+            borderTop: "2px dashed rgba(30, 144, 255, 0.8)", 
+            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)",
+            pointerEvents: "none",
+            zIndex: 1, // Behind input
+          }}
+        />
+      )}
 
       {/* Outer Container with Dashed Border */}
       <div
@@ -555,7 +575,24 @@ const Button = ({ id, parentId, column, parentName}) => {
           alignItems: "center",
           justifyContent: `${currentStyles.textAlign || "center"}`,
           height: "auto",
-          ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })
+          ...(extraGap 
+            ? { 
+                // paddingTop: "50px", 
+                // backgroundColor: "rgba(173, 216, 230, 0.5)", // Subtle highlight
+                // position: "relative",
+
+                overflow: "hidden",
+                resize: "none",
+                whiteSpace: "pre-wrap",
+                paddingTop: currentStyles.paddingTop, // Input remains normal
+                position: "relative",
+                zIndex: 2, // Keeps input above the extra padding div
+                marginTop: extraGap ? "40px" : "0px", // ✅ Shift input down
+              } 
+            : { 
+                paddingTop: currentStyles.paddingTop 
+              }
+          )
         }}
       >
         {/* Button Content */}

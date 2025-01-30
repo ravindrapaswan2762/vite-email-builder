@@ -37,7 +37,7 @@ import { RxCross2 } from "react-icons/rx";
 const Image = ({ id, parentId, column, parentName}) => {
 
   const { activeWidgetId, droppedItems, activeParentId , activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
-  const {elementPaddingTop, smallGapInTop} = useSelector((state) => state.coditionalCssSlice);
+  const {elementPaddingTop, smallGapInTop, customClumnsExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
   const [hoveredElement, setHoveredElement] = useState(false); // State for hover
@@ -449,6 +449,9 @@ const Image = ({ id, parentId, column, parentName}) => {
         if (!extraGap) {
           setExtraGap(true);
         }
+        if(!customClumnsExtraPadding){
+          dispatch(setColumnOneExtraPadding(true));
+        }
       };
       
       const onDragOver = (e) => {
@@ -465,7 +468,11 @@ const Image = ({ id, parentId, column, parentName}) => {
         console.log("onDragLeaveHandle called in Button");
       
         // Remove padding when dragging out
-        setExtraGap(null);
+        if (extraGap) {
+          setExtraGap(null);
+        }
+
+        dispatch(setCustomClumnsExtraPadding(true));
       };
     // ****************************************************************************************
     const handleRightClick = (event) => {
@@ -545,9 +552,12 @@ const Image = ({ id, parentId, column, parentName}) => {
             <button
               draggable
               onDragStart={onDragStart}
-              onDragEnd={()=>{
+              onDragEnd={(e)=>{
+                e.stopPropagation();
                 dispatch(setSmallGapInTop(null));
                 dispatch(setElementPaddingTop(null));
+                dispatch(setColumnOneExtraPadding(null));
+                setExtraGap(null);
               }}
               className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
               onClick={(e) => e.stopPropagation()}
@@ -593,7 +603,16 @@ const Image = ({ id, parentId, column, parentName}) => {
             className="w-full h-full object-contain rounded transition-all duration-300"
             style={{
               ...currentStyles, 
-              ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })
+              ...(extraGap 
+                ? { 
+                    paddingTop: "40px", 
+                    backgroundColor: "rgba(173, 216, 230, 0.5)", // Subtle highlight
+                    position: "relative",
+                  } 
+                : { 
+                    paddingTop: currentStyles.paddingTop 
+                  }
+              )
             }}
             
           />
@@ -608,7 +627,17 @@ const Image = ({ id, parentId, column, parentName}) => {
           className="w-full h-full object-contain rounded transition-all duration-300"
           style={{
             ...currentStyles, 
-            ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })}}
+            ...(extraGap 
+              ? { 
+                  paddingTop: "40px", 
+                  backgroundColor: "rgba(173, 216, 230, 0.5)", // Subtle highlight
+                  position: "relative",
+                } 
+              : { 
+                  paddingTop: currentStyles.paddingTop 
+                }
+            )
+          }}
         />
       ) : (
         <div className="flex flex-col items-center justify-center text-gray-500 transition-all duration-300">
@@ -619,10 +648,37 @@ const Image = ({ id, parentId, column, parentName}) => {
             className="w-full h-auto object-contain rounded opacity-90"
             style={{
               ...currentStyles, 
-              ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop })
+              ...(extraGap 
+                ? { 
+                    paddingTop: "40px", 
+                    backgroundColor: "rgba(173, 216, 230, 0.5)", // Subtle highlight
+                    position: "relative",
+                  } 
+                : { 
+                    paddingTop: currentStyles.paddingTop 
+                  }
+              )
               }}
           />
         </div>
+      )}
+
+      {/* Add this div for border only on extra padding */}
+      {extraGap && (
+        <div 
+          style={{
+            position: "absolute",
+            top: 0,  // Aligns with extra padding top
+            left: 0,
+            width: "100%",
+            height: "40px", // Same as extra padding height
+            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",  // Dashed border only on extra padding
+            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)",
+            pointerEvents: "none", // Ensures it doesn't interfere with interactions
+          }}
+        />
       )}
 
 

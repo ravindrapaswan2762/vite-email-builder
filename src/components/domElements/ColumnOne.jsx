@@ -401,7 +401,7 @@ const ColumnOne = ({ handleDelete, id }) => {
       console.log("leaveFromTop called");
       setPaddingTop(null);
     }
-    
+
     // *********************************************************************************************
     
 
@@ -433,12 +433,39 @@ const ColumnOne = ({ handleDelete, id }) => {
       style={{
         ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
-        ...(paddingTop ? { paddingTop: "100px"} : { paddingTop: currentStyles.paddingTop}),
+        
+        ...(paddingTop
+          ? { 
+              paddingTop: "50px",  
+              position: "relative",
+            } 
+          : { paddingTop: "" }
+        )
       }}
 
 
       
     >
+
+      {/* Add this div for border only on extra padding */}
+      {paddingTop && (
+        <div 
+          style={{
+            position: "absolute",
+            top: "-5px",  // ✅ Moves above the element
+            left: 0,
+            width: "100%",
+            height: "50px",  // ✅ Applies only to paddingTop
+            backgroundColor: "rgba(173, 216, 230, 0.3)", // ✅ Background only for extra padding
+            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",  
+            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)",  // ✅ No bottom border to avoid confusion
+            pointerEvents: "none",  // ✅ Prevents interactions
+            zIndex: 10,  // ✅ Ensures it stays above
+          }}
+        />
+      )}
 
 {/* Trapezoid Icon Section */}
 {(activeWidgetId === id) && (
@@ -471,6 +498,7 @@ const ColumnOne = ({ handleDelete, id }) => {
         onDragStart={onDragStart}
         onDragEnd={()=>{
           dispatch(setSmallGapInTop(null));
+          setPaddingTop(null);
         }}
   
         className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"

@@ -490,7 +490,15 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
 
       style={{...currentStyles, 
         ...(view === "Desktop" ? {display: "flex", flexDirection: "column" } : {}),
-        ...(extraGap ? { paddingTop: "100px" } : { paddingTop: currentStyles.paddingTop})
+        ...(extraGap 
+          ? { 
+              paddingTop: "45px", // ✅ Push content down
+              position: "relative",
+            } 
+          : { 
+              paddingTop: currentStyles.paddingTop
+            }
+        )
       }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -503,6 +511,27 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
       onDragLeave={onDragLeaveHandle}
 
     >
+
+      {/* ✅ Add this div for extra padding, placed above the element */}
+      {extraGap && (
+        <div 
+          style={{
+            position: "absolute",
+            top: 0,  
+            left: 0,
+            width: "100%",
+            height: "40px", // ✅ Height of extra padding
+            backgroundColor: "rgba(173, 216, 230, 0.3)", // Light highlight
+            borderTop: "2px dashed rgba(30, 144, 255, 0.8)", 
+            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)", // ✅ Removed bottom border to avoid overlap
+            pointerEvents: "none",
+            zIndex: 1, // ✅ Ensures it does not overlap content
+          }}
+        />
+      )}
+
 
       {/* Trapezoid Icon Section */}
       {(activeWidgetId === id) && (
@@ -535,6 +564,7 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
               onDragStart={onDragStart}
               onDragEnd={()=>{
                 dispatch(setSmallGapInTop(null));
+                setExtraGap(null);
               }}
               className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
               onClick={(e) => e.stopPropagation()}
