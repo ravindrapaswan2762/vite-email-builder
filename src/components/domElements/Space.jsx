@@ -29,6 +29,11 @@ import { PiDotsSixBold } from "react-icons/pi";
 import { FiEdit } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
 
+import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
+import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
+import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
+import { setPaddingBottom } from "../../redux/condtionalCssSlice";
+
 
 const Space = ({ id, parentId, column, parentName}) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
@@ -132,6 +137,11 @@ const Space = ({ id, parentId, column, parentName}) => {
 
         dispatch(setWidgetOrElement("element"));
         dispatch(setSmallGapInTop(true));
+
+        setTimeout(() => {
+          dispatch(setPaddingBottom(true)); 
+          dispatch(setPaddingTopInCC(true)); 
+        }, 100); // Small delay ensures drag operation completes first
       };
       
      
@@ -301,6 +311,11 @@ const Space = ({ id, parentId, column, parentName}) => {
           dispatch(setColumnTwoExtraPadding(false));
           dispatch(setColumnThreeExtraPadding(false));
           dispatch(setWrapperExtraPadding(false));
+
+          dispatch(setHoverParentInCC(null));
+          dispatch(setHoverColumnInCC(null));
+          dispatch(setPaddingTopInCC(null));
+          dispatch(setPaddingBottom(null));
       
         };
 
@@ -379,10 +394,10 @@ const Space = ({ id, parentId, column, parentName}) => {
             width: "100%",
             height: "40px",
             backgroundColor: "rgba(173, 216, 230, 0.3)", // ✅ Light highlight for padding area
-            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderBottom: "none", // ✅ No bottom border to avoid confusion
+            borderTop: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderLeft: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "1px dashed rgba(30, 144, 255, 0.8)", // ✅ No bottom border to avoid confusion
             pointerEvents: "none", // ✅ Ensures it doesn’t interfere with interactions
             zIndex: 0, // ✅ Keeps it visible above the background
           }}
@@ -422,6 +437,11 @@ const Space = ({ id, parentId, column, parentName}) => {
                 onDragEnd={()=>{
                   dispatch(setSmallGapInTop(null));
                   setExtraGap(null);
+
+                  dispatch(setHoverParentInCC(null));
+                  dispatch(setHoverColumnInCC(null));
+                  dispatch(setPaddingTopInCC(null));
+                  dispatch(setPaddingBottom(null));
                 }}
                 className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
                 onClick={(e) => e.stopPropagation()}

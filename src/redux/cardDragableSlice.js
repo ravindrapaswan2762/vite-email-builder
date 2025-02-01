@@ -647,7 +647,7 @@ const cardDragableSlice = createSlice({
     // ******************************************************* custom columns
 
     addCustomColumns: (state, action) => {
-      const { id, name, columnCount, parentId } = action.payload;
+      const { id, name, columnCount, parentId, styles } = action.payload;
     
       console.log("addCustomColumns called:::: ", action.payload);
     
@@ -658,7 +658,7 @@ const cardDragableSlice = createSlice({
       }
     
       // Create the new item for custom columns
-      const newItem = { id, name, columnCount, parentId };
+      const newItem = { id, name, columnCount, parentId, styles};
     
       console.log(`Creating customColumns with ${columnCount} columns`);
     
@@ -750,6 +750,81 @@ const cardDragableSlice = createSlice({
       console.log("Updated droppedItems after delete:", JSON.stringify(state.droppedItems, null, 2));
     },
     
+    // duplicateCustomColumn: (state, action) => {
+    //   const { parentId, columnKey } = action.payload;
+    //   console.log("duplicateCustomColumn called: ", action.payload);
+    
+    //   state.droppedItems = state.droppedItems.map((item) => {
+    //     if (item.id === parentId) {
+    //       const updatedItem = { ...item };
+    //       console.log("updatedItem before duplication: ", updatedItem);
+    
+    //       // Prevent adding more than 10 columns
+    //       if (updatedItem.columnCount >= 10) {
+    //         console.warn("Maximum column limit (10) reached.");
+    //         return updatedItem;
+    //       }
+    
+    //       // Find the target child to duplicate
+    //       const targetChild = updatedItem[columnKey]?.[0];
+    //       if (!targetChild) return updatedItem;
+    
+    //       // Increment columnCount
+    //       updatedItem.columnCount += 1;
+    
+    //       // Calculate new width for all columns
+    //       const newWidth = (100 / updatedItem.columnCount).toFixed(2) + "%";
+    
+    //       // Reorganize all children keys
+    //       const childrenKeys = Object.keys(updatedItem)
+    //         .filter((key) => key.startsWith("children"))
+    //         .sort();
+    
+    //       const newChildren = {};
+    //       childrenKeys.forEach((key, index) => {
+    //         const newKey = `children${String.fromCharCode(65 + index)}`;
+    //         newChildren[newKey] = updatedItem[key];
+    
+    //         // Update the ID and width of all existing children
+    //         if (newChildren[newKey]?.[0]) {
+    //           newChildren[newKey][0].id = `${parentId}-${newKey}`;
+    //           newChildren[newKey][0].styles.width = newWidth;
+    //         }
+    //       });
+    
+    //       // Generate a new child key and ID for the duplicated column
+    //       const nextKeyIndex = childrenKeys.length; // Next available child index
+    //       const newChildKey = `children${String.fromCharCode(65 + nextKeyIndex)}`; // childrenE, childrenF, etc.
+    //       const newChildId = `${parentId}-${newChildKey}`; // Unique ID
+    
+    //       // Add the duplicated column with updated styles
+    //       newChildren[newChildKey] = [
+    //         {
+    //           ...targetChild,
+    //           id: newChildId, // Assign unique ID
+    //           styles: {
+    //             ...targetChild.styles,
+    //             width: newWidth,
+    //           },
+    //         },
+    //       ];
+    
+    //       // Replace old children keys with the updated ones
+    //       Object.keys(updatedItem)
+    //         .filter((key) => key.startsWith("children"))
+    //         .forEach((key) => delete updatedItem[key]); // Remove old children
+    //       Object.assign(updatedItem, newChildren); // Add updated children keys
+    
+    //       console.log("updatedItem after duplication: ", updatedItem);
+    //       return updatedItem;
+    //     }
+    
+    //     return item; // Other items remain unchanged
+    //   });
+    
+    //   console.log("Updated droppedItems after duplication:", JSON.stringify(state.droppedItems, null, 2));
+    // },
+    
     duplicateCustomColumn: (state, action) => {
       const { parentId, columnKey } = action.payload;
       console.log("duplicateCustomColumn called: ", action.payload);
@@ -785,27 +860,37 @@ const cardDragableSlice = createSlice({
             const newKey = `children${String.fromCharCode(65 + index)}`;
             newChildren[newKey] = updatedItem[key];
     
-            // Update the ID and width of all existing children
+            // ✅ Ensure unique ID and width for all existing children
             if (newChildren[newKey]?.[0]) {
               newChildren[newKey][0].id = `${parentId}-${newKey}`;
               newChildren[newKey][0].styles.width = newWidth;
+    
+              // ✅ Ensure all child elements inside the column have unique IDs
+              newChildren[newKey][0].children = newChildren[newKey][0].children.map((child) => ({
+                ...child,
+                id: Date.now() + Math.floor(Math.random() * 1000), // ✅ Generate a new unique ID
+              }));
             }
           });
     
           // Generate a new child key and ID for the duplicated column
-          const nextKeyIndex = childrenKeys.length; // Next available child index
-          const newChildKey = `children${String.fromCharCode(65 + nextKeyIndex)}`; // childrenE, childrenF, etc.
-          const newChildId = `${parentId}-${newChildKey}`; // Unique ID
+          const nextKeyIndex = childrenKeys.length;
+          const newChildKey = `children${String.fromCharCode(65 + nextKeyIndex)}`;
+          const newChildId = `${parentId}-${newChildKey}`;
     
-          // Add the duplicated column with updated styles
+          // ✅ Duplicate the column and ensure all child elements inside it have unique IDs
           newChildren[newChildKey] = [
             {
               ...targetChild,
-              id: newChildId, // Assign unique ID
+              id: newChildId, // ✅ Assign a new unique column ID
               styles: {
                 ...targetChild.styles,
                 width: newWidth,
               },
+              children: targetChild.children.map((child) => ({
+                ...child,
+                id: Date.now() + Math.floor(Math.random() * 1000), // ✅ Generate a new unique ID for each child element
+              })),
             },
           ];
     
@@ -824,6 +909,7 @@ const cardDragableSlice = createSlice({
     
       console.log("Updated droppedItems after duplication:", JSON.stringify(state.droppedItems, null, 2));
     },
+
     
     setElementInCustomColumns: (state, action) => {
       const { parentId, columnKey, droppedData } = action.payload;

@@ -17,6 +17,11 @@ import { setColumnThreeExtraPadding } from "../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../redux/condtionalCssSlice";
 import { setSmallGapInTop } from "../redux/condtionalCssSlice";
 
+import { setHoverColumnInCC } from "../redux/condtionalCssSlice";
+import { setHoverParentInCC } from "../redux/condtionalCssSlice";
+import { setPaddingTopInCC } from "../redux/condtionalCssSlice";
+import { setPaddingBottom } from "../redux/condtionalCssSlice";
+
 
 const PageAttribute = () => {
 
@@ -39,6 +44,11 @@ const PageAttribute = () => {
     dispatch(setWrapperExtraPadding(false));
 
     dispatch(setSmallGapInTop(null));
+
+    dispatch(setHoverColumnInCC(null));
+    dispatch(setHoverParentInCC(null));
+    dispatch(setPaddingTopInCC(null));
+    dispatch(setPaddingBottom(null));
 
 
 

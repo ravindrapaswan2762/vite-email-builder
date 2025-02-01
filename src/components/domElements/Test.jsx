@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect, useRef } from "react";
 import Text from "./Text";
 import Image from "./Image";
@@ -27,9 +25,16 @@ import { RxCross2 } from "react-icons/rx";
 
 import { deleteCustomColumn } from "../../redux/cardDragableSlice";
 import { setElementInCustomColumns } from "../../redux/cardDragableSlice";
-import { setCustomClumnsExtraPadding } from "../../redux/condtionalCssSlice";
 import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
 import { setElementPaddingTop } from "../../redux/condtionalCssSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
+import { replaceDroppedItem } from "../../redux/cardDragableSlice";
+import { setPaddingBottom } from "../../redux/condtionalCssSlice";
+import { setActiveEditor } from "../../redux/cardToggleSlice";
+
+import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
+import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
+import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
 
 // Component Mapping
 const componentMap = {
@@ -50,57 +55,53 @@ const CustomColumns = ({ id }) => {
   const [showWidthPercentage, setShowWidthPercentage] = useState(false);
   const [popup, setPopup] = useState({ visible: false, x: 0, y: 0, columnId: null });
   const [hoverColumn, setHoverColumn] = useState({parentId: null, column: null});
-  const [isDragging, setIsDragging] = useState(false); 
+
+  const [localPaddingTopInCC, setLocalPaddingTopInCC] = useState(false);
 
   const dispatch = useDispatch();
   const customColumnRef = useRef(null);
   const columnRef = useRef();
 
   // Fetch the custom column data from Redux state
-  const { droppedItems, activeWidgetId, activeWidgetName, activeRightClick, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
-  const {customClumnsExtraPadding, smallGapInTop} = useSelector((state) => state.coditionalCssSlice);
+  const { 
+    droppedItems, 
+    activeWidgetId, 
+    activeWidgetName, 
+    activeRightClick, 
+    activeParentId, 
+    activeColumn, 
+    widgetOrElement,
+   } = useSelector((state) => state.cardDragable);
+   
+  const {smallGapInTop, paddingTopInCC, paddingBottomInCC, hoverParentInCC, hoverColumnInCC} = useSelector((state) => state.coditionalCssSlice);
   const columnData = droppedItems.find((item) => item.id === id);
 
   if (!columnData || columnData.columnCount < 1) {
     return <div>No columns to display</div>;
   }
 
-  const handleResizeMouseDown = (index) => (e) => {
+  useEffect(() => {
+    setLocalPaddingTopInCC(paddingTopInCC); // Sync local state with Redux on mount
+  }, [paddingTopInCC]);
+
+  useEffect( ()=>{
+    dispatch(setActiveParentId(id));
+  }, [])
+
+  useEffect(() => {
+    dispatch(setHoverColumnInCC(null));
+    dispatch(setHoverParentInCC(null));
+  }, [droppedItems]);
+
+  const handleResizeMouseDown = (index, column) => (e) => {
     e.preventDefault();
     setResizingIndex(index);
     setShowWidthPercentage(true);
+
+    dispatch(setActiveWidgetId(null));
+
+    dispatch(setActiveColumn(column));
   };
-
-  // const handleResizeMouseMove = (e) => {
-  //   if (resizingIndex === null) return;
-
-  //   const containerWidth = customColumnRef.current.offsetWidth;
-  //   const deltaX = e.movementX;
-
-  //   setLocalColumns((prevColumns) => {
-  //     const newColumns = [...prevColumns];
-  //     const leftColumn = newColumns[resizingIndex].data.styles;
-  //     const rightColumn = newColumns[resizingIndex + 1].data.styles;
-
-  //     let newLeftWidth = parseFloat(leftColumn.width) + (deltaX / containerWidth) * 100;
-  //     let newRightWidth = parseFloat(rightColumn.width) - (deltaX / containerWidth) * 100;
-
-  //     if (newLeftWidth < 1) {
-  //       newRightWidth += newLeftWidth - 1;
-  //       newLeftWidth = 1;
-  //     } else if (newRightWidth < 1) {
-  //       newLeftWidth += newRightWidth - 1;
-  //       newRightWidth = 1;
-  //     }
-
-  //     if (newLeftWidth >= 1 && newRightWidth >= 1) {
-  //       leftColumn.width = `${newLeftWidth.toFixed(2)}%`;
-  //       rightColumn.width = `${newRightWidth.toFixed(2)}%`;
-  //     }
-
-  //     return newColumns;
-  //   });
-  // };
 
   const handleResizeMouseMove = (e) => {
     if (resizingIndex === null) return;
@@ -132,23 +133,6 @@ const CustomColumns = ({ id }) => {
       return newColumns;
     });
   };
-  
-  // const handleResizeMouseUp = () => {
-  //   if (resizingIndex === null) return;
-
-  //   setResizingIndex(null);
-  //   setShowWidthPercentage(false);
-
-  //   // Dispatch updated widths to Redux
-  //   const leftColumnKey = localColumns[resizingIndex].key;
-  //   const rightColumnKey = localColumns[resizingIndex + 1].key;
-
-  //   const leftColumnWidth = parseFloat(localColumns[resizingIndex].data.styles.width);
-  //   const rightColumnWidth = parseFloat(localColumns[resizingIndex + 1].data.styles.width);
-
-  //   dispatch(updateColumnWidth({ parentId: id, columnKey: leftColumnKey, width: leftColumnWidth }));
-  //   dispatch(updateColumnWidth({ parentId: id, columnKey: rightColumnKey, width: rightColumnWidth }));
-  // };
 
   const handleResizeMouseUp = () => {
     if (resizingIndex === null) return;
@@ -241,12 +225,15 @@ const CustomColumns = ({ id }) => {
       popupY -= popupHeight; // Shift upward
     }
   
-    // Pass column key (e.g., `childrenB`) instead of the column ID
+    // Pass column key (e.g., childrenB) instead of the column ID
     setPopup({ visible: true, x: popupX, y: popupY, columnKey });
 
     dispatch(setActiveRightClick(true));
+    dispatch(setActiveWidgetId(null));
     dispatch(setActiveParentId(id));
+
     dispatch(setActiveColumn(columnKey));
+    dispatch(setHoverColumnInCC(true));
   };
   
   //********************************************************************************************************************* */ 
@@ -256,8 +243,9 @@ const CustomColumns = ({ id }) => {
     dispatch(setActiveRightClick(true));
     dispatch(setActiveWidgetId(null));
     dispatch(setActiveColumn(null));
+    dispatch(setActiveEditor("sectionEditor"));
 
-    console.log("onclickHandler called in custom-COLUMNS: ",id)
+    // console.log("onclickHandler called in custom-COLUMNS: ",id)
   }
 
   const onDragStart = (e) => {
@@ -266,7 +254,7 @@ const CustomColumns = ({ id }) => {
       "text/plain",
       JSON.stringify({
         id,
-        name: "custom-columns",
+        name: "customColumns",
         dragableName: "dragableColumn"
       })
     );
@@ -302,6 +290,7 @@ const CustomColumns = ({ id }) => {
 
     dispatch(setWidgetOrElement("column"));
     dispatch(setSmallGapInTop(true));
+    
   };
   // ***********************************************************************
   const findStylesById = (items, widgetId) => {
@@ -324,7 +313,7 @@ const CustomColumns = ({ id }) => {
     return null; // Return null if no matching widgetId is found
   };
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
-  console.log("currentStyles in custom-column: ",currentStyles);
+  // console.log("currentStyles in custom-column: ",currentStyles);
   // ****************************************************************************
   const handlePopupDelete = () => {
     if (!popup.columnKey) return;
@@ -335,7 +324,7 @@ const CustomColumns = ({ id }) => {
     // Close the popup
     setPopup({ visible: false, x: 0, y: 0, columnKey: null });
   
-    console.log(`Deleted column: ${popup.columnKey} from parent: ${id}`);
+    // console.log(`Deleted column: ${popup.columnKey} from parent: ${id}`);
   };
   
 
@@ -348,7 +337,7 @@ const CustomColumns = ({ id }) => {
     // Close the popup
     setPopup({ visible: false, x: 0, y: 0, columnKey: null });
   
-    console.log(`Duplicated column: ${popup.columnKey} for parent: ${id}`);
+    // console.log(`Duplicated column: ${popup.columnKey} for parent: ${id}`);
   };
   
   
@@ -366,7 +355,6 @@ const CustomColumns = ({ id }) => {
 const handleDragOver = (e, parentId, column) => {
   e.preventDefault();
   setHoverColumn({parentId, column});
-  dispatch(setCustomClumnsExtraPadding(true));
 
 };
 const handleDrop = (columnKey) => (e) => {
@@ -374,8 +362,7 @@ const handleDrop = (columnKey) => (e) => {
   e.stopPropagation();
 
   setHoverColumn({parentId: null, column: null});
-  setIsDragging(false);
-  dispatch(setCustomClumnsExtraPadding(false));
+
   dispatch(setElementPaddingTop(null));
 
   // Prefill content and styles based on activeWidgetName
@@ -392,7 +379,7 @@ const handleDrop = (columnKey) => (e) => {
   let droppedData = null;
   try {
     droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-    console.log("droppedData in columnTwo: ",droppedData);
+    // console.log("droppedData in columnTwo: ",droppedData);
   } catch (error) {
     console.error("Failed to parse dropped data:", error);
     return;
@@ -439,46 +426,126 @@ const handleDrop = (columnKey) => (e) => {
         return;
       }
 
+      dispatch(setHoverParentInCC(null));
+      dispatch(setHoverColumnInCC(null));
+      dispatch(setPaddingTopInCC(null));
+      dispatch(setPaddingBottom(null));
 
-  console.log(`Dropped item into column: ${columnKey}`);
+  // console.log(`Dropped item into column: ${columnKey}`);
 };
 
-const onDragEnter = (e) =>{
+const onDragEnter = (e, column) =>{
   e.stopPropagation();
 
-  if (!isDragging) {
-    // setPaddingTop(true);
-    setIsDragging(true);
-    dispatch(setActiveBorders(true)); // Add active borders for visual feedback
-    dispatch(setCustomClumnsExtraPadding(true)); // Optional Redux state update
-  }
-}
-const dropInPaddingTop = (e)=>{
-  e.stopPropagation();
+  setHoverColumn({parentId: id, column: column});
 
-  setIsDragging(false);
+  dispatch(setActiveBorders(true));
+  
+  dispatch(setHoverParentInCC(id));
+  dispatch(setHoverColumnInCC(column));
+
+
 }
-const handleEnter = () =>{
-  dispatch(setCustomClumnsExtraPadding(true));
-}
-const handleLeave = (e, ref)=>{
+
+const handleLeave = (e, ref, column)=>{
   
   if(ref && ref.current && (!e.relatedTarget || !ref.current.contains(e.relatedTarget))){
     setHoverColumn({parentId: null, column: null});
-    setIsDragging(false);
-    dispatch(setCustomClumnsExtraPadding(false));
+
+    dispatch(setHoverParentInCC(id));
+    dispatch(setHoverColumnInCC(column));
   }
 }
-  
-  
-  
+
+ //******************************************************************************** drop Into PaddingTop */
+    const dropInPaddingTop = (e)=>{
+      e.stopPropagation();
+
+      const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
+
+      setLocalPaddingTopInCC(false);
+      dispatch(setPaddingTopInCC(true));
+      
+      if(widgetOrElement && widgetOrElement==='widget'){
+        dispatch(
+          addElementAtLocation({
+            draggedNodeId: Date.now(), 
+            draggedName: droppedData.name, 
+            dragableType: droppedData.type,
+            
+            targetParentId: null, 
+            targetColumn: null, 
+            targetNodeId: id, 
+          })
+        )
+      }
+      else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
+
+        if(droppedData.parentId){
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              styles: droppedData.styles, 
+              content: droppedData.content, 
+              
+              targetParentId: null, 
+              targetColumn: null, 
+              targetNodeId: id, 
+            })
+          )
+          dispatch(deleteDroppedItemById(
+            {
+              parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+              childId: droppedData.parentId ? droppedData.id : null, 
+              columnName: droppedData.column ? droppedData.column : null }
+          ));
+
+        }
+        else{
+          dispatch(
+            replaceDroppedItem({
+              parentId: null,
+              column: null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
+      }
+    }
+
+    const enterInPaddingTop = (e)=>{
+      e.stopPropagation();
+      setLocalPaddingTopInCC(true); // Step 2: Update local state instantly
+      console.log("enterInTop called $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+
+    }
+    const leaveFromPaddingTop = (e)=>{
+      e.stopPropagation();
+      setLocalPaddingTopInCC(true); // Step 3: Hide immediately
+      console.log("leaveFromTop called");
+    }
+    const dragOverOnPaddingTop = (e) =>{
+      e.stopPropagation();
+      console.log("dragOverOnTop called");
+
+    }
+    
+  // *********************************************************************************************
 
   return (
     <div
+      onDrop={dropInPaddingTop}
+      onDragEnter={enterInPaddingTop}
+      onDragLeave={leaveFromPaddingTop}
       ref={customColumnRef}
-      className={`relative grid gap-1 group bg-transparent transition-all duration-300 
+      className={`relative group bg-transparent
         ${activeParentId===id ? 'border-2 border-blue-500 p-2': ""}
+        ${paddingTopInCC ? "pt-[40px] bg-red-500" : ""}
       `}
+
       
       onClick={() => setPopup({ visible: false, x: 0, y: 0, columnId: null })}
     >
@@ -486,11 +553,33 @@ const handleLeave = (e, ref)=>{
       onClick={onclickHandler}
       >
 
+        {/* Add this div for border only on extra padding */}
+        {localPaddingTopInCC && id===hoverParentInCC && (
+        <div 
+          style={{
+            position: "absolute",
+            top: "-35px",
+            left: 0,
+            width: "100%",
+            height: "30px",
+            backgroundColor: "rgba(173, 216, 230, 0.3)",
+            borderTop: "1px dashed rgba(30, 144, 255, 0.8)",  
+            borderLeft: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "1px dashed rgba(30, 144, 255, 0.8)",
+            pointerEvents: "none",
+            zIndex: 10,
+          }}
+        />
+      )}
+
         {/* *************************************/}
         {/* Trapezoid Icon Section */}
               {(activeParentId === id) && (
                 <div
-                  className="absolute -top-[29px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
+                  className={`absolute -top-[28px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center
+                      
+                    `}
                   style={{
                     width: "90px", // Base width of the trapezoid
                     height: "20px", // Adjusted height
@@ -506,7 +595,7 @@ const handleLeave = (e, ref)=>{
                       className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Add icon clicked");
+                        // console.log("Add icon clicked");
                       }}
                     >
                       <FiEdit size={12} />
@@ -530,6 +619,7 @@ const handleLeave = (e, ref)=>{
                       className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
                       onClick={(e) => {
                         e.stopPropagation();
+                        // console.log("id in customColumns: ",id)
                         dispatch(deleteDroppedItemById(
                           {
                             parentId: id, 
@@ -548,33 +638,38 @@ const handleLeave = (e, ref)=>{
         {localColumns.map((column, index) => (
           <div
             ref={columnRef}
-            onDrag={onDragEnter}
+            onDragEnter={(e)=>onDragEnter(e, column.key)}
             onDrop={handleDrop(column.key)}
             onDragOver={(e)=>handleDragOver(e, id, column.key)}
-            onDragLeave={(e)=>handleLeave(e, columnRef)}
+            onDragLeave={(e)=>handleLeave(e, columnRef, column.key)}
             onClick={onclickHandler}
-            onDragEnter={handleEnter}
 
     
             key={column.data.id}
-            className={`relative w-full mb-1 h-auto bg-transparent transition-all duration-300 
+            className={`relative w-full mb-1 bg-transparent
               ${id==activeParentId && activeColumn===column.key  ? "border-2 border-blue-500" : ""}
               
-              ${hoverColumn.parentId===id && hoverColumn.column===column.key ? "border-2 border-blue-500" : ""} 
-              ${!column.data.children.length ? "h-[100px]" : ""}
-              ${customClumnsExtraPadding ? "pb-[60px]" : ""}
+              ${hoverColumn.parentId===id && hoverColumn.column===column.key ? "border-2 border-dashed border-blue-500" : ""} 
+
+
+              ${localColumns.some(col => col.data.children.length > 0) ? 'h-auto' : 'h-[100px]'}
+              ${column.data.children.length === 0 ? "border border-dashed border-blue-500" : ""}
+              ${paddingBottomInCC ? 'pb-[30px]' : ""}
+
+
             `}
             onContextMenu={(e) => handleRightClick(e, column.key)}
             style={{
               flexBasis: column.data.styles.width,
-              backgroundColor: column.data.styles.backgroundColor, 
-              transition: "flex-basis 0.2s ease-in-out, width 0.2s ease-in-out",
+              // backgroundColor: column.data.styles.backgroundColor, 
+              ...currentStyles
             }}
+            
             
           >
              {/* Render placeholder text if no children */}
             {!column.data.children?.length && (
-              <p className="text-gray-500">{`${column.key.replace("children", "")}`}</p>
+              <p className="text-gray-500 text-center">{`${column.key.replace("children", "")}`}</p>
             )}
 
             {/* Render Dropped Items */}
@@ -585,7 +680,7 @@ const handleLeave = (e, ref)=>{
             ))}
 
             {showWidthPercentage && (
-              <div className="absolute top-[-20px] left-1/2 transform -translate-x-1/2 text-sm text-gray-700 bg-white px-2 py-1 border rounded shadow">
+              <div className="absolute top-[-20px] left-1/2 transform -translate-x-1/2 text-sm text-gray-700 bg-white px-2 py-1 border rounded shadow z-20">
                 {Math.round(parseFloat(column.data.styles.width))}%
               </div>
             )}
@@ -593,7 +688,7 @@ const handleLeave = (e, ref)=>{
             {activeParentId && index < localColumns.length - 1 && (
               <div
                 className="absolute top-0 right-[-17px] h-full w-6 flex items-center justify-center cursor-col-resize z-10"
-                onMouseDown={handleResizeMouseDown(index)}
+                onMouseDown={handleResizeMouseDown(index, column.key)}
               >
                 <div
                   className="absolute h-full w-0.5 border-l border-dashed border-gray-400"
@@ -607,8 +702,29 @@ const handleLeave = (e, ref)=>{
               </div>
             )}
 
+            {/* **Dynamic Bottom Dashed Border** */}
+            {hoverParentInCC===id && hoverColumnInCC===column.key && column.data.children.length>0 && (
+              <div
+                style={{
+                  position: "relative",
+                  marginTop: "2px",
+                  left: "4px",
+                  width: "calc(100% - 7px)",
+                  height: "40px",
+                  backgroundColor: "rgba(173, 216, 230, 0.3)", 
+                  borderTop: "1px dashed rgba(30, 144, 255, 0.8)", 
+                  borderLeft: "1px dashed rgba(30, 144, 255, 0.8)",
+                  borderRight: "1px dashed rgba(30, 144, 255, 0.8)",
+                  borderBottom: "1px dashed rgba(30, 144, 255, 0.8)",
+                  pointerEvents: "none",
+                  zIndex: 1,
+                }}
+              />
+            )}
+
           </div>
         ))}
+
       </div>
 
       {popup.visible && (

@@ -33,6 +33,11 @@ import { PiDotsSixBold } from "react-icons/pi";
 import { FiEdit } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
 
+import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
+import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
+import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
+import { setPaddingBottom } from "../../redux/condtionalCssSlice";
+
 
 const Image = ({ id, parentId, column, parentName}) => {
 
@@ -162,6 +167,11 @@ const Image = ({ id, parentId, column, parentName}) => {
 
         dispatch(setWidgetOrElement("element"));
         dispatch(dispatch(setSmallGapInTop(true)));
+
+        setTimeout(() => {
+          dispatch(setPaddingBottom(true)); 
+          dispatch(setPaddingTopInCC(true)); 
+        }, 100); // Small delay ensures drag operation completes first
       };
       
       // const onDrop = (e) => {
@@ -439,7 +449,12 @@ const Image = ({ id, parentId, column, parentName}) => {
           dispatch(setColumnTwoExtraPadding(false));
           dispatch(setColumnThreeExtraPadding(false));
           dispatch(setWrapperExtraPadding(false));
-      
+
+          dispatch(setHoverParentInCC(null));
+          dispatch(setHoverColumnInCC(null));
+          dispatch(setPaddingTopInCC(null));
+          dispatch(setPaddingBottom(null));
+
         };
       
       const onDragEnterHandle = () => {
@@ -497,7 +512,7 @@ const Image = ({ id, parentId, column, parentName}) => {
         overflow: "visible"
       }}  
       // Removed "flex items-center justify-center" so the image can span the full width
-      className={`relative rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent transition-all duration-300
+      className={`relative rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent
           
         ${
           isFocused
@@ -539,7 +554,7 @@ const Image = ({ id, parentId, column, parentName}) => {
           <div className="flex items-center justify-between w-full h-full">
             {/* Add Icon */}
             <button
-              className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+              className="flex items-center justify-center w-full h-full text-black hover:text-white hover:bg-blue-500"
               onClick={(e) => {
                 e.stopPropagation();
                 console.log("Add icon clicked");
@@ -558,8 +573,13 @@ const Image = ({ id, parentId, column, parentName}) => {
                 dispatch(setElementPaddingTop(null));
                 dispatch(setColumnOneExtraPadding(null));
                 setExtraGap(null);
+
+                dispatch(setHoverParentInCC(null));
+                dispatch(setHoverColumnInCC(null));
+                dispatch(setPaddingTopInCC(null));
+                dispatch(setPaddingBottom(null));
               }}
-              className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+              className="flex items-center justify-center w-full h-full text-black hover:text-white hover:bg-blue-500"
               onClick={(e) => e.stopPropagation()}
             >
               <PiDotsSixBold size={16} />
@@ -567,7 +587,7 @@ const Image = ({ id, parentId, column, parentName}) => {
 
             {/* Delete Icon */}
             <button
-              className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
+              className="flex items-center justify-center w-full h-full hover:bg-blue-500 text-black hover:text-red-500"
               onClick={(e) => {
                 e.stopPropagation();
                 dispatch(
@@ -640,12 +660,12 @@ const Image = ({ id, parentId, column, parentName}) => {
           }}
         />
       ) : (
-        <div className="flex flex-col items-center justify-center text-gray-500 transition-all duration-300">
+        <div className="flex flex-col items-center justify-center text-gray-500">
           <img
             onContextMenu={handleRightClick}
             src={placeholderImage}
             alt="Placeholder"
-            className="w-full h-auto object-contain rounded opacity-90"
+            className="w-full h-auto object-contain rounded opacity-90 transition-all duration-300"
             style={{
               ...currentStyles, 
               ...(extraGap 
@@ -672,10 +692,10 @@ const Image = ({ id, parentId, column, parentName}) => {
             left: 0,
             width: "100%",
             height: "40px", // Same as extra padding height
-            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",  // Dashed border only on extra padding
-            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)",
+            borderTop: "1px dashed rgba(30, 144, 255, 0.8)",  // Dashed border only on extra padding
+            borderLeft: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "1px dashed rgba(30, 144, 255, 0.8)",
             pointerEvents: "none", // Ensures it doesn't interfere with interactions
           }}
         />

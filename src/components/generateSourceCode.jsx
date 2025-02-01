@@ -9,7 +9,7 @@ export const generateInlineStyles = (styles) => {
   export const generateSourceCode = (items) => {
     return items
       .map((item) => {
-        const { name, children = [], styles = {} } = item;
+        const { name, children = [], styles = {}, content, columnCount} = item;
   
         // Generate inline styles
         const inlineStyles = generateInlineStyles(styles);
@@ -26,7 +26,7 @@ export const generateInlineStyles = (styles) => {
                 type=\"text\"
                 className=\"border p-2 rounded w-full\"
                 placeholder=\"Text Field\"
-                value={val}
+                value=\"${content}\"
                 style=\"${inlineStyles}\" 
               />
             </div>
@@ -70,7 +70,7 @@ export const generateInlineStyles = (styles) => {
               <div>
                 <textarea 
                 className=\"border p-2 rounded w-full\" placeholder=\"Text Area\" 
-                value={val}
+                value=\"${content}\"
                 style=\"${inlineStyles}\" 
                 />
               </div>
@@ -169,6 +169,36 @@ export const generateInlineStyles = (styles) => {
                   </div>
                 `;
                 break;
+          case "customColumns":
+            const childKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+            html = `
+                <div className="relative group bg-transparent" style="${inlineStyles}">
+                  <div className="flex w-full h-full relative gap-2">
+                    ${childKeys
+                      .map((childKey) => {
+                        const column = item[childKey][0]; // Get the first column object
+                        const columnStyles = generateInlineStyles(column.styles);
+
+                        return `
+                          <div className="relative w-full bg-transparent" style="${columnStyles}">
+                            ${column.children
+                              .map(
+                                (child) => `
+                                  <div className="text-sm p-1 bg-transparent">
+                                    ${generateSourceCode([child])}
+                                  </div>
+                                `
+                              )
+                              .join("")}
+                          </div>
+                        `;
+                      })
+                      .join("")}
+                  </div>
+                </div>
+            `;
+            break;
+    
           default:
             html = `<div style=\"${inlineStyles}\">Unknown Widget</div>`;
             break;

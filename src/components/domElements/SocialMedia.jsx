@@ -31,6 +31,11 @@ import { PiDotsSixBold } from "react-icons/pi";
 import { FiEdit } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
 
+import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
+import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
+import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
+import { setPaddingBottom } from "../../redux/condtionalCssSlice";
+
 
 
 // Icons (Replace these with your actual logo images or imports)
@@ -153,6 +158,11 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
 
         dispatch(setWidgetOrElement("element"));
         dispatch(setSmallGapInTop(true));
+
+        setTimeout(() => {
+          dispatch(setPaddingBottom(true)); 
+          dispatch(setPaddingTopInCC(true)); 
+        }, 100); // Small delay ensures drag operation completes first
       };
       
       // const onDrop = (e) => {
@@ -428,6 +438,11 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
           dispatch(setColumnTwoExtraPadding(false));
           dispatch(setColumnThreeExtraPadding(false));
           dispatch(setWrapperExtraPadding(false));
+
+          dispatch(setHoverParentInCC(null));
+          dispatch(setHoverColumnInCC(null));
+          dispatch(setPaddingTopInCC(null));
+          dispatch(setPaddingBottom(null));
       
         };
       
@@ -522,10 +537,10 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
             width: "100%",
             height: "40px", // ✅ Height of extra padding
             backgroundColor: "rgba(173, 216, 230, 0.3)", // Light highlight
-            borderTop: "2px dashed rgba(30, 144, 255, 0.8)", 
-            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)", // ✅ Removed bottom border to avoid overlap
+            borderTop: "1px dashed rgba(30, 144, 255, 0.8)", 
+            borderLeft: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderRight: "1px dashed rgba(30, 144, 255, 0.8)",
+            borderBottom: "1px dashed rgba(30, 144, 255, 0.8)", // ✅ Removed bottom border to avoid overlap
             pointerEvents: "none",
             zIndex: 1, // ✅ Ensures it does not overlap content
           }}
@@ -565,6 +580,11 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
               onDragEnd={()=>{
                 dispatch(setSmallGapInTop(null));
                 setExtraGap(null);
+
+                dispatch(setHoverParentInCC(null));
+                dispatch(setHoverColumnInCC(null));
+                dispatch(setPaddingTopInCC(null));
+                dispatch(setPaddingBottom(null));
               }}
               className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
               onClick={(e) => e.stopPropagation()}

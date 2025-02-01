@@ -12,6 +12,11 @@ const initialState = {
     smallGapInTop: false,
 
     elementPaddingTop: null,
+
+    paddingTopInCC: null,
+    paddingBottomInCC: null,
+    hoverParentInCC: null,
+    hoverColumnInCC: null,
 }
 
 const conditionalCssSlice = createSlice({
@@ -51,8 +56,25 @@ const conditionalCssSlice = createSlice({
         setElementPaddingTop: (state, action) =>{
             state.elementPaddingTop = action.payload;
             console.log("setElementPaddingTop called: ",action.payload);
-        }
+        },
+
         
+        setPaddingBottom: (state, action) =>{
+            state.paddingBottomInCC = action.payload;
+            console.log("setPaddingBottom called: ",action.payload);
+        },
+        setHoverParentInCC: (state, action) => {
+            state.hoverParentInCC = action.payload;
+            console.log("setHoverParentInCC called: ",action.payload);
+        },
+        setHoverColumnInCC: (state, action) => {
+            state.hoverColumnInCC = action.payload;
+            console.log("setHoverColumnInCC called: ",action.payload);
+        },
+        setPaddingTopInCC: (state, action) =>{
+            state.paddingTopInCC = action.payload;
+            console.log("setPaddingTopInCC called *******************************************************************************: ",action.payload);
+        }
 
     }
 })
@@ -67,6 +89,11 @@ export const {
     setSmallGapInTop,
     setCustomClumnsExtraPadding,
     setElementPaddingTop,
+    setPaddingBottom,
+
+    setHoverParentInCC,
+    setHoverColumnInCC,
+    setPaddingTopInCC,
     
  } = conditionalCssSlice.actions;
 export default conditionalCssSlice.reducer;

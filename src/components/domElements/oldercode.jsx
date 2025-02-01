@@ -1,771 +1,227 @@
-import React, { useState, useEffect, useRef } from "react";
-import Text from "./Text";
-import Image from "./Image";
-import Button from "./Button";
-import TextArea from "./TextArea";
-import Divider from "./Divider";
-import SocialMedia from "./SocialMedia";
-import Space from "./Space";
+// import React from "react";
+// import { setActiveEditor } from "../redux/cardToggleSlice";
+// import { useDispatch } from "react-redux";
+// import { setActiveWidgetName, setActiveWidgetId } from "../redux/cardDragableSlice";
+// import { setDroppedItems } from "../redux/cardDragableSlice";
+// import { setActiveBorders } from "../redux/activeBorderSlice";
 
-import { useSelector, useDispatch } from "react-redux";
-import { PiDotsSixVerticalBold } from "react-icons/pi";
-import { setActiveParentId, updateColumnWidth } from "../../redux/cardDragableSlice";
-import { setActiveWidgetId } from "../../redux/cardDragableSlice";
-import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
-import { duplicateCustomColumn } from "../../redux/cardDragableSlice";
-import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
-import { setWidgetOrElement } from "../../redux/cardDragableSlice";
-import { setActiveRightClick } from "../../redux/cardDragableSlice";
-import { setActiveColumn } from "../../redux/cardDragableSlice";
-import { setActiveBorders } from "../../redux/activeBorderSlice";
+// const StructurePopup = ({ onClose, onAdd, id}) => {
 
-import { PiDotsSixBold } from "react-icons/pi";
-import { FiEdit } from "react-icons/fi";
-import { RxCross2 } from "react-icons/rx";
+//   const dispatch = useDispatch();
 
-import { deleteCustomColumn } from "../../redux/cardDragableSlice";
-import { setElementInCustomColumns } from "../../redux/cardDragableSlice";
-import { setCustomClumnsExtraPadding } from "../../redux/condtionalCssSlice";
-import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
-import { setElementPaddingTop } from "../../redux/condtionalCssSlice";
-import { addElementAtLocation } from "../../redux/cardDragableSlice";
-import { replaceDroppedItem } from "../../redux/cardDragableSlice";
+//   const structures = [
+//     { id: "1-column", name: "1-column", label: "1 Column"},
+//     { id: "2-columns", name: "2-columns", label: "2 Columns" },
+//     { id: "3-columns", name: "3-columns", label: "3 Columns" },
+//   ];
 
-// Component Mapping
-const componentMap = {
-  Text: (props) => <Text {...props} />,
-  Image: (props) => <Image {...props} />,
-  Button: (props) => <Button {...props} />,
-  TextArea: (props) => <TextArea {...props} />,
-  Divider: (props) => <Divider {...props} />,
-  SocialMedia: (props) => <SocialMedia {...props} />,
-  Space: (props) => <Space {...props} />,
-};
+//   const onClickHandle = (structureId, name, e) =>{
+//     e.stopPropagation();
+//     console.log("structureId: ",structureId);
+
+//     dispatch(setActiveEditor("sectionEditor"));
+//     dispatch(setActiveWidgetName(name));
+//     if(name === '1-column'){
+//       dispatch(setDroppedItems({id:  Date.now(), name: name, parentId: id, type: "1-column"}));
+//     }
+//     else if(name === '2-columns'){
+//       dispatch(setDroppedItems({id:  Date.now(), name: name, parentId: id, type: "2-columns"}));
+//     }
+//     else if(name === '3-columns'){
+//       dispatch(setDroppedItems({id:  Date.now(), name: name, parentId: id, type: "3-columns"}));
+//     }
+//     onAdd(structureId);
+
+//     dispatch(setActiveBorders(true));
+
+//   }
+
+//   return (
+//     <div className="grid grid-cols-3 gap-6">
+//       {structures.map((structure) => (
+//         <button
+//           key={structure.id}
+//           onClick={(e) => onClickHandle(structure.id, structure.name, e)}
+//           className="rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 hover:from-blue-50 hover:to-blue-100 hover:shadow-lg transition-all duration-300 relative group"
+//         >
+//           {/* Container for the visualization */}
+//           <div
+//             className={`w-full h-20 border-2 border-dotted border-gray-300 rounded-lg bg-white flex items-center justify-center overflow-hidden pl-3 pr-3 ${
+//               structure.id === "1-column"
+//                 ? "grid-cols-1"
+//                 : structure.id === "2-columns"
+//                 ? "grid-cols-2"
+//                 : "grid-cols-3"
+//             }`}
+//             style={{
+//               display: "grid",
+//               gap: "8px",
+//             }}
+//           >
+//             {/* Visualizing the structure */}
+//             {Array.from(
+//               { length: structure.id === "1-column" ? 1 : structure.id === "2-columns" ? 2 : 3 },
+//               (_, index) => (
+//                 <div
+//                   key={index}
+//                   className="w-full h-16 bg-gradient-to-r from-gray-200 to-gray-300 rounded-md shadow-sm transition-transform group-hover:scale-105 group-hover:from-blue-200 group-hover:to-blue-300"
+//                 ></div>
+//               )
+//             )}
+//           </div>
+//           {/* Subtle overlay effect */}
+//           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-blue-500 bg-opacity-10 rounded-lg transition duration-300"></div>
+//         </button>
+//       ))}
+//     </div>
 
 
-const CustomColumns = ({ id }) => {
 
-  const [resizingIndex, setResizingIndex] = useState(null);
-  const [localColumns, setLocalColumns] = useState([]);
-  const [showWidthPercentage, setShowWidthPercentage] = useState(false);
-  const [popup, setPopup] = useState({ visible: false, x: 0, y: 0, columnId: null });
-  const [hoverColumn, setHoverColumn] = useState({parentId: null, column: null});
-  const [isDragging, setIsDragging] = useState(false); 
-  const [paddingTop, setPaddingTop] = useState(null);
 
+//   );
+// };
+
+// export default StructurePopup;
+
+
+
+// *************************************************************************************************************
+import React, { useState } from "react";
+import { setActiveEditor } from "../redux/cardToggleSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { setActiveWidgetName, setDroppedItems, addCustomColumns } from "../redux/cardDragableSlice";
+import { setActiveBorders } from "../redux/activeBorderSlice";
+
+const StructurePopup = ({ onClose, onAdd, id }) => {
   const dispatch = useDispatch();
-  const customColumnRef = useRef(null);
-  const columnRef = useRef();
+  const [columnCount, setColumnCount] = useState(4); // Tracks number of custom columns
+  const { droppedItems } = useSelector((state) => state.cardDragable);
 
-  // Fetch the custom column data from Redux state
-  const { 
-    droppedItems, 
-    activeWidgetId, 
-    activeWidgetName, 
-    activeRightClick, 
-    activeParentId, 
-    activeColumn, 
-    widgetOrElement,
-   } = useSelector((state) => state.cardDragable);
-   
-  const {customClumnsExtraPadding, smallGapInTop} = useSelector((state) => state.coditionalCssSlice);
-  const columnData = droppedItems.find((item) => item.id === id);
+  const structures = [
+    { id: "1-column", name: "1-column", label: "1 Column" },
+    { id: "2-columns", name: "2-columns", label: "2 Columns" },
+    { id: "3-columns", name: "3-columns", label: "3 Columns" },
+    { id: "custom-columns", name: "custom-columns", label: "Custom Columns" },
+  ];
 
-  if (!columnData || columnData.columnCount < 1) {
-    return <div>No columns to display</div>;
-  }
+  const onClickHandle = (structureId, name, e) => {
+    // e.stopPropagation();
+    console.log("onClickHandle called in Structure Popup");
 
-  useEffect( ()=>{
-    dispatch(setActiveParentId(id));
-  }, [])
+    dispatch(setActiveEditor("sectionEditor"));
+    dispatch(setActiveWidgetName(name));
 
-  const handleResizeMouseDown = (index) => (e) => {
-    e.preventDefault();
-    setResizingIndex(index);
-    setShowWidthPercentage(true);
-
-    dispatch(setActiveWidgetId(null));
-  };
-
-  const handleResizeMouseMove = (e) => {
-    if (resizingIndex === null) return;
-  
-    const containerWidth = customColumnRef.current.offsetWidth;
-    const deltaX = e.movementX; // Mouse movement in pixels
-  
-    setLocalColumns((prevColumns) => {
-      const newColumns = [...prevColumns];
-      const leftColumn = newColumns[resizingIndex].data.styles;
-      const rightColumn = newColumns[resizingIndex + 1].data.styles;
-  
-      let newLeftWidth = parseFloat(leftColumn.width) + (deltaX / containerWidth) * 100;
-      let newRightWidth = parseFloat(rightColumn.width) - (deltaX / containerWidth) * 100;
-  
-      // Enforce minimum width to prevent collapse
-      if (newLeftWidth < 5) {
-        newRightWidth += newLeftWidth - 5;
-        newLeftWidth = 5;
-      } else if (newRightWidth < 5) {
-        newLeftWidth += newRightWidth - 5;
-        newRightWidth = 5;
-      }
-  
-      // Apply smooth transition styles
-      leftColumn.width = `${newLeftWidth.toFixed(2)}%`;
-      rightColumn.width = `${newRightWidth.toFixed(2)}%`;
-  
-      return newColumns;
-    });
-  };
-
-  const handleResizeMouseUp = () => {
-    if (resizingIndex === null) return;
-  
-    setResizingIndex(null);
-    setShowWidthPercentage(false);
-  
-    // Get the updated column widths from local state
-    const updatedColumns = [...localColumns];
-    const leftColumnKey = updatedColumns[resizingIndex].key;
-    const rightColumnKey = updatedColumns[resizingIndex + 1].key;
-  
-    const leftColumnWidth = parseFloat(updatedColumns[resizingIndex].data.styles.width);
-    const rightColumnWidth = parseFloat(updatedColumns[resizingIndex + 1].data.styles.width);
-  
-    // Dispatch updated widths to Redux with a slight delay for smoother UX
-    setTimeout(() => {
-      dispatch(updateColumnWidth({ parentId: id, columnKey: leftColumnKey, width: leftColumnWidth }));
-      dispatch(updateColumnWidth({ parentId: id, columnKey: rightColumnKey, width: rightColumnWidth }));
-    }, 100);
-  };
-
-  
-  useEffect(() => {
-    if (resizingIndex !== null) {
-      document.addEventListener("mousemove", handleResizeMouseMove);
-      document.addEventListener("mouseup", handleResizeMouseUp);
-    }
-    return () => {
-      document.removeEventListener("mousemove", handleResizeMouseMove);
-      document.removeEventListener("mouseup", handleResizeMouseUp);
-    };
-  }, [resizingIndex]);
-
-  useEffect(() => {
-    if (columnData) {
-      const updatedColumns = Object.keys(columnData)
-        .filter((key) => key.startsWith("children"))
-        .map((key) => ({
-          key,
-          data: { ...columnData[key][0], styles: { ...columnData[key][0].styles } },
-        }));
-      setLocalColumns(updatedColumns);
-    }
-  }, [columnData]);
-
-
-
-  useEffect(() => {
-    // Click outside listener
-    const handleClickOutside = (e) => {
-      if (
-        customColumnRef.current &&
-        !customColumnRef.current.contains(e.target) &&
-        !customColumnRef.current.contains(e.target)
-      ) {
-        setPopup({ visible: false, x: 0, y: 0, columnKey: null });
-      }
-    };
-  
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-  
-
-  
-
-  const handleRightClick = (e, columnKey) => {
-    e.preventDefault();
-  
-    const containerRect = customColumnRef.current.getBoundingClientRect();
-    const popupWidth = 150; // Estimated popup width
-    const popupHeight = 100; // Estimated popup height
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-  
-    // Calculate the initial popup position
-    let popupX = e.clientX - containerRect.left;
-    let popupY = e.clientY - containerRect.top;
-  
-    // Adjust if the popup goes out of the viewport horizontally
-    if (e.clientX + popupWidth > viewportWidth) {
-      popupX -= popupWidth; // Shift to the left
-    }
-  
-    // Adjust if the popup goes out of the viewport vertically
-    if (e.clientY + popupHeight > viewportHeight) {
-      popupY -= popupHeight; // Shift upward
-    }
-  
-    // Pass column key (e.g., childrenB) instead of the column ID
-    setPopup({ visible: true, x: popupX, y: popupY, columnKey });
-
-    dispatch(setActiveRightClick(true));
-    dispatch(setActiveParentId(id));
-    dispatch(setActiveColumn(columnKey));
-  };
-  
-  //********************************************************************************************************************* */ 
-  const onclickHandler = (e)=>{
-    e.stopPropagation();
-    dispatch(setActiveParentId(id));
-    dispatch(setActiveRightClick(true));
-    dispatch(setActiveWidgetId(null));
-    dispatch(setActiveColumn(null));
-
-    console.log("onclickHandler called in custom-COLUMNS: ",id)
-  }
-
-  const onDragStart = (e) => {
-    e.stopPropagation();
-    e.dataTransfer.setData(
-      "text/plain",
-      JSON.stringify({
-        id,
-        name: "customColumns",
-        dragableName: "dragableColumn"
-      })
-    );
-    e.dataTransfer.effectAllowed = "move";
-    
-    // *******************************************
-    const dragPreview = document.createElement("div");
-    dragPreview.style.width = `${customColumnRef.current.offsetWidth}px`;
-    dragPreview.style.height = `${customColumnRef.current.offsetHeight}px`;
-    dragPreview.style.backgroundColor = currentStyles.backgroundColor || "#e0e0e0";
-    dragPreview.style.border = "2px solid #1d4ed8"; // Same as active border color
-    dragPreview.style.borderRadius = currentStyles.borderRadius || "4px";
-    dragPreview.style.opacity = "0.8"; // Slightly translucent
-    dragPreview.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)";
-    dragPreview.style.display = "flex";
-    dragPreview.style.alignItems = "center";
-    dragPreview.style.justifyContent = "center";
-    dragPreview.style.color = "#1d4ed8";
-    dragPreview.style.fontSize = "16px";
-    dragPreview.style.fontWeight = "bold";
-    dragPreview.innerText = "custom-columns"; // Optional: Add text
-
-    document.body.appendChild(dragPreview);
-
-    // Set the custom drag image
-    e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
-
-    // Cleanup after drag starts
-    setTimeout(() => {
-      document.body.removeChild(dragPreview);
-    }, 0);
-  // ******************************************
-
-    dispatch(setWidgetOrElement("column"));
-    dispatch(setSmallGapInTop(true));
-  };
-  // ***********************************************************************
-  const findStylesById = (items, widgetId) => {
-    for (const item of items) {
-      // Check if the current item's ID matches the widgetId
-      if (item.id === widgetId) {
-        return item.styles || {};
-      }
-  
-      // Dynamically check for nested children keys (e.g., childrenA, childrenB)
-      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
-      for (const key of nestedKeys) {
-        const styles = findStylesById(item[key], widgetId); // Recursively search in the children
-        if (styles) {
-          return styles;
-        }
-      }
-    }
-  
-    return null; // Return null if no matching widgetId is found
-  };
-  const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
-  console.log("currentStyles in custom-column: ",currentStyles);
-  // ****************************************************************************
-  const handlePopupDelete = () => {
-    if (!popup.columnKey) return;
-  
-    // Dispatch the action with the column key
-    dispatch(deleteCustomColumn({ parentId: id, columnKey: popup.columnKey }));
-  
-    // Close the popup
-    setPopup({ visible: false, x: 0, y: 0, columnKey: null });
-  
-    console.log(`Deleted column: ${popup.columnKey} from parent: ${id}`);
-  };
-  
-
-  const handlePopupDuplicate = () => {
-    if (!popup.columnKey) return;
-  
-    // Dispatch the action with the column key
-    dispatch(duplicateCustomColumn({ parentId: id, columnKey: popup.columnKey }));
-  
-    // Close the popup
-    setPopup({ visible: false, x: 0, y: 0, columnKey: null });
-  
-    console.log(`Duplicated column: ${popup.columnKey} for parent: ${id}`);
-  };
-  
-  
-
-  if (!columnData) {
-    return <div>Loading...</div>; // Prevent early return
-  }
-  
-  if (columnData.columnCount < 1) {
-    return <div>No columns to display</div>; // Handle empty columns
-  }
-
-  
-// ***************************************************************************************************** drag and drop funtionality
-const handleDragOver = (e, parentId, column) => {
-  e.preventDefault();
-  setHoverColumn({parentId, column});
-  dispatch(setCustomClumnsExtraPadding(true));
-
-};
-const handleDrop = (columnKey) => (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  setHoverColumn({parentId: null, column: null});
-  setIsDragging(false);
-  dispatch(setCustomClumnsExtraPadding(false));
-  dispatch(setElementPaddingTop(null));
-
-  // Prefill content and styles based on activeWidgetName
-  let content = null;
-  let styles = {};
-  if (activeWidgetName === 'Text') {
-    content = "Lorem Ipsum";
-  } else if (activeWidgetName === 'TextArea') {
-      content = "Liven up your web layout wireframes and mockups with one of these lorem ipsum generators.";
-      styles = {height: "85px"}
-  }
-
-  // Safely parse dropped data
-  let droppedData = null;
-  try {
-    droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-    console.log("droppedData in columnTwo: ",droppedData);
-  } catch (error) {
-    console.error("Failed to parse dropped data:", error);
-    return;
-  }
-
-  if(!['1-column','2-columns', '3-columns'].includes(droppedData?.name)){
-        if(widgetOrElement === 'element'){
-            dispatch(
-              setElementInCustomColumns({
-                parentId: id, // ID of the parent customColumns item
-                columnKey, // The column key where the item is dropped (e.g., "childrenA")
-                droppedData: {
-                  id: Date.now(),
-                  name: droppedData.name,
-                  content: droppedData.content || "Default Content",
-                  styles: droppedData.styles || {},
-                },
-              })
-            );
-      
-            dispatch(deleteDroppedItemById(
-              {
-                parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
-                childId: droppedData.parentId ?  droppedData.id : null, 
-                columnName: droppedData.column ? droppedData.column : null}
-            ));
-        }
-        else{
-          dispatch(
-            setElementInCustomColumns({
-              parentId: id, // ID of the parent customColumns item
-              columnKey, // The column key where the item is dropped (e.g., "childrenA")
-              droppedData: {
-                id: Date.now(),
-                name: activeWidgetName,
-                content: content || "Default Content",
-                styles: styles,
-              },
-            })
-          );
-        }
-      }
-      else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
-        return;
-      }
-
-
-  console.log(`Dropped item into column: ${columnKey}`);
-};
-
-const onDragEnter = (e) =>{
-  e.stopPropagation();
-
-  if (!isDragging) {
-    // setPaddingTop(true);
-    setIsDragging(true);
-    dispatch(setActiveBorders(true)); // Add active borders for visual feedback
-    dispatch(setCustomClumnsExtraPadding(true)); // Optional Redux state update
-  }
-}
-
-const handleEnter = () =>{
-  dispatch(setCustomClumnsExtraPadding(true));
-}
-const handleLeave = (e, ref)=>{
-  
-  if(ref && ref.current && (!e.relatedTarget || !ref.current.contains(e.relatedTarget))){
-    setHoverColumn({parentId: null, column: null});
-    setIsDragging(false);
-    dispatch(setCustomClumnsExtraPadding(false));
-  }
-}
-
- //******************************************************************************** drop Into PaddingTop */
-    const dropInPaddingTop = (e)=>{
-      e.stopPropagation();
-
-      const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-
-      setIsDragging(false);
-      setPaddingTop(null);
-
-
-      if(widgetOrElement && widgetOrElement==='widget'){
+    if (name === "1-column") {
+      dispatch(setDroppedItems({ id: Date.now(), name: name, parentId: id, type: "1-column" }));
+    } else if (name === "2-columns") {
+      dispatch(setDroppedItems({ id: Date.now(), name: name, parentId: id, type: "2-columns" }));
+    } else if (name === "3-columns") {
+      dispatch(setDroppedItems({ id: Date.now(), name: name, parentId: id, type: "3-columns" }));
+    } else if (name === "custom-columns") {
+      // Handle custom columns
+      if (columnCount > 0) {
         dispatch(
-          addElementAtLocation({
-            draggedNodeId: Date.now(), 
-            draggedName: droppedData.name, 
-            dragableType: droppedData.type,
-            
-            targetParentId: null, 
-            targetColumn: null, 
-            targetNodeId: id, 
+          addCustomColumns({
+            id: Date.now(),
+            name: "customColumns",
+            columnCount, // Specify the number of columns
+            parentId: id
           })
-        )
-      }
-      else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
-
-        if(droppedData.parentId){
-          dispatch(
-            addElementAtLocation({
-              draggedNodeId: Date.now(), 
-              draggedName: droppedData.name, 
-              dragableType: droppedData.type,
-              styles: droppedData.styles, 
-              content: droppedData.content, 
-              
-              targetParentId: null, 
-              targetColumn: null, 
-              targetNodeId: id, 
-            })
-          )
-          dispatch(deleteDroppedItemById(
-            {
-              parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-              childId: droppedData.parentId ? droppedData.id : null, 
-              columnName: droppedData.column ? droppedData.column : null }
-          ));
-
-        }
-        else{
-          dispatch(
-            replaceDroppedItem({
-              parentId: null,
-              column: null,
-              draggedNodeId: droppedData.id,
-              targetNodeId: id,
-            }) 
-          );
-        }
+        );
+        console.log("Custom Columns Added: ", columnCount);
+        onClose(); // Close the popup
+      } else {
+        console.warn("Invalid column count. Must be greater than 0.");
       }
     }
 
-    const enterInPaddingTop = (e)=>{
-      e.stopPropagation();
-      console.log("enterInTop called");
-      setPaddingTop(true);
+    if (name !== "custom-columns") {
+      onAdd(structureId);
+      dispatch(setActiveBorders(true));
     }
-    const leaveFromPaddingTop = (e)=>{
-      e.stopPropagation();
-      console.log("leaveFromTop called");
-      setPaddingTop(null);
-    }
-    const dragOverOnPaddingTop = (e) =>{
-      e.stopPropagation();
-      console.log("dragOverOnTop called");
-      setPaddingTop(true);
-    }
-    
-  // *********************************************************************************************
-    
-  
-  
+  };
 
   return (
-    <div
-      onDrop={dropInPaddingTop}
-      onDragEnter={enterInPaddingTop}
-      onDragLeave={leaveFromPaddingTop}
-      ref={customColumnRef}
-      className={`relative grid group bg-transparent ${smallGapInTop ? 'pt-3' : ""}
-        ${activeParentId===id ? 'border-2 border-blue-500 p-2': ""}
-      `}
-      style={{
-        ...(paddingTop
-          ? { 
-              paddingTop: "50px",  
-              position: "relative",
-            } 
-          : { paddingTop: "" }
-        )
-      }}
-      
-      onClick={() => setPopup({ visible: false, x: 0, y: 0, columnId: null })}
-    >
-      <div className="flex w-full h-full relative gap-2" 
-      onClick={onclickHandler}
-      >
-
-        {/* Add this div for border only on extra padding */}
-        {paddingTop && (
-        <div 
-          style={{
-            position: "absolute",
-            top: "-50px",
-            left: 0,
-            width: "100%",
-            height: "50px",
-            backgroundColor: "rgba(173, 216, 230, 0.3)",
-            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",  
-            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)",
-            pointerEvents: "none",
-            zIndex: 10,
-          }}
-        />
-      )}
-
-        {/* *************************************/}
-        {/* Trapezoid Icon Section */}
-              {(activeParentId === id) && (
-                <div
-                  className={`absolute -top-[29px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center
-                      
-                    `}
-                  style={{
-                    width: "90px", // Base width of the trapezoid
-                    height: "20px", // Adjusted height
-                    clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
-                    borderTopLeftRadius: "8px", // Rounded top-left corner
-                    borderTopRightRadius: "8px", // Rounded top-right corner
-                  }}
-                >
-                  {/* Icon Container */}
-                  <div className="flex items-center justify-between w-full h-full">
-                    {/* Add Icon */}
-                    <button
-                      className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("Add icon clicked");
-                      }}
-                    >
-                      <FiEdit size={12} />
-                    </button>
-        
-                    {/* Drag Icon */}
-                    <button
-                      className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
-                      onClick={(e) => e.stopPropagation()}
-                      draggable
-                      onDragStart={onDragStart}
-                      onDragEnd={()=>{
-                        dispatch(setSmallGapInTop(null));
-                        setPaddingTop(null);
-                      }}
-                    >
-                      <PiDotsSixBold size={16} />
-                    </button>
-        
-                    {/* Delete Icon */}
-                    <button
-                      className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log("id in customColumns: ",id)
-                        dispatch(deleteDroppedItemById(
-                          {
-                            parentId: id, 
-                            childId: null, 
-                            columnName: null}
-                        ));
-                      }}
-                    >
-                      <RxCross2 size={12} />
-                    </button>
-                  </div>
-                </div>
-              )}
-        {/* ***********************************/}
-
-        {localColumns.map((column, index) => (
-          <div
-            ref={columnRef}
-            onDrag={onDragEnter}
-            onDrop={handleDrop(column.key)}
-            onDragOver={(e)=>handleDragOver(e, id, column.key)}
-            onDragLeave={(e)=>handleLeave(e, columnRef)}
-            onClick={onclickHandler}
-            onDragEnter={handleEnter}
-
-    
-            key={column.data.id}
-            className={`relative w-full mb-1 bg-transparent
-              ${id==activeParentId && activeColumn===column.key  ? "border-2 border-blue-500" : ""}
-              
-              ${hoverColumn.parentId===id && hoverColumn.column===column.key ? "border-2 border-dashed border-blue-500" : ""} 
-              ${customClumnsExtraPadding ? "pb-[60px]" : ""}
-
-              ${localColumns.some(col => col.data.children.length > 0) ? 'h-auto' : 'h-[100px]'}
-              ${column.data.children.length === 0 ? "border border-dashed border-blue-500" : ""}
-
-
-            `}
-            onContextMenu={(e) => handleRightClick(e, column.key)}
-            style={{
-              flexBasis: column.data.styles.width,
-              backgroundColor: column.data.styles.backgroundColor, 
-            }}
-            
-            
-          >
-             {/* Render placeholder text if no children */}
-            {!column.data.children?.length && (
-              <p className="text-gray-500">{`${column.key.replace("children", "")}`}</p>
-            )}
-
-            {/* Render Dropped Items */}
-            {column.data.children?.map((child) => (
-              <div key={child.id} className="text-sm p-1 bg-transparent">
-                {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: column.key,  parentName: "customColumns" }) : <div>Unknown Component</div>}
-              </div>
-            ))}
-
-            {showWidthPercentage && (
-              <div className="absolute top-[-20px] left-1/2 transform -translate-x-1/2 text-sm text-gray-700 bg-white px-2 py-1 border rounded shadow z-20">
-                {Math.round(parseFloat(column.data.styles.width))}%
-              </div>
-            )}
-
-            {activeParentId && index < localColumns.length - 1 && (
-              <div
-                className="absolute top-0 right-[-17px] h-full w-6 flex items-center justify-center cursor-col-resize z-10"
-                onMouseDown={handleResizeMouseDown(index)}
-              >
-                <div
-                  className="absolute h-full w-0.5 border-l border-dashed border-gray-400"
-                  style={{
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                  }}
-                ></div>
-
-                <PiDotsSixVerticalBold className="text-black" />
-              </div>
-            )}
-
-          </div>
-        ))}
-      </div>
-
-      {popup.visible && (
+    <div className="grid grid-cols-3 gap-6">
+      {structures.map((structure) => (
         <div
-        
-        className="absolute z-20 bg-white shadow-md border border-gray-200 rounded-lg transition-all duration-300"
-        style={{
-          top: popup.y,
-          left: popup.x,
-          minWidth: "120px", // Compact size
-          padding: "8px", // Slight padding for spacing
-        }}
-      >
-        {/* Popup Actions */}
-        <div className="flex flex-col items-start gap-2">
-          {/* Duplicate Button */}
-          <button
-            className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePopupDuplicate(); // Call the duplicate function
+          key={structure.id}
+          onClick={(e) => onClickHandle(structure.id, structure.name, e)}
+          className="rounded-lg bg-gradient-to-r from-gray-100 to-gray-200 hover:from-blue-50 hover:to-blue-100 hover:shadow-lg transition-all duration-300 relative group"
+        >
+          {/* Container for the visualization */}
+          <div
+            className={`w-full h-20 border-2 border-dotted border-gray-300 rounded-lg bg-white flex items-center justify-center overflow-hidden pl-3 pr-3 ${
+              structure.id === "1-column"
+                ? "grid-cols-1"
+                : structure.id === "2-columns"
+                ? "grid-cols-2"
+                : structure.id === "3-columns"
+                ? "grid-cols-3"
+                : ""
+            }`}
+            style={{
+              display: "grid",
+              gap: "8px",
             }}
           >
-            <span className="flex items-center justify-center w-6 h-6 bg-blue-50 text-blue-500 rounded-md shadow-sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m4 10h-2m-6-6v6m0 0l-2-2m2 2l2-2"
-                />
-              </svg>
-            </span>
-            <span className="text-sm text-gray-600">Duplicate</span>
-          </button>
-      
-          {/* Delete Button */}
-          <button
-            className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePopupDelete(); // Call the delete function
-            }}
-          >
-            <span className="flex items-center justify-center w-6 h-6 bg-red-50 text-red-500 rounded-md shadow-sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 13h6m2 0a2 2 0 100-4H7a2 2 0 100 4zm-6 6h12a2 2 0 002-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-            </span>
-            <span className="text-sm text-gray-600">Delete</span>
-          </button>
-        </div>
-      </div>
-      
-      )}
+            {/* For 1, 2, or 3 columns */}
+            {structure.id !== "custom-columns" &&
+              Array.from(
+                {
+                  length:
+                    structure.id === "1-column"
+                      ? 1
+                      : structure.id === "2-columns"
+                      ? 2
+                      : 3,
+                },
+                (_, index) => (
+                  <div
+                    key={index}
+                    className="w-full h-16 bg-gradient-to-r from-gray-200 to-gray-300 rounded-md shadow-sm transition-transform group-hover:scale-105 group-hover:from-blue-200 group-hover:to-blue-300"
+                  ></div>
+                )
+              )}
 
+            {/* ********************************************************************************************** */}
+            
+            {/* Custom Columns Input UI */}
+            {structure.id === "custom-columns" && (
+              <div id="t2" className="flex flex-col items-center justify-center p-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    value={columnCount}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => setColumnCount(Number(e.target.value))}
+                    placeholder="Columns"
+                    className="w-16 border border-gray-300 rounded p-1 text-center"
+                  />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent click propagation
+                      onClickHandle(structure.id, structure.name, e); // Handle Add logic
+                      
+                    }}
+                    className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 transition-all"
+                  >
+                    Add
+                  </button>
+                </div>
+                <span className="text-sm text-gray-500 mt-1">Enter Columns</span>
+              </div>
+            )}
+          </div>
+          {/* Subtle overlay effect */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-blue-500 bg-opacity-10 rounded-lg transition duration-300"></div>
+        </div>
+      ))}
     </div>
   );
 };
 
-export default CustomColumns;
+export default StructurePopup;
+

@@ -33,6 +33,12 @@ import { PiCircleNotchFill } from "react-icons/pi";
 import { replaceDroppedItem } from "../redux/cardDragableSlice";
 import { replaceElementInlast } from "../redux/cardDragableSlice";
 
+import { setHoverColumnInCC } from "../redux/condtionalCssSlice";
+import { setHoverParentInCC } from "../redux/condtionalCssSlice";
+import { setPaddingTopInCC } from "../redux/condtionalCssSlice";
+import { setPaddingBottom } from "../redux/condtionalCssSlice";
+
+
 
 const WrapperAttribute = () => {
 
@@ -40,7 +46,6 @@ const WrapperAttribute = () => {
   const {wrapperExtraPadding} = useSelector((state) => state.coditionalCssSlice);
   const {view} = useSelector( (state) => state.navbar );
 
-  console.log("view in wrapperAttributes: ", view);
 
   const dispatch = useDispatch();
   const [sourceCode, setSourceCode] = useState("");
@@ -61,7 +66,7 @@ const WrapperAttribute = () => {
     // if (!activeWidgetName) return;
 
     const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-    console.log("droppedData in wrapperAttribute: ", droppedData);
+    // console.log("droppedData in wrapperAttribute: ", droppedData);
 
     const defaultContent =
             activeWidgetName === "Text"
@@ -90,7 +95,7 @@ const WrapperAttribute = () => {
         ));
     }
     else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
-      console.log("dragableColumn if else called: ",droppedData.id);
+      // console.log("dragableColumn if else called: ",droppedData.id);
       dispatch(replaceElementInlast(droppedData.id));
     }
     else{
@@ -111,6 +116,13 @@ const WrapperAttribute = () => {
     dispatch(setActiveWidgetName(activeWidgetName));
     dispatch(setActiveWidgetId(activeWidgetId));
     dispatch(setWrapperExtraPadding(false));
+
+    dispatch(setHoverParentInCC(null));
+    dispatch(setHoverColumnInCC(null));
+    dispatch(setPaddingTopInCC(null));
+    dispatch(setPaddingBottom(null));
+
+
   };
 
   // **********************************************************************
@@ -144,11 +156,11 @@ const WrapperAttribute = () => {
   // Render widgets with delete functionality
   const renderWidget = (id, name) => {
 
-    console.log(`renderWidget id: ${id}, name: ${name}`);
+    // console.log(`renderWidget id: ${id}, name: ${name}`);
     let WidgetComponent;
     let additionalStyles = {};
 
-    console.log("name in renderWidget: ",name);
+    // console.log("name in renderWidget: ",name);
   
     switch (name) {
       case "Text":
@@ -198,7 +210,7 @@ const WrapperAttribute = () => {
         e.stopPropagation();
         dispatch(setActiveColumn(null));
         dispatch(setActiveParentId(null));
-        console.log("WrapperAttributes called");
+        // console.log("WrapperAttributes called");
       }}
       >
         {WidgetComponent}
@@ -221,10 +233,10 @@ const WrapperAttribute = () => {
 
           onDrop={handleDrop}
           onDragEnter={() => {
-            console.log(
-              "wrapperExtraPadding*****************: ",
-              wrapperExtraPadding
-            );
+            // console.log(
+            //   "wrapperExtraPadding*****************: ",
+            //   wrapperExtraPadding
+            // );
             dispatch(setWrapperExtraPadding(true));
           }}
           className={`relative w-[668px] max-w-[668px] min-h-[850px] bg-gray-100 rounded-[30px] border-4 border-black shadow-lg overflow-hidden ${
@@ -310,7 +322,6 @@ const WrapperAttribute = () => {
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
             onDragEnter={()=>{
-              // console.log("wrapperExtraPadding*****************: ", wrapperExtraPadding);
               dispatch(setWrapperExtraPadding(true));
             }}
             className={`w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 mb-[300px] absolute hover:border-blue-500 transition-all h-auto
@@ -322,7 +333,6 @@ const WrapperAttribute = () => {
           >
             {/* Render Dropped Items */}
             {droppedItems.map((item) => {
-              console.log("widgetOrElement in wrapperAttribute: ", widgetOrElement);
               if(item){
                 return renderWidget(item.id, item.name);
               }
