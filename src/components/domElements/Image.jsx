@@ -512,7 +512,7 @@ const Image = ({ id, parentId, column, parentName}) => {
         overflow: "visible"
       }}  
       // Removed "flex items-center justify-center" so the image can span the full width
-      className={`relative rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent
+      className={`relative rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent mb-1
           
         ${
           isFocused

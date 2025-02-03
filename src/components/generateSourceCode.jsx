@@ -1,214 +1,241 @@
 // Helper function to generate inline styles
+// export const generateInlineStyles = (styles) => {
+//     return Object.entries(styles)
+//       .map(([key, value]) => `${key}: ${value};`)
+//       .join(" ");
+//   };
+
+// Helper function to generate inline styles in JSX object format with string values
 export const generateInlineStyles = (styles) => {
-    return Object.entries(styles)
-      .map(([key, value]) => `${key}: ${value};`)
-      .join(" ");
-  };
+  return Object.entries(styles).reduce((acc, [key, value]) => {
+    acc[key] = `${value}`; // Ensures all values are stored as strings for JSX
+    return acc;
+  }, {});
+};
+
+// Function to generate styles for `customColumns`
+export const generateCustomColumnStyles = (column) => {
+  return generateInlineStyles(column.styles);
+};
   
-  // Recursive function to generate source code from state
-  export const generateSourceCode = (items) => {
-    return items
-      .map((item) => {
-        const { name, children = [], styles = {}, content, columnCount} = item;
   
-        // Generate inline styles
-        const inlineStyles = generateInlineStyles(styles);
-        console.log("inlineStyles: ", inlineStyles);
+// Recursive function to generate source code from state
+export const generateSourceCode = (items) => {
+  console.log("item in generateSourceCode: ", items);
+  return items
+    .map((item) => {
+      const { name, children = [], styles = {}, content } = item;
+
+      // ✅ Fix: Format styles properly for JSX
+      const inlineStyles = generateInlineStyles(styles);
+      const inlineStylesString = JSON.stringify(inlineStyles)
+        .replace(/"([^"]+)":/g, "$1:")
+        .replace(/"/g, "'") // Convert object to JSX-friendly format
+        .slice(1, -1); // Remove extra `{}`
+
+        console.log("inlineStylesString#####################: ",inlineStylesString);
+
+
+      // *********************************************************
+          const filteredStyles = { ...inlineStyles };
   
-        // Base case for individual widgets
-        let html = "";
-        switch (name) {
-          case "Text":
-            html = `
-            <div style={{ position: \"relative\"}}>
+          // Convert remaining styles to JSX format
+          const filteredInlineStylesString = JSON.stringify(filteredStyles)
+          .replace(/"([^"]+)":/g, "$1:")
+          .replace(/"/g, "'") // Fix JSX formatting
+          .slice(1, -1); // Remove extra `{}`
+      // *******************************************************
+
+      let html = "";
+
+      switch (name) {
+        case "Text":
+          html = `
+            <div style={{ ${inlineStylesString} }} className="mb-2">
               <input
-  
-                type=\"text\"
-                className=\"border p-2 rounded w-full\"
-                placeholder=\"Text Field\"
-                value=\"${content}\"
-                style=\"${inlineStyles}\" 
+                type="text"
+                className="p-2 rounded w-full border-none bg-transparent mb-2"
+                placeholder="Text Field"
+                value="${content}"
+                style={{ ${inlineStylesString} }} 
               />
             </div>
           `;
           break;
-          case "Button":
-            html = `
-              <div className=\"flex justify-center w-full\"  style="backgroundColor: \"${inlineStyles.backgroundColor}\">
-              
-                <div className=\"relative w-full h-[50px] border border-2 border-gray-300 flex items-center p-1\" 
-                          style={{ display: "flex", alignItems: "center", justifyContent: ${inlineStyles.textAlign}, height: "auto" }}>
-                  {(
-                    <button
-                     
-                      style=\"${inlineStyles}\ ${inlineStyles.buttonColor}\" 
-                      className=\"relative bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 text-center\"
-                    >
-                      {currentStyles.content ? currentStyles.content : \"Submit\"}
-                    </button>
-                  )}
-                </div>
-              </div>
-            `;
-            break;
-          case "Image":
-              html = `
-                <div
-                  className=\"border-2 border-gray-300 p-2 rounded-md text-center w-full h-[300px] bg-gray-50 flex items-center justify-center relative overflow-hidden hover:border-blue-400 transition-all duration-300 shadow-sm\"
+
+        case "Button":
+
+          delete filteredStyles.backgroundColor;
+          delete filteredStyles.textAlign;
+          delete filteredStyles.buttonColor;
+          
+          html = `
+            <div className="flex justify-center w-full" style={{ backgroundColor: "${styles.backgroundColor}" }}>
+              <div className="relative w-full h-[50px] flex items-center p-1"
+                   style={{ display: "flex", alignItems: "center", justifyContent: "${styles.textAlign? styles.textAlign : "center"}", height: "auto" }}>
+                <button
+                  style={{ backgroundColor: "${styles.buttonColor}", ${filteredInlineStylesString}  }}
+                  className="relative bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-200 text-center"
                 >
-                  <img
-                      src={imageSrc}
-                      alt=\"Uploaded\"
-                      className=\"w-full h-full object-contain rounded\"
-                      style=\"${inlineStyles}\"
-                    />
-                </div>
-              `;
-              break;
-          case "TextArea":
-            html = `
-              <div>
-                <textarea 
-                className=\"border p-2 rounded w-full\" placeholder=\"Text Area\" 
-                value=\"${content}\"
-                style=\"${inlineStyles}\" 
-                />
+                  ${content || "Submit"}
+                </button>
               </div>
-            `;
-            break;
-          case "Divider":
-            html = `
+            </div>
+          `;
+          break;
+
+        case "Image":
+          delete filteredStyles.imageUrl;
+
+          html = `
+            <div className="rounded-md text-center w-full h-auto flex items-center justify-center
+                            relative overflow-hidden border-none bg-transparent mb-1"
+                 style={{ ${filteredInlineStylesString} }}>
+              <img src="${styles.imageUrl || "placeholder.jpg"}" className="w-full h-full object-contain rounded" />
+            </div>
+          `;
+          break;
+
+        case "TextArea":
+          html = `
+            <div className="mb-2">
+              <textarea 
+                className="p-2 rounded w-full border-none bg-transparent" placeholder="Text Area" 
+                value="${content}"
+                style={{ ${inlineStylesString} }} 
+              />
+            </div>
+          `;
+          break;
+
+        case "Divider":
+          html = `
+            <div style={{ position: "relative" }}  className="mb-2">
+              <hr className="w-full" style={{ ${inlineStylesString} }} />
+            </div>
+          `;
+          break;
+
+        case "Space":
+          html = `
+            <div style={{ width: "100%", height: "1rem", ${inlineStylesString} }}  className="mb-2" ></div>
+          `;
+          break;
+
+        case "SocialMedia":
+          html = `
+            <div style={{ ${inlineStylesString} }}  className="mb-2">
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+                <span style={{ fontSize: "1.25rem", color: "#2563EB" }}>Facebook</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+                <span style={{ fontSize: "1.25rem", color: "#DC2626" }}>Google</span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>
+                <span style={{ fontSize: "1.25rem", color: "#60A5FA" }}>Twitter</span>
+              </div>
+            </div>
+          `;
+          break;
+
+        case "1-column":
+          html = `
+
+            <div
+              className="text-center min-h-[150px] relative group transition-all duration-300 bg-transparent pb-2"
+              style={{ ${inlineStylesString} }}
+            >
               <div
-                style={{ position: "relative" }}
+                className="rounded-md text-center min-h-[150px] p-1 bg-transparent"
               >
-                <hr
-                  className="w-full"
-                  style=\"${inlineStyles}\" 
-                />
+                ${generateSourceCode(children)}
               </div>
-            `;
-            break;
-          case "Space":
-            html = `
-              <div
-                style={{ width: "100%", height: "1rem" }}
-                style=\"${inlineStyles}\" 
-              ></div>
-            `;
-            break;
-          case "SocialMedia":
-            html = `
-                <div style=\"${inlineStyles}\">
-      
-                  <div style={{display: "flex",alignItems: "center",gap: "0.5rem",cursor: "pointer"}} >
-                    <FaFacebook style={{fontSize: "1.25rem",color: "#2563EB"}} />
-                    <span style={{ fontSize: "0.875rem" }}> Facebook </span>
-                  </div>
+            </div>
+          `;
+          break;
 
-                  <div style={{ display: "flex", alignItems: "center",gap: "0.5rem",cursor: "pointer"}}>
-                    <FaGoogle style={{ fontSize: "1.25rem", color: "#DC2626"}} />
-                    <span style={{ fontSize: "0.875rem" }}>Google</span>
-                  </div>
+        case "2-columns":
+          html = `
+            {/*  Main Parent Wrapper */}
+            <div className="relative grid gap-1 group bg-transparent transition-all duration-300"
+                style={{ ${JSON.stringify(inlineStyles).slice(1, -1)} }}>
 
-                  <div
-                    style={{ display: "flex", alignItems: "center",  gap: "0.5rem", cursor: "pointer"}} >
-                    <FaTwitter style={{ fontSize: "1.25rem",  color: "#60A5FA"  }} />
-                    <span style={{ fontSize: "0.875rem" }}>Twitter</span>
-                  </div>
-                </div>
-            `;
-            break;
-          case "1-column":
-            html = `
-              <div
-                className=\"border p-1 bg-white rounded-md text-center min-h-[150px] relative\"
-              >
-                <div className=\"border border-dashed p-1 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]\">
-                    ${generateSourceCode(children)}
-                </div>
+              {/*  Column A */}
+              <div className="rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500"
+                  style={{ ${JSON.stringify(generateInlineStyles(item.childrenA?.[0]?.styles || {})).slice(1, -1)} }}>
+                ${item.childrenA?.map((child) => generateSourceCode([child])).join("") || ``}
               </div>
-            `;
-            break;
-          case "2-columns":
-              html = `
-                <div className=\"relative grid grid-cols-2 gap-1 border p-1 rounded-md bg-white shadow-md hover:shadow-lg transition-all duration-300\">
 
-                  {/* Column A */}
-                  <div
-                    className=\"border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]\"
-                  >
-                    <p className=\"text-gray-500 font-medium mb-2\">Column A</p>
-                    ${generateSourceCode(children)}
-                  </div>
-    
-                  {/* Column B */}
-                  <div
-                    className=\"border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]\"
-                  >
-                    <p className=\"text-gray-500 font-medium mb-2\">Column B</p>
-                    ${generateSourceCode(children)}
-                  </div>
-                </div>
-              `;
-              break;
-          case "3-columns":
-                html = `
-                  <div className=\"relative grid grid-cols-3 gap-1 border p-1 rounded-md bg-white shadow-md hover:shadow-lg transition-all duration-300\">
-                    <div
-                      className=\"border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]\">
-                      ${generateSourceCode(children)}
-                    </div>
-                    <div
-                      className=\"border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]\">
-                      ${generateSourceCode(children)}
-                    </div>
-                    <div
-                      className=\"border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]\">
-                      ${generateSourceCode(children)}
-                    </div>
-                  </div>
-                `;
-                break;
-          case "customColumns":
-            const childKeys = Object.keys(item).filter((key) => key.startsWith("children"));
-            html = `
-                <div className="relative group bg-transparent" style="${inlineStyles}">
-                  <div className="flex w-full h-full relative gap-2">
-                    ${childKeys
-                      .map((childKey) => {
-                        const column = item[childKey][0]; // Get the first column object
-                        const columnStyles = generateInlineStyles(column.styles);
+              {/*  Column B */}
+              <div className="rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500"
+                  style={{ ${JSON.stringify(generateInlineStyles(item.childrenB?.[0]?.styles || {})).slice(1, -1)} }}>
+                ${item.childrenB?.map((child) => generateSourceCode([child])).join("") || ``}
+              </div>
 
-                        return `
-                          <div className="relative w-full bg-transparent" style="${columnStyles}">
-                            ${column.children
-                              .map(
-                                (child) => `
-                                  <div className="text-sm p-1 bg-transparent">
-                                    ${generateSourceCode([child])}
-                                  </div>
-                                `
-                              )
-                              .join("")}
-                          </div>
-                        `;
-                      })
-                      .join("")}
-                  </div>
-                </div>
-            `;
-            break;
-    
-          default:
-            html = `<div style=\"${inlineStyles}\">Unknown Widget</div>`;
-            break;
-        }
-  
-        // Avoid rendering children separately within the parent
-        console.log("html: ",html);
-        return html;
-      })
-      .join("");
-  };
+            </div>
+          `;
+          break;
+
+        case "3-columns":
+          html = `
+            <div className="relative grid grid-cols-3 gap-1 border p-1 rounded-md bg-white shadow-md hover:shadow-lg transition-all duration-300"
+                  style={{ ${inlineStylesString} }}>
+              ${children
+                .map((child, index) => {
+                  const childStyles = JSON.stringify(generateInlineStyles(child.styles))
+                    .replace(/"([^"]+)":/g, "$1:")
+                    .replace(/"/g, "'")
+                    .slice(1, -1); // Fix for JSX format
+        
+                  return `
+                    <div className="border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]"
+                          style={{ ${childStyles} }}>
+                      <p className="text-gray-500 font-medium mb-2">Column ${index + 1}</p>
+                      ${generateSourceCode([child])}
+                    </div>
+                  `;
+                })
+                .join("")}
+            </div>
+          `;
+          break;
+          
+
+        case "customColumns":
+          const childKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+          html = `
+            <div className="relative group bg-transparent" style={{ ${JSON.stringify(inlineStyles).slice(1, -1)} }}>
+              <div className="flex w-full h-full relative gap-2">
+                ${childKeys
+                  .map((childKey) => {
+                    const column = item[childKey][0]; // Get the first column object
+                    const columnStyle = JSON.stringify(generateCustomColumnStyles(column))
+                      .replace(/"([^"]+)":/g, "$1:")
+                      .replace(/"/g, "'"); // Format styles properly for JSX
+
+                    return `
+                      <div className="relative w-full bg-transparent" style={ ${JSON.stringify(columnStyle).slice(1, -1)} }>
+                        ${column.children
+                          .map((child) => generateSourceCode([child]))
+                          .join("")}
+                      </div>
+                    `;
+                  })
+                  .join("")}
+              </div>
+            </div>
+          `;
+          break;
+
+        default:
+          html = `<div style={ ${JSON.stringify(inlineStyles).slice(1, -1)} }>Unknown Widget</div>`;
+          break;
+      }
+
+      return html;
+    })
+    .join("");
+};
+
   
   

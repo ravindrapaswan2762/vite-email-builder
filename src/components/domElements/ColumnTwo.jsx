@@ -450,6 +450,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
     // console.log("droppedItems in columnTwo: ",droppedItems);
     // console.log("activeWidgetName in columnTwo: ",activeWidgetName);
   }}
+  
   style={{
     ...styleWithBackground,
     border: currentStyles.borderType,
@@ -466,6 +467,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
       : { paddingTop: "" }
     )
   }}
+
   onDragOver={(e) => {
     e.stopPropagation();
     onDragOver(e);
@@ -493,65 +495,65 @@ const ColumnTwo = ({ handleDelete, id }) => {
   )}
 
    
-{/* Trapezoid Icon Section */}
-{(activeWidgetId === id) && (
-  <div
-    className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
-    style={{
-      width: "90px", // Base width of the trapezoid
-      height: "20px", // Adjusted height
-      clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
-      borderTopLeftRadius: "8px", // Rounded top-left corner
-      borderTopRightRadius: "8px", // Rounded top-right corner
-    }}
-  >
-    {/* Icon Container */}
-    <div className="flex items-center justify-between w-full h-full">
-      {/* Add Icon */}
-      <button
-        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log("Add icon clicked");
-        }}
-      >
-        <FiEdit size={12} />
-      </button>
+  {/* Trapezoid Icon Section */}
+  {(activeWidgetId === id) && (
+    <div
+      className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
+      style={{
+        width: "90px", // Base width of the trapezoid
+        height: "20px", // Adjusted height
+        clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
+        borderTopLeftRadius: "8px", // Rounded top-left corner
+        borderTopRightRadius: "8px", // Rounded top-right corner
+      }}
+    >
+      {/* Icon Container */}
+      <div className="flex items-center justify-between w-full h-full">
+        {/* Add Icon */}
+        <button
+          className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+          onClick={(e) => {
+            e.stopPropagation();
+            console.log("Add icon clicked");
+          }}
+        >
+          <FiEdit size={12} />
+        </button>
 
-      {/* Drag Icon */}
-      <button
-        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
-        onClick={(e) => e.stopPropagation()}
-        draggable
-        onDragStart={onDragStart}
-        onDragEnd={()=>{
-          dispatch(setSmallGapInTop(null));
-          setPaddingTop(null);
-        }}
-      >
-        <PiDotsSixBold size={16} />
-      </button>
+        {/* Drag Icon */}
+        <button
+          className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+          onClick={(e) => e.stopPropagation()}
+          draggable
+          onDragStart={onDragStart}
+          onDragEnd={()=>{
+            dispatch(setSmallGapInTop(null));
+            setPaddingTop(null);
+          }}
+        >
+          <PiDotsSixBold size={16} />
+        </button>
 
-      {/* Delete Icon */}
-      <button
-        className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDeleteChild(id);
+        {/* Delete Icon */}
+        <button
+          className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDeleteChild(id);
 
-          dispatch(deleteDroppedItemById(
-            {
-              parentId: id, 
-              childId: null, 
-              columnName: null}
-          ));
-        }}
-      >
-        <RxCross2 size={12} />
-      </button>
+            dispatch(deleteDroppedItemById(
+              {
+                parentId: id, 
+                childId: null, 
+                columnName: null}
+            ));
+          }}
+        >
+          <RxCross2 size={12} />
+        </button>
+      </div>
     </div>
-  </div>
-)}
+  )}
 
 
 
@@ -630,6 +632,7 @@ const ColumnTwo = ({ handleDelete, id }) => {
       </>
     )}
   </div>
+
 </div>
 
   );

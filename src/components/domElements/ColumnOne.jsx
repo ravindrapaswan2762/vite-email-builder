@@ -419,7 +419,7 @@ const ColumnOne = ({ handleDelete, id }) => {
 
       
    
-      className={`text-center min-h-[150px] relative group transition-all duration-300 
+      className={`text-center min-h-[150px] relative group transition-all duration-300
         ${smallGapInTop ? 'pt-3' : ""}
         ${activeWidgetId===id ? 'border-2 border-blue-500 p-2': ""}
       `}
