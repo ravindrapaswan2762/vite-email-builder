@@ -10,6 +10,7 @@ import activeBorderSlice from './redux/activeBorderSlice';
 import treeViewSlice from './redux/treeViewSlice';
 import exchangeElePosSlice from './redux/exchangeElePosSlice';
 import conditionalCssSlice from './redux/condtionalCssSlice';
+import attributesSlice from './redux/attributesSlice';
 
 
 export const store = configureStore({
@@ -23,6 +24,7 @@ export const store = configureStore({
     treeViewSlice: treeViewSlice,
     elementPosition: exchangeElePosSlice,
     coditionalCssSlice: conditionalCssSlice,
+    attributes: attributesSlice,
   },
 });
 

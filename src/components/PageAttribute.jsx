@@ -29,7 +29,8 @@ const PageAttribute = () => {
 
 
   const onClickHandle = (e) => {
-    // e.stopPropagation();
+    e.stopPropagation();
+    e.preventDefault();
     dispatch(setActiveWidgetName("pageAttribute"))
     dispatch(setActiveEditor("pageAttribute"))
 
@@ -57,7 +58,7 @@ const PageAttribute = () => {
   return (
     <div
       className={`w-full h-full border-2 border-blue-300 rounded-lg bg-gray-100 flex flex-col items-center hover:border-blue-500 transition-all relative
-        h-screen overflow-y-auto`}
+        h-screen overflow-y-auto pt-2`}
       style={{ paddingBottom: "10px", height: "100vh", position: "relative",
       }}
       onClick={onClickHandle}

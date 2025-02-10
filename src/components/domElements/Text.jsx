@@ -6,7 +6,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { updateElementContent } from "../../redux/cardDragableSlice";
 
 import { AiOutlineDrag } from "react-icons/ai";
-import { replaceDroppedItem} from "../../redux/cardDragableSlice";
 
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
@@ -18,10 +17,15 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 import { setActiveRightClick } from "../../redux/cardDragableSlice";
-import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
-import { addElementAtLocationInCC } from "../../redux/cardDragableSlice";
 
+import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
+import { replaceDroppedItemInWS } from "../../redux/cardDragableSlice";
+import { replaceDroppedItem} from "../../redux/cardDragableSlice";
+import { addElementAtLocationInCC } from "../../redux/cardDragableSlice";
+import { addElementAtLocationInWS } from "../../redux/cardDragableSlice";
 import { addElementAtLocation } from "../../redux/cardDragableSlice";
+
+
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 import { PiDotsSixBold } from "react-icons/pi";
@@ -72,29 +76,30 @@ const Text = ({ id, parentId, column, parentName}) => {
 
   // ********************************************************************************************************************
   // Recursive function to find the content based on activeWidgetId 
-  const findContentById = (items, widgetId) => {
-    for (const item of items) {
-      if (item.id === widgetId) {
-        return item.content || "";
-      }
-
-      // Check for children arrays (children, childrenA, childrenB, etc.)
-      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
-      for (const key of nestedKeys) {
-        const content = findContentById(item[key], widgetId);
-        if (content) {
-          return content;
+  // Recursive function to find the content based on activeWidgetId 
+    const findContentById = (items, widgetId) => {
+      for (const item of items) {
+        if (item.id === widgetId) {
+          return item.content || "";
+        }
+  
+        // Check for children arrays (children, childrenA, childrenB, etc.)
+        const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+        for (const key of nestedKeys) {
+          const content = findContentById(item[key], widgetId);
+          if (content) {
+            return content;
+          }
         }
       }
-    }
-    return "";
-  };
-
-  useEffect(() => {
-    const currentContent = findContentById(droppedItems, id);
-    console.log("currentContent ",currentContent);
-    setVal(currentContent);
-  }, [droppedItems, id]); 
+      return "";
+    };
+  
+    useEffect(() => {
+      const currentContent = findContentById(droppedItems, id);
+      setVal(currentContent);
+    }, []); 
+   
 
   // ******************************************************************************************************************
 
@@ -118,14 +123,15 @@ const Text = ({ id, parentId, column, parentName}) => {
 
   const onChangeHandle = (e) => {
     const updatedValue = e.target.value;
+    console.log("updatedValue: ",updatedValue);
     setVal(updatedValue);
 
     dispatch(
       updateElementContent({
-        id,
-        content: updatedValue,
-        ...(activeParentId && { parentId: activeParentId }),
-        ...(activeColumn && { column: activeColumn }),
+        id, 
+        parentId, 
+        column, 
+        content: updatedValue
       })
     );
   };
@@ -255,9 +261,20 @@ const Text = ({ id, parentId, column, parentName}) => {
             }) 
           );
         }
+        else if(parentName==='widgetSection'){
+          console.log("parentName === widgetSection");
+          dispatch(
+            replaceDroppedItemInWS({
+              parentId: parentId || null,
+              column: column || null,
+              draggedNodeId: droppedData.id,
+              targetNodeId: id,
+            }) 
+          );
+        }
         else{
           // 1-column, or 2-columns or 3-columns is same as parent
-          console.log("parentName !== customColumnssss")
+          console.log("parentName === normal section")
           dispatch(
             replaceDroppedItem({
               parentId: parentId || null,
@@ -293,6 +310,29 @@ const Text = ({ id, parentId, column, parentName}) => {
                 columnName: droppedData.column ? droppedData.column : null}
             ));
         }
+        else if(parentName === 'widgetSection'){
+          console.log("dragable parent not same, but current parent is widgetSection");
+          dispatch(
+            addElementAtLocationInWS({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              styles: droppedData.styles, 
+              content: droppedData.content, 
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+    
+          dispatch(deleteDroppedItemById(
+            {
+              parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
+              childId: droppedData.parentId ?  droppedData.id : null, 
+              columnName: droppedData.column ? droppedData.column : null}
+          ));
+        }
         // dragable parent not same, but parent is "1-column or 2-columns or 3-columns"
         else{
           console.log("IF PART CALLED 3");
@@ -324,55 +364,54 @@ const Text = ({ id, parentId, column, parentName}) => {
     }
     // columns droping on element
     else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
-      console.log("COLUMN DROPES ON ELEMENT");
-      dispatch(
-        replaceDroppedItem({
-          parentId: null,
-          column: null,
-          draggedNodeId: droppedData.id,
-          targetNodeId: id,
-        })
-      );
-
+      // nothing to do
     }
     else{
       // for droped widgets from left panel
-      console.log("ELSE PART CALLED");
-      if(parentName === 'customColumns'){
-        dispatch(
-          addElementAtLocationInCC({
-            draggedNodeId: Date.now(), 
-            draggedName: droppedData.name, 
-            dragableType: droppedData.type,
-            styles: droppedData.styles, 
-            content: droppedData.content, 
-            
-            targetParentId: parentId, 
-            targetColumn: column, 
-            targetNodeId: id, 
-          })
-        )
-  
-        dispatch(deleteDroppedItemById(
-          {
-            parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
-            childId: droppedData.parentId ?  droppedData.id : null, 
-            columnName: droppedData.column ? droppedData.column : null}
-        ));
-      }
-      else{
-        dispatch(
-          addElementAtLocation({
-            draggedNodeId: Date.now(), 
-            draggedName: droppedData.name, 
-            dragableType: droppedData.type,
-            
-            targetParentId: parentId, 
-            targetColumn: column, 
-            targetNodeId: id, 
-          })
-        )
-      }
+        console.log("parentName: ",parentName);
+        if(parentName==='widgetSection'){
+          dispatch(
+            addElementAtLocationInWS({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              styles: droppedData.styles, 
+              content: droppedData.content, 
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+        }
+        else if(parentName==='customColumns'){
+          dispatch(
+            addElementAtLocationInCC({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              styles: droppedData.styles, 
+              content: droppedData.content, 
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+        }
+        else{
+          dispatch(
+            addElementAtLocation({
+              draggedNodeId: Date.now(), 
+              draggedName: droppedData.name, 
+              dragableType: droppedData.type,
+              
+              targetParentId: parentId, 
+              targetColumn: column, 
+              targetNodeId: id, 
+            })
+          )
+        }
       
     }
 
@@ -422,18 +461,13 @@ const Text = ({ id, parentId, column, parentName}) => {
   };
 
   // **********************************************************************************
-  const handleRightClick = (event) => {
-    event.preventDefault(); // Prevent the default context menu from showing
-    
-    dispatch(setActiveRightClick(true));
-    dispatch(setActiveWidgetId(null));
+  const handleRightClick = () =>{
+    dispatch(setActiveWidgetId(id));
     dispatch(setActiveParentId(parentId));
     dispatch(setActiveColumn(column));
 
-    console.log("handleRightClick in text");
-    setHoveredElement(false);
-
-  };
+    setIsFocused(true);
+  }
 
 
   return (
@@ -461,71 +495,6 @@ const Text = ({ id, parentId, column, parentName}) => {
 
     >
 
-
-      {/* Trapezoid Icon Section */}
-      {(activeWidgetId === id) && (
-        <div
-          className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
-          style={{
-            width: "90px", // Base width of the trapezoid
-            height: "20px", // Adjusted height
-            clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
-            borderTopLeftRadius: "8px", // Rounded top-left corner
-            borderTopRightRadius: "8px", // Rounded top-right corner
-          }}
-        >
-          {/* Icon Container */}
-          <div className="flex items-center justify-between w-full h-full">
-            {/* Add Icon */}
-            <button
-              className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("Add icon clicked");
-              }}
-            >
-              <FiEdit size={12} />
-            </button>
-
-            {/* Drag Icon */}
-            <button
-              className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
-              onClick={(e) => e.stopPropagation()}
-              draggable
-              onDragStart={onDragStart}
-              onDragEnd={()=>{
-                console.log("onDragEnd called in  text*******************************************************************************")
-                dispatch(setSmallGapInTop(null));
-                setExtraGap(null);
-
-                dispatch(setHoverParentInCC(null));
-                dispatch(setHoverColumnInCC(null));
-                dispatch(setPaddingTopInCC(null));
-                dispatch(setPaddingBottom(null));
-              }}
-            >
-              <PiDotsSixBold size={16} />
-            </button>
-
-            {/* Delete Icon */}
-            <button
-              className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(deleteDroppedItemById(
-                  {
-                    parentId: parentId ? parentId : id, 
-                    childId: parentId ? id : null, 
-                    columnName: column ? column : null}
-                ));
-              }}
-            >
-              <RxCross2 size={12} />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Add this div for border only on extra padding */}
       {extraGap && (
         <div 
@@ -546,6 +515,29 @@ const Text = ({ id, parentId, column, parentName}) => {
         />
       )}
 
+      {/* 🔹 Small Rectangular Box in the Top-Right Corner */}
+        {hoveredElement && (
+          <div
+          className="absolute top-0 right-0 w-[25px] h-[20px] bg-blue-400 flex items-center justify-center cursor-grab shadow-md"
+          style={{
+            zIndex: 10
+          }}
+          draggable
+          onDragStart={onDragStart}
+          onDragEnd={()=>{
+            dispatch(setSmallGapInTop(null));
+            setExtraGap(null);
+
+            dispatch(setHoverParentInCC(null));
+            dispatch(setHoverColumnInCC(null));
+            dispatch(setPaddingTopInCC(null));
+            dispatch(setPaddingBottom(null));
+          }}
+        >
+          <PiDotsSixBold size={12} className="text-black" />
+        </div>
+        )}
+
 
 
       {/* Input Field */}
@@ -556,7 +548,7 @@ const Text = ({ id, parentId, column, parentName}) => {
         onChange={onChangeHandle}
         type="text"
         className={`p-2 w-full transition-all duration-300 ${
-          isFocused ? "border rounded border-gray-300" : "border-none bg-transparent"
+          isFocused ? "border rounded border-gray-300" : ""
         }  focus:outline-none focus:ring-0 bg-transparent
         `}
         placeholder="Text Field"

@@ -20,6 +20,14 @@ const Widget = ({ id, name, icon: Icon }) => {
   // Check if the current widget is active
   const isActive = activeWidgetId === id;
 
+  const defaultContent =
+            name === "Text"
+              ? "Design Beautiful Emails."
+              : name === "TextArea"
+              ? "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns."
+              : null; // Default to null if no specific content is neededcc
+  
+
   return (
     <div
       draggable
@@ -32,7 +40,8 @@ const Widget = ({ id, name, icon: Icon }) => {
             id,
             parentId: activeParentId || null,
             column: activeColumn || null,
-            type: "widget"
+            type: "widget",
+            content: defaultContent
           })
         );
         e.dataTransfer.effectAllowed = "move"; // Allow move

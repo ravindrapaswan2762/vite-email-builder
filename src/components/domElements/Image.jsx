@@ -19,14 +19,17 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 import { setElementPaddingTop } from "../../redux/condtionalCssSlice";
+
+import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
+import { replaceDroppedItemInWS } from "../../redux/cardDragableSlice";
 import { addElementAtLocationInCC } from "../../redux/cardDragableSlice";
+import { addElementAtLocationInWS } from "../../redux/cardDragableSlice";
+import { addElementAtLocation } from "../../redux/cardDragableSlice";
 
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
-import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 import { setActiveRightClick } from "../../redux/cardDragableSlice";
-import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
 import { setCustomClumnsExtraPadding } from "../../redux/condtionalCssSlice";
 
 import { PiDotsSixBold } from "react-icons/pi";
@@ -304,65 +307,133 @@ const Image = ({ id, parentId, column, parentName}) => {
           console.log("parentName in text: ",parentName);
       
           if(widgetOrElement && widgetOrElement === "element"){
-            console.log("IF PART CALLED");
+                          console.log("IF PART CALLED");
+                                      
+                          if(parentId === droppedData.parentId && column===droppedData.column){
+                            // customCollumns as parent is same.
+                            console.log("parentName: ",parentName);
+                            if(parentName === 'customColumns'){
+                              console.log("parentName === customColumns");
+                              dispatch(
+                                replaceDroppedItemInCC({
+                                  parentId: parentId || null,
+                                  column: column || null,
+                                  draggedNodeId: droppedData.id,
+                                  targetNodeId: id,
+                                }) 
+                              );
+                            }
+                            else if(parentName==='widgetSection'){
+                              console.log("parentName === widgetSection");
+                              dispatch(
+                                replaceDroppedItemInWS({
+                                  parentId: parentId || null,
+                                  column: column || null,
+                                  draggedNodeId: droppedData.id,
+                                  targetNodeId: id,
+                                }) 
+                              );
+                            }
+                            else{
+                              // 1-column, or 2-columns or 3-columns is same as parent
+                              console.log("parentName === normal section")
+                              dispatch(
+                                replaceDroppedItem({
+                                  parentId: parentId || null,
+                                  column: column || null,
+                                  draggedNodeId: droppedData.id,
+                                  targetNodeId: id,
+                                }) 
+                              );
+                            }
+                          }
+                          else{
+                            // dragable parent not same, but current parent is "customClumns"
+                            if(parentName === 'customColumns'){
+                                console.log("dragable parent not same, but current parent is customClumns");
+                                dispatch(
+                                  addElementAtLocationInCC({
+                                    draggedNodeId: Date.now(), 
+                                    draggedName: droppedData.name, 
+                                    dragableType: droppedData.type,
+                                    styles: droppedData.styles, 
+                                    content: droppedData.content, 
+                                    
+                                    targetParentId: parentId, 
+                                    targetColumn: column, 
+                                    targetNodeId: id, 
+                                  })
+                                )
+                          
+                                dispatch(deleteDroppedItemById(
+                                  {
+                                    parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
+                                    childId: droppedData.parentId ?  droppedData.id : null, 
+                                    columnName: droppedData.column ? droppedData.column : null}
+                                ));
+                            }
+                            else if(parentName === 'widgetSection'){
+                              console.log("dragable parent not same, but current parent is widgetSection");
+                              dispatch(
+                                addElementAtLocationInWS({
+                                  draggedNodeId: Date.now(), 
+                                  draggedName: droppedData.name, 
+                                  dragableType: droppedData.type,
+                                  styles: droppedData.styles, 
+                                  content: droppedData.content, 
+                                  
+                                  targetParentId: parentId, 
+                                  targetColumn: column, 
+                                  targetNodeId: id, 
+                                })
+                              )
                         
-            if(parentId === droppedData.parentId && column===droppedData.column){
-              // customCollumns as parent is same.
-              if(parentName === 'customColumns'){
-                console.log("parentName === customColumns");
+                              dispatch(deleteDroppedItemById(
+                                {
+                                  parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
+                                  childId: droppedData.parentId ?  droppedData.id : null, 
+                                  columnName: droppedData.column ? droppedData.column : null}
+                              ));
+                            }
+                            // dragable parent not same, but parent is "1-column or 2-columns or 3-columns"
+                            else{
+                              console.log("IF PART CALLED 3");
+                              console.log("dragable parent not same, but parent is: 1-column or 2-columns or 3-columns")
+                              dispatch(
+                                addElementAtLocation({
+                                  draggedNodeId: Date.now(), 
+                                  draggedName: droppedData.name, 
+                                  dragableType: droppedData.type,
+                                  styles: droppedData.styles, 
+                                  content: droppedData.content, 
+                                  
+                                  targetParentId: parentId, 
+                                  targetColumn: column, 
+                                  targetNodeId: id, 
+                                })
+                              )
+                    
+                              dispatch(deleteDroppedItemById(
+                                {
+                                  parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
+                                  childId: droppedData.parentId ? droppedData.id : null, 
+                                  columnName: droppedData.column ? droppedData.column : null }
+                              ));
+                    
+                            }
+                          }
+                    
+          }
+          // columns droping on element
+          else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
+            // nothing to do
+          }
+          else{
+            // for droped widgets from left panel
+              console.log("parentName: ",parentName);
+              if(parentName==='widgetSection'){
                 dispatch(
-                  replaceDroppedItemInCC({
-                    parentId: parentId || null,
-                    column: column || null,
-                    draggedNodeId: droppedData.id,
-                    targetNodeId: id,
-                  }) 
-                );
-              }
-              else{
-                // 1-column, or 2-columns or 3-columns is same as parent
-                console.log("parentName !== customColumns")
-                dispatch(
-                  replaceDroppedItem({
-                    parentId: parentId || null,
-                    column: column || null,
-                    draggedNodeId: droppedData.id,
-                    targetNodeId: id,
-                  }) 
-                );
-              }
-            }
-            else{
-              // dragable parent not same, but current parent is "customClumns"
-              if(parentName === 'customColumns'){
-                  console.log("dragable parent not same, but current parent is customClumns");
-                  dispatch(
-                    addElementAtLocationInCC({
-                      draggedNodeId: Date.now(), 
-                      draggedName: droppedData.name, 
-                      dragableType: droppedData.type,
-                      styles: droppedData.styles, 
-                      content: droppedData.content, 
-                      
-                      targetParentId: parentId, 
-                      targetColumn: column, 
-                      targetNodeId: id, 
-                    })
-                  )
-            
-                  dispatch(deleteDroppedItemById(
-                    {
-                      parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
-                      childId: droppedData.parentId ?  droppedData.id : null, 
-                      columnName: droppedData.column ? droppedData.column : null}
-                  ));
-              }
-              // dragable parent not same, but parent is "1-column or 2-columns or 3-columns"
-              else{
-                console.log("IF PART CALLED 3");
-                console.log("dragable parent not same, but parent is: 1-column or 2-columns or 3-columns")
-                dispatch(
-                  addElementAtLocation({
+                  addElementAtLocationInWS({
                     draggedNodeId: Date.now(), 
                     draggedName: droppedData.name, 
                     dragableType: droppedData.type,
@@ -374,69 +445,35 @@ const Image = ({ id, parentId, column, parentName}) => {
                     targetNodeId: id, 
                   })
                 )
-      
-                dispatch(deleteDroppedItemById(
-                  {
-                    parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-                    childId: droppedData.parentId ? droppedData.id : null, 
-                    columnName: droppedData.column ? droppedData.column : null }
-                ));
-      
               }
-            }
-      
-          }
-          // columns droping on element
-          else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
-            console.log("COLUMN DROPES ON ELEMENT");
-            dispatch(
-              replaceDroppedItem({
-                parentId: null,
-                column: null,
-                draggedNodeId: droppedData.id,
-                targetNodeId: id,
-              })
-            );
-      
-          }
-          else{
-            // for droped widgets from left panel
-            console.log("ELSE PART CALLED");
-            if(parentName === 'customColumns'){
-              dispatch(
-                addElementAtLocationInCC({
-                  draggedNodeId: Date.now(), 
-                  draggedName: droppedData.name, 
-                  dragableType: droppedData.type,
-                  styles: droppedData.styles, 
-                  content: droppedData.content, 
-                  
-                  targetParentId: parentId, 
-                  targetColumn: column, 
-                  targetNodeId: id, 
-                })
-              )
-        
-              dispatch(deleteDroppedItemById(
-                {
-                  parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
-                  childId: droppedData.parentId ?  droppedData.id : null, 
-                  columnName: droppedData.column ? droppedData.column : null}
-              ));
-            }
-            else{
-              dispatch(
-                addElementAtLocation({
-                  draggedNodeId: Date.now(), 
-                  draggedName: droppedData.name, 
-                  dragableType: droppedData.type,
-                  
-                  targetParentId: parentId, 
-                  targetColumn: column, 
-                  targetNodeId: id, 
-                })
-              )
-            }
+              else if(parentName==='customColumns'){
+                dispatch(
+                  addElementAtLocationInCC({
+                    draggedNodeId: Date.now(), 
+                    draggedName: droppedData.name, 
+                    dragableType: droppedData.type,
+                    styles: droppedData.styles, 
+                    content: droppedData.content, 
+                    
+                    targetParentId: parentId, 
+                    targetColumn: column, 
+                    targetNodeId: id, 
+                  })
+                )
+              }
+              else{
+                dispatch(
+                  addElementAtLocation({
+                    draggedNodeId: Date.now(), 
+                    draggedName: droppedData.name, 
+                    dragableType: droppedData.type,
+                    
+                    targetParentId: parentId, 
+                    targetColumn: column, 
+                    targetNodeId: id, 
+                  })
+                )
+              }
             
           }
       
@@ -490,18 +527,13 @@ const Image = ({ id, parentId, column, parentName}) => {
         dispatch(setCustomClumnsExtraPadding(true));
       };
     // ****************************************************************************************
-    const handleRightClick = (event) => {
-        event.preventDefault(); // Prevent the default context menu from showing
-        
-        dispatch(setActiveRightClick(true));
-        dispatch(setActiveWidgetId(null));
-        dispatch(setActiveParentId(parentId));
-        dispatch(setActiveColumn(column));
+    const handleRightClick = () =>{
+      dispatch(setActiveWidgetId(id));
+      dispatch(setActiveParentId(parentId));
+      dispatch(setActiveColumn(column));
 
-        setHoveredElement(false);
-        console.log("handleRightClick in text");
-    
-      };
+      setIsFocused(true);
+    }
     
 
   return (
@@ -536,78 +568,6 @@ const Image = ({ id, parentId, column, parentName}) => {
 
     >
 
-      {/* top icons */}
-      {(activeWidgetId === id) && (
-        <div
-          className="absolute -top-[20px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
-          style={{
-            position: "absolute", // Ensure the trapezoid is absolutely positioned
-            zIndex: 99999, // Place above other elements
-            width: "90px", // Trapezoid width
-            height: "20px", // Trapezoid height
-            clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Trapezoid shape
-            borderTopLeftRadius: "8px", // Top corners rounded
-            borderTopRightRadius: "8px",
-          }}
-        >
-          {/* Icon Container */}
-          <div className="flex items-center justify-between w-full h-full">
-            {/* Add Icon */}
-            <button
-              className="flex items-center justify-center w-full h-full text-black hover:text-white hover:bg-blue-500"
-              onClick={(e) => {
-                e.stopPropagation();
-                console.log("Add icon clicked");
-              }}
-            >
-              <FiEdit size={12} />
-            </button>
-
-            {/* Drag Icon */}
-            <button
-              draggable
-              onDragStart={onDragStart}
-              onDragEnd={(e)=>{
-                e.stopPropagation();
-                dispatch(setSmallGapInTop(null));
-                dispatch(setElementPaddingTop(null));
-                dispatch(setColumnOneExtraPadding(null));
-                setExtraGap(null);
-
-                dispatch(setHoverParentInCC(null));
-                dispatch(setHoverColumnInCC(null));
-                dispatch(setPaddingTopInCC(null));
-                dispatch(setPaddingBottom(null));
-              }}
-              className="flex items-center justify-center w-full h-full text-black hover:text-white hover:bg-blue-500"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <PiDotsSixBold size={16} />
-            </button>
-
-            {/* Delete Icon */}
-            <button
-              className="flex items-center justify-center w-full h-full hover:bg-blue-500 text-black hover:text-red-500"
-              onClick={(e) => {
-                e.stopPropagation();
-                dispatch(
-                  deleteDroppedItemById({
-                    parentId: parentId ? parentId : id,
-                    childId: parentId ? id : null,
-                    columnName: column ? column : null,
-                  })
-                );
-              }}
-            >
-              <RxCross2 size={12} />
-            </button>
-          </div>
-        </div>
-      )}
-
-
-      
-
       {/* Image or Placeholder */}
       {currentStyles.imageUrl ? (
         <a 
@@ -616,6 +576,29 @@ const Image = ({ id, parentId, column, parentName}) => {
           rel="noopener noreferrer"
           className="transition-all duration-300"
         >
+
+            {hoveredElement && (
+              <div
+              className="absolute top-0 right-0 w-[25px] h-[20px] bg-blue-400 flex items-center justify-center cursor-grab shadow-md"
+              style={{
+                zIndex: 10
+              }}
+              draggable
+              onDragStart={onDragStart}
+              onDragEnd={()=>{
+                dispatch(setSmallGapInTop(null));
+                setExtraGap(null);
+    
+                dispatch(setHoverParentInCC(null));
+                dispatch(setHoverColumnInCC(null));
+                dispatch(setPaddingTopInCC(null));
+                dispatch(setPaddingBottom(null));
+              }}
+            >
+              <PiDotsSixBold size={12} className="text-black" />
+            </div>
+            )}
+
           <img
             onContextMenu={handleRightClick}
             src={currentStyles.imageUrl}
@@ -639,28 +622,80 @@ const Image = ({ id, parentId, column, parentName}) => {
         </a>
       
       ) : imageSrc ? (
-        <img
-          onContextMenu={handleRightClick}
-          src={imageSrc}
-          alt="Uploaded"
-          // Ensures the image takes the full width, auto height, and retains aspect ratio
-          className="w-full h-full object-contain rounded transition-all duration-300"
-          style={{
-            ...currentStyles, 
-            ...(extraGap 
-              ? { 
-                  paddingTop: "40px", 
-                  backgroundColor: "rgba(173, 216, 230, 0.5)", // Subtle highlight
-                  position: "relative",
-                } 
-              : { 
-                  paddingTop: currentStyles.paddingTop 
-                }
-            )
-          }}
-        />
+
+        <div className="flex flex-col items-center justify-center text-gray-500">
+          {hoveredElement && (
+              <div
+              className="absolute top-0 right-0 w-[25px] h-[20px] bg-blue-400 flex items-center justify-center cursor-grab shadow-md"
+              style={{
+                zIndex: 10
+              }}
+              draggable
+              onDragStart={onDragStart}
+              onDragEnd={()=>{
+                dispatch(setSmallGapInTop(null));
+                setExtraGap(null);
+    
+                dispatch(setHoverParentInCC(null));
+                dispatch(setHoverColumnInCC(null));
+                dispatch(setPaddingTopInCC(null));
+                dispatch(setPaddingBottom(null));
+              }}
+            >
+              <PiDotsSixBold size={12} className="text-black" />
+            </div>
+            )}
+
+          <img
+            onContextMenu={handleRightClick}
+            src={imageSrc}
+            alt="Uploaded"
+            // Ensures the image takes the full width, auto height, and retains aspect ratio
+            className="w-full h-full object-contain rounded transition-all duration-300"
+            style={{
+              ...currentStyles, 
+              ...(extraGap 
+                ? { 
+                    paddingTop: "40px", 
+                    backgroundColor: "rgba(173, 216, 230, 0.5)", // Subtle highlight
+                    position: "relative",
+                  } 
+                : { 
+                    paddingTop: currentStyles.paddingTop 
+                  }
+              )
+            }}
+          />
+        </div>
+        
+        
       ) : (
         <div className="flex flex-col items-center justify-center text-gray-500">
+
+          {/* 🔹 Small Rectangular Box in the Top-Right Corner */}
+            {hoveredElement && (
+              <div
+              className="absolute top-0 right-0 w-[25px] h-[20px] bg-blue-400 flex items-center justify-center cursor-grab shadow-md"
+              style={{
+                zIndex: 10
+              }}
+              draggable
+              onDragStart={onDragStart}
+              onDragEnd={()=>{
+                dispatch(setSmallGapInTop(null));
+                setExtraGap(null);
+    
+                dispatch(setHoverParentInCC(null));
+                dispatch(setHoverColumnInCC(null));
+                dispatch(setPaddingTopInCC(null));
+                dispatch(setPaddingBottom(null));
+              }}
+            >
+              <PiDotsSixBold size={12} className="text-black" />
+            </div>
+            )}
+
+
           <img
             onContextMenu={handleRightClick}
             src={placeholderImage}

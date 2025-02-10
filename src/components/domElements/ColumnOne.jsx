@@ -30,6 +30,14 @@ import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 import { MdOutlineInsertDriveFile, MdDragIndicator } from "react-icons/md";
 import { PiDotsSixBold } from "react-icons/pi";
 import { FiEdit } from "react-icons/fi";
+import { setActiveRightClick } from "../../redux/cardDragableSlice";
+import { duplicateCustomColumn } from "../../redux/cardDragableSlice";
+import { duplicateElementInNormalColumn } from "../../redux/cardDragableSlice";
+import { addElementWithSection_AtSpecificLocation } from "../../redux/cardDragableSlice";
+
+import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
+import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
+import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
 
 
 
@@ -59,6 +67,8 @@ const ColumnOne = ({ handleDelete, id }) => {
   const [hoveredChild, setHoveredChild] = useState(null); // Track hover state for children
   const [paddingTop, setPaddingTop] = useState(null);
   const [isDragging, setIsDragging] = useState(false); 
+  const [popup, setPopup] = useState({ visible: false, x: 0, y: 0, columnKey: null, childId: null });
+
 
 
 
@@ -230,8 +240,8 @@ const ColumnOne = ({ handleDelete, id }) => {
 
    // ************************************************************************ 
     const onClickOutside = () => {
-      // console.log("onClickOutside called");
       dispatch(setColumnOneExtraPadding(false));
+      setPopup({ visible: false, x: 0, y: 0, columnKey: null, childId: null });
     };
     useEffect(() => {
       const handleClickOutside = (event) => {
@@ -337,16 +347,21 @@ const ColumnOne = ({ handleDelete, id }) => {
 
       const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
 
-      setIsDragging(false);
       setPaddingTop(null);
-
 
       if(widgetOrElement && widgetOrElement==='widget'){
         dispatch(
-          addElementAtLocation({
-            draggedNodeId: Date.now(), 
-            draggedName: droppedData.name, 
-            dragableType: droppedData.type,
+          addElementWithSection_AtSpecificLocation({
+            id: Date.now(),
+            name: "widgetSection",
+            columnCount: 1,
+            styles: {},
+
+            childId: Date.now() + Math.floor(Math.random() * 1000),
+            childName: droppedData.name,
+            childType: droppedData.type,
+            childStyle: droppedData.styles,
+            childContent: droppedData.content,
             
             targetParentId: null, 
             targetColumn: null, 
@@ -355,15 +370,19 @@ const ColumnOne = ({ handleDelete, id }) => {
         )
       }
       else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
-
         if(droppedData.parentId){
           dispatch(
-            addElementAtLocation({
-              draggedNodeId: Date.now(), 
-              draggedName: droppedData.name, 
-              dragableType: droppedData.type,
-              styles: droppedData.styles, 
-              content: droppedData.content, 
+            addElementWithSection_AtSpecificLocation({
+              id: Date.now(),
+              name: "widgetSection",
+              columnCount: 1,
+              styles: {},
+
+              childId: Date.now() + Math.floor(Math.random() * 1000),
+              childName: droppedData.name,
+              childType: droppedData.type,
+              childStyle: droppedData.styles,
+              childContent: droppedData.content,
               
               targetParentId: null, 
               targetColumn: null, 
@@ -388,8 +407,13 @@ const ColumnOne = ({ handleDelete, id }) => {
             }) 
           );
         }
-      }
-    }
+      } //else if widgetOrElement=== 'element' or 'column'
+
+      dispatch(setSmallGapInTop(null));
+      dispatch(setHoverColumnInCC(null));
+      dispatch(setHoverParentInCC(null));
+      dispatch(setPaddingTopInCC(null));
+    } //dropInPaddingTop
 
     const enterInPaddingTop = (e)=>{
       e.stopPropagation();
@@ -403,6 +427,69 @@ const ColumnOne = ({ handleDelete, id }) => {
     }
 
     // *********************************************************************************************
+    const handleRightClick = (e, columnKey, childId = null) => {
+      e.preventDefault();
+    
+      console.log("Right-click detected: ", { columnKey, childId });
+    
+      const containerRect = oneColumnRef.current.getBoundingClientRect();
+      const popupWidth = 150;
+      const popupHeight = 100;
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+    
+      let popupX = e.clientX - containerRect.left;
+      let popupY = e.clientY - containerRect.top;
+    
+      if (e.clientX + popupWidth > viewportWidth) {
+        popupX -= popupWidth;
+      }
+    
+      if (e.clientY + popupHeight > viewportHeight) {
+        popupY -= popupHeight;
+      }
+    
+      setPopup({ visible: true, x: popupX, y: popupY, columnKey, childId: childId || null });
+    
+      dispatch(setActiveRightClick(true));
+      dispatch(setActiveWidgetId(childId));
+      dispatch(setActiveParentId(id));
+      dispatch(setActiveColumn(columnKey));
+      dispatch(setHoverColumnInCC(true));
+    };
+
+    const handlePopupDelete = (childId) => {
+      if (!popup.columnKey || !childId) return;
+      console.log(`childId: ${childId}, popup.columnKey: ${popup.columnKey}`);
+    
+      dispatch(
+        deleteDroppedItemById({
+          parentId: id, // Parent column ID
+          childId: childId, 
+          columnName: popup.columnKey,
+        })
+      );
+    
+      setPopup({ visible: false, x: 0, y: 0, columnKey: null, childId: null });
+    };
+    const handlePopupDuplicate = (childId) => {
+        if (!popup.columnKey) return;
+    
+        console.log("Popup Duplicate: ", popup);
+      
+        dispatch(
+          duplicateElementInNormalColumn({
+            parentId: id,
+            columnName: popup.columnKey,
+            childId: childId || null,
+          })
+        );
+      
+        setPopup({ visible: false, x: 0, y: 0, columnKey: null, childId: null });
+      };
+    
+    
+    
     
 
   return (
@@ -419,10 +506,11 @@ const ColumnOne = ({ handleDelete, id }) => {
 
       
    
-      className={`text-center min-h-[150px] relative group transition-all duration-300
-        ${smallGapInTop ? 'pt-3' : ""}
-        ${activeWidgetId===id ? 'border-2 border-blue-500 p-2': ""}
+      className={`text-center min-h-[150px] relative group transition-all duration-300 p-2
+        
+        ${activeWidgetId===id ? 'border-2 border-blue-500': ""}
       `}
+      // ${smallGapInTop ? 'pt-3' : ""}
       onClick={(e) => {
         e.stopPropagation();
         dispatch(setActiveWidgetId(id));
@@ -434,13 +522,13 @@ const ColumnOne = ({ handleDelete, id }) => {
         ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
         
-        ...(paddingTop
-          ? { 
-              paddingTop: "50px",  
-              position: "relative",
-            } 
-          : { paddingTop: "" }
-        )
+        // ...(paddingTop
+        //   ? { 
+        //       paddingTop: "50px",  
+        //       position: "relative",
+        //     } 
+        //   : { paddingTop: "" }
+        // )
       }}
 
 
@@ -448,7 +536,7 @@ const ColumnOne = ({ handleDelete, id }) => {
     >
 
       {/* Add this div for border only on extra padding */}
-      {paddingTop && (
+      {/* {paddingTop && (
         <div 
           style={{
             position: "absolute",
@@ -465,74 +553,146 @@ const ColumnOne = ({ handleDelete, id }) => {
             zIndex: 10,  // ✅ Ensures it stays above
           }}
         />
+      )} */}
+
+      {/* Trapezoid Icon Section */}
+      {(activeWidgetId === id) && (
+        <div
+          className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
+          style={{
+            width: "90px", // Base width of the trapezoid
+            height: "20px", // Adjusted height
+            clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
+            borderTopLeftRadius: "8px", // Rounded top-left corner
+            borderTopRightRadius: "8px", // Rounded top-right corner
+          }}
+        >
+          {/* Icon Container */}
+          <div className="flex items-center justify-between w-full h-full">
+            {/* Add Icon */}
+            <button
+              className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("Add icon clicked");
+              }}
+            >
+              <FiEdit size={12} />
+            </button>
+
+            {/* Drag Icon */}
+            <button
+              draggable
+              onDragStart={onDragStart}
+              onDragEnd={()=>{
+                dispatch(setSmallGapInTop(null));
+                setPaddingTop(null);
+              }}
+        
+              className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <PiDotsSixBold size={16} />
+            </button>
+
+            {/* Delete Icon */}
+            <button
+              className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteChild(id);
+
+                dispatch(deleteDroppedItemById(
+                  {
+                    parentId: id, 
+                    childId: null, 
+                    columnName: null}
+                ));
+              }}
+            >
+              <RxCross2 size={12} />
+            </button>
+          </div>
+        </div>
       )}
 
-{/* Trapezoid Icon Section */}
-{(activeWidgetId === id) && (
-  <div
-    className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
-    style={{
-      width: "90px", // Base width of the trapezoid
-      height: "20px", // Adjusted height
-      clipPath: "polygon(10% 0%, 90% 0%, 100% 100%, 0% 100%)", // Creates trapezoid with subtle tapering
-      borderTopLeftRadius: "8px", // Rounded top-left corner
-      borderTopRightRadius: "8px", // Rounded top-right corner
-    }}
-  >
-    {/* Icon Container */}
-    <div className="flex items-center justify-between w-full h-full">
-      {/* Add Icon */}
-      <button
-        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
-        onClick={(e) => {
-          e.stopPropagation();
-          console.log("Add icon clicked");
+
+      {popup.visible && (
+        <div
+        
+        className="absolute z-20 bg-white shadow-md border border-gray-200 rounded-lg transition-all duration-300"
+        style={{
+          top: popup.y,
+          left: popup.x,
+          minWidth: "120px", // Compact size
+          padding: "8px", // Slight padding for spacing
         }}
       >
-        <FiEdit size={12} />
-      </button>
-
-      {/* Drag Icon */}
-      <button
-        draggable
-        onDragStart={onDragStart}
-        onDragEnd={()=>{
-          dispatch(setSmallGapInTop(null));
-          setPaddingTop(null);
-        }}
-  
-        className="flex items-center justify-center w-full h-full transition duration-200 text-black hover:text-white hover:bg-blue-500"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <PiDotsSixBold size={16} />
-      </button>
-
-      {/* Delete Icon */}
-      <button
-        className="flex items-center justify-center w-full h-full transition duration-200 hover:bg-blue-500 text-black hover:text-red-500"
-        onClick={(e) => {
-          e.stopPropagation();
-          handleDeleteChild(id);
-
-          dispatch(deleteDroppedItemById(
-            {
-              parentId: id, 
-              childId: null, 
-              columnName: null}
-          ));
-        }}
-      >
-        <RxCross2 size={12} />
-      </button>
-    </div>
-  </div>
-)}
+        {/* Popup Actions */}
+        <div className="flex flex-col items-start gap-2">
+          {/* Duplicate Button */}
+          <button
+            className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePopupDuplicate(popup.childId); // Call the duplicate function
+            }}
+          >
+            <span className="flex items-center justify-center w-6 h-6 bg-blue-50 text-blue-500 rounded-md shadow-sm">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m4 10h-2m-6-6v6m0 0l-2-2m2 2l2-2"
+                />
+              </svg>
+            </span>
+            <span className="text-sm text-gray-600">🔄 Duplicate</span>
+          </button>
+      
+          {/* Delete Button */}
+          <button
+            className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePopupDelete(popup.childId); // Call the delete function
+            }}
+          >
+            <span className="flex items-center justify-center w-6 h-6 bg-red-50 text-red-500 rounded-md shadow-sm">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 13h6m2 0a2 2 0 100-4H7a2 2 0 100 4zm-6 6h12a2 2 0 002-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+            </span>
+            <span className="text-sm text-gray-600">🗑 Delete</span>
+          </button>
+        </div>
+      </div>
+      
+      )}
 
 
 
 
       <div className={`rounded-md text-center hover:border-2 hover:border-dashed hover:border-blue-500 min-h-[150px] p-1
-                      ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'} 
+                      ${activeBorders ? 'border-2 border-dashed border-blue-200' : ''} 
                       ${isDragging ? "bg-blue-100 border-blue-400" : ""}
                       ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
                       ${columnOneExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
@@ -554,6 +714,11 @@ const ColumnOne = ({ handleDelete, id }) => {
                 onclickHandler(id, child.id);
               }}
               className="w-full rounded-md relative group"
+              onContextMenu={(e) => {
+                e.stopPropagation();
+                console.log("Right-clicked  in columnOne:", child.id);
+                handleRightClick(e, "children", child.id); // ✅ Pass childId
+              }}
             >
               {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id,  parentName: "1-column"}) : ""}
               

@@ -60,34 +60,82 @@
 
 
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { generateSourceCode } from "./generateSourceCode";
 import { useSelector } from "react-redux";
 import { FiClipboard } from "react-icons/fi"; // 📌 Import copy icon
 
+const convertStyleObjectToJSX = (styleObj) => {
+  return `{{ ${Object.entries(styleObj)
+    .map(([key, value]) => `${key}: "${value}"`)
+    .join(", ")} }}`;
+}
+
 const SourceCode = () => {
   const [showSourceCode, setShowSourceCode] = useState(false);
   const [copied, setCopied] = useState(false); // 📌 Track copy status
+  const [sourceCode, setSourceCode] = useState("");
 
   const { droppedItems } = useSelector((state) => state.cardDragable);
 
-  // Generate source code based on items state
-  const sourceCode = generateSourceCode(droppedItems);
+  const wrapperAttributes = useSelector((state) => state.attributes.wrapperAttributes);
 
+  const [wrapperStyles, setWrapperStyles] = useState({
+      paddingTop: `${wrapperAttributes.dimensions.padding.top}px`,
+      paddingLeft: `${wrapperAttributes.dimensions.padding.left}px`,
+      paddingBottom: `${wrapperAttributes.dimensions.padding.bottom}px`,
+      paddingRight: `${wrapperAttributes.dimensions.padding.right}px`,
+      backgroundImage: wrapperAttributes.background.image ? `url(${wrapperAttributes.background.image})` : "none",
+      backgroundColor: wrapperAttributes.background.color,
+      backgroundRepeat: wrapperAttributes.background.repeat,
+      backgroundSize: wrapperAttributes.background.size,
+      border: wrapperAttributes.border.type,
+      borderRadius: wrapperAttributes.border.radius,
+    });
+  
+    useEffect(() => {
+      console.log("wrapperStyles in SourceCode: ", wrapperStyles);
+      
+      setWrapperStyles((prevStyles) => ({
+        ...prevStyles,
+        paddingTop: `${wrapperAttributes.dimensions.padding.top}px`,
+        paddingLeft: `${wrapperAttributes.dimensions.padding.left}px`,
+        paddingBottom: `${wrapperAttributes.dimensions.padding.bottom}px`,
+        paddingRight: `${wrapperAttributes.dimensions.padding.right}px`,
+        backgroundImage: wrapperAttributes.background.image ? `url(${wrapperAttributes.background.image})` : "none",
+        backgroundColor: wrapperAttributes.background.color,
+        backgroundRepeat: wrapperAttributes.background.repeat,
+        backgroundSize: wrapperAttributes.background.size,
+        border: wrapperAttributes.border.type,
+        borderRadius: wrapperAttributes.border.radius,
+      }));
+    }, [wrapperAttributes]);
+
+
+  useEffect(() => {
+    const generatedCode = generateSourceCode(droppedItems);
+    setSourceCode(generatedCode);
+  }, [droppedItems]); // ✅ Dependency ensures re-generation
+
+  const inlineStyles = convertStyleObjectToJSX(wrapperStyles);
+  console.log("inlineStyles@@@@: ",inlineStyles);
   // 📌 Copy to clipboard function
   const handleCopy = () => {
 
     const wrappedSourceCode = `
-    <div className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 relative hover:border-blue-500 transition-all pb-[50px] h-auto">
+    <div className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 relative hover:border-blue-500 transition-all pb-[50px] h-auto"
+      style=${inlineStyles}
+    >
       <div className="mb-2">
         ${sourceCode}
       </div>
     </div>
   `;
 
+    console.log("wrappedSourceCode in sourceCode: ",wrappedSourceCode);
+
     navigator.clipboard.writeText(wrappedSourceCode).then(() => {
       setCopied(true);
-      console.log("handleCopy called: ", wrappedSourceCode);
       setTimeout(() => setCopied(false), 2000); // Reset after 2s
     });
   };
@@ -136,7 +184,9 @@ const SourceCode = () => {
                 <code>
                   {`
                     <div className="w-[600px] min-h-[250px] border-2 rounded-lg bg-gray-100 p-1 relative hover:border-blue-500 transition-all pb-[50px]
-                      h-auto">
+                      h-auto"
+                      style=${inlineStyles}
+                      >
                         <div className="mb-2">
                             ${sourceCode}
                       </div>
