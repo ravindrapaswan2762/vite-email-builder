@@ -32,7 +32,7 @@ const Widget = ({ id, name, icon: Icon }) => {
     <div
       draggable
       onDragStart={(e) => {
-        // e.dataTransfer.setData("text/plain", name); // Pass widget ID
+        console.log("onDragStart called in widget: ############################################################");
         e.dataTransfer.setData(
           "text/plain",
           JSON.stringify({
@@ -44,7 +44,24 @@ const Widget = ({ id, name, icon: Icon }) => {
             content: defaultContent
           })
         );
-        e.dataTransfer.effectAllowed = "move"; // Allow move
+
+        // e.dataTransfer.effectAllowed = "move"; // Allow move
+
+        // Create drag preview
+        const dragPreview = document.createElement("div");
+        dragPreview.style.fontSize = "16px"; // Font size for readability
+        dragPreview.style.fontWeight = "bold"; // Bold text for visibility
+        dragPreview.style.color = "#1d4ed8"; // Text color
+        dragPreview.style.lineHeight = "1"; // Ensure proper line height
+        dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
+        dragPreview.style.width = "100px"; // Allow text to determine width
+        dragPreview.style.height = "20px"; // Automatically adjust height
+        dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
+        dragPreview.innerText = name==='Text' ? 'Heading' : name; // Set the plain text for the drag preview
+        document.body.appendChild(dragPreview);
+
+        // Set the custom drag image
+        e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
         
         dispatch(setActiveWidgetName(name));
         dispatch(setWidgetOrElement("widget"));
@@ -67,6 +84,8 @@ const Widget = ({ id, name, icon: Icon }) => {
         dispatch(setHoverColumnInCC(null));
         dispatch(setHoverParentInCC(null));
         dispatch(setPaddingTopInCC(null));
+        dispatch(setWidgetOrElement(null));
+        console.log("onDragEnd called in widget: ############################################################");
       }} // Reset active widget
       className={`flex flex-col items-center justify-center p-5 m-2 border rounded-lg shadow-md cursor-move w-[115px] h-[90px] transition-all ${
         isActive

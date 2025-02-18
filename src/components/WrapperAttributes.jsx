@@ -511,7 +511,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { deleteDroppedItemById } from "../redux/cardDragableSlice";
+import { deleteDroppedItemById, setWidgetOrElement } from "../redux/cardDragableSlice";
 import { setActiveWidgetName, setActiveWidgetId } from "../redux/cardDragableSlice";
 import { setActiveColumn, setActiveParentId } from "../redux/cardDragableSlice";
 import { setActiveEditor, setColumnPopUp } from "../redux/cardToggleSlice";
@@ -709,6 +709,8 @@ const WrapperAttribute = () => {
     e.preventDefault();
     e.stopPropagation();
 
+    dispatch(setWidgetOrElement(null));
+
     if (!activeWidgetName) return;
     if (view === "tablet" || view === "mobile") return;
     // if (draggedIndex === null || dropIndex === null || draggedIndex === dropIndex) {
@@ -775,7 +777,7 @@ const WrapperAttribute = () => {
           childId: Date.now() + Math.floor(Math.random() * 1000),
           childName: droppedData.name,
           childType: droppedData.type,
-          childStyle: droppedData.styles,
+          childStyle: droppedData.name === 'Text' ? {textAlign: 'center', fontWeight: 'bold', fontSize: '20px'}: droppedData.styles,
           childContent: droppedData.content,
   
           id: Date.now(),
@@ -882,12 +884,12 @@ const WrapperAttribute = () => {
           className="relative group rounded bg-transparent"
           onDragStart={(e) => handleDragStart(e, index)} // Track drag start
           onDragOver={(e) => handleDragOver(e, item.id, index)}
-          onClick={(e) => {
-            e.stopPropagation();
-            dispatch(setActiveColumn(null));
-            dispatch(setActiveParentId(null));
-            // console.log("WrapperAttributes called");
-          }}
+          // onClick={(e) => {
+          //   e.stopPropagation();
+          //   dispatch(setActiveColumn(null));
+          //   dispatch(setActiveParentId(null));
+          //   // console.log("WrapperAttributes called");
+          // }}
         >
           {WidgetComponent}
         </div>

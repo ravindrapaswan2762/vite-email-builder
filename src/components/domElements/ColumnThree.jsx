@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, Fragment } from "react";
 import { RxCross2 } from "react-icons/rx";
 import Text from "./Text";
 import Image from "./Image";
@@ -40,6 +40,8 @@ import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
 import { PiDotsSixBold } from "react-icons/pi";
 import { FiEdit } from "react-icons/fi";
+import { insertElementAtDropIndex } from "../../redux/cardDragableSlice";
+import { setElementDragging } from "../../redux/cardDragableSlice";
 
 
 // Component Mapping
@@ -79,6 +81,60 @@ const ColumnThree = ({ handleDelete, id }) => {
   const [dragState, setDragState] = useState({ isDragging: false, column: null });
   const [popup, setPopup] = useState({ visible: false, x: 0, y: 0, columnKey: null, childId: null });
 
+
+  const [dropIndex, setDropIndex] = useState(null);
+  const [dropPosition, setDropPosition] = useState(null);
+
+  const handleDragStart = () => setDragState({isDragging: true, column: dragState.column});
+  const handleDragEnd = () => {
+    setDragState({isDragging: false, column: dragState.column});
+    setDropIndex(null);
+    setDropPosition(null);
+  };
+  
+  const handleDragOver = (e, targetId, index) => {
+    e.preventDefault();
+
+    
+    const targetElement = document.getElementById(`element-${targetId}`);
+    if (targetElement) {
+      const { top, height } = targetElement.getBoundingClientRect();
+      const cursorY = e.clientY;
+      const edgeThreshold = height * 0.2; // Top 20%, bottom 20%
+  
+      if (cursorY < top + edgeThreshold) {
+        setDropIndex(index); // Stay at current index for top
+        setDropPosition("above");
+        console.log("setDropIndex(index) above: ",index);
+      } else if (cursorY > top + height - edgeThreshold) {
+        setDropIndex(index + 1); // Move to next index for bottom
+        setDropPosition("below");
+        console.log("setDropIndex(index) below: ",index+1);
+      }
+    }
+  };
+  
+  const handleDragLeave = (e, ref) => {
+    e.preventDefault();
+    if (ref.current && !ref.current.contains(e.relatedTarget)) {
+      setDragState({ isDragging: false, column: null })
+      setDropIndex(null);
+      setDropPosition(null);
+    }
+  };
+
+  const handleDragEnter = (e, column, ref) => {
+      if (dragState.column !== column) {
+        setDragState({ isDragging: true, column: column });
+  
+        console.log("handleDragEnter called: ",column);
+
+        setDropIndex(null);
+        setDropPosition(null);
+    
+        dispatch(setActiveBorders(true));
+      }
+  };
   
 
   useEffect(() => {
@@ -100,7 +156,9 @@ const ColumnThree = ({ handleDelete, id }) => {
     e.preventDefault();
     e.stopPropagation();
 
+    dispatch(setWidgetOrElement(null));
     setDragState({ isDragging: false, column: null });
+    dispatch(setElementDragging(null));
 
     if (!activeWidgetName) return;
 
@@ -129,18 +187,18 @@ const ColumnThree = ({ handleDelete, id }) => {
     if(!['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
       if(widgetOrElement === 'element'){
         dispatch(
-              setDroppedItems({
-                id: Date.now(), 
-                name: droppedData.name, 
-                type: droppedData.type, 
-                parentId: id,
-                columnName: column,
-                content: droppedData.content, 
-                styles: droppedData.styles, 
-                isActive: null
-              }) 
-            );
-    
+            insertElementAtDropIndex({
+              id: Date.now(),
+              name: droppedData.name,
+              type: droppedData.type,
+              parentId: id,
+              column: column,
+              styles: droppedData.styles,
+              content: droppedData.content,
+              dropIndex: dropIndex,
+            })
+          );
+            
           dispatch(deleteDroppedItemById(
             {
               parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
@@ -150,17 +208,18 @@ const ColumnThree = ({ handleDelete, id }) => {
       }
       else{
         dispatch(
-          setDroppedItems({
-            id: Date.now(), // Unique ID for the dropped child
-            name: activeWidgetName,
-            type: "widget",
-            parentId: id, // Parent ID to identify the column
-            columnName: column, // Specify the column (childrenA or childrenB)
-            content: content,
-            styles: styles, // Additional styles if needed
-            isActive: null,
+          insertElementAtDropIndex({
+            id: Date.now(),
+            name: droppedData.name,
+            type: droppedData.type,
+            parentId: id,
+            column: column,
+            styles: droppedData.styles,
+            content: droppedData.content,
+            dropIndex: dropIndex,
           })
         );
+            
       }
     }
     else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
@@ -182,9 +241,6 @@ const ColumnThree = ({ handleDelete, id }) => {
 
   };
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
 
   const handleDeleteChild = (column, childId) => {
     dispatch(
@@ -201,6 +257,7 @@ const ColumnThree = ({ handleDelete, id }) => {
     dispatch(setActiveParentId(id));
     dispatch(setActiveWidgetId(childId));
     dispatch(setActiveColumn(column));
+    console.log("ColumnTree ######################################## - activeWidgetId:", activeWidgetId, "activeParentId:", activeParentId);
   };
 
   // Recursive function to find the styles based on activeWidgetId
@@ -233,30 +290,6 @@ const ColumnThree = ({ handleDelete, id }) => {
     // If you want the user to set `borderType`, map it to `border`
     ...(currentStyles.borderType && { border: currentStyles.borderType }),
   };
-
-  // ***************************************** write extra logic for hilight drop area while dragEnter
-      const [isDragging, setIsDragging] = useState(false);
-      const [column, setColumn] = useState(null);
-
-        const handleDragEnter = (column, ref) => {
-          console.log("columnThree handleDragEnter called");
-          if (dragState.column !== column) {
-
-            setDragState({ isDragging: true, column });
-
-            dispatch(dispatch(setActiveBorders(true)));
-            // dispatch(setColumnThreeExtraPadding(true));
-          }
-        };
-        
-        const handleDragLeave = (e, ref) => {
-          console.log("columnThree handleDragLeave called");
-
-          if(ref && ref.current && (!e.relatedTarget || !ref.current.contains(e.relatedTarget))){
-            setDragState({ isDragging: false, column: null });
-            dispatch(setColumnThreeExtraPadding(false)); // Optional Redux state update
-          }
-        };
           
     // ************************************************************************ 
       const onClickOutside = () => {
@@ -369,92 +402,7 @@ const ColumnThree = ({ handleDelete, id }) => {
       //   // console.log("onDragOver called in Text");
       //   e.preventDefault(); // Allow dropping
       // };
-      // ************************************************************************************** drop Into PaddingTop
-      const dropInPaddingTop = (e)=>{
-        e.stopPropagation();
-  
-        const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-  
-        setDragState({ isDragging: false, column: null });
-        setPaddingTop(null);
-  
-        if(widgetOrElement && widgetOrElement==='widget'){
-          dispatch(
-            addElementWithSection_AtSpecificLocation({
-              id: Date.now(),
-              name: "widgetSection",
-              columnCount: 1,
-              styles: {},
-
-              childId: Date.now() + Math.floor(Math.random() * 1000),
-              childName: droppedData.name,
-              childType: droppedData.type,
-              childStyle: droppedData.styles,
-              childContent: droppedData.content,
-              
-              targetParentId: null, 
-              targetColumn: null, 
-              targetNodeId: id, 
-            })
-          )
-        }
-        else if(widgetOrElement && (widgetOrElement==='column' || widgetOrElement==='element') ){
-          if(droppedData.parentId){
-            dispatch(
-              addElementWithSection_AtSpecificLocation({
-                id: Date.now(),
-                name: "widgetSection",
-                columnCount: 1,
-                styles: {},
-  
-                childId: Date.now() + Math.floor(Math.random() * 1000),
-                childName: droppedData.name,
-                childType: droppedData.type,
-                childStyle: droppedData.styles,
-                childContent: droppedData.content,
-                
-                targetParentId: null, 
-                targetColumn: null, 
-                targetNodeId: id, 
-              })
-            )
-            dispatch(deleteDroppedItemById(
-              {
-                parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-                childId: droppedData.parentId ? droppedData.id : null, 
-                columnName: droppedData.column ? droppedData.column : null }
-            ));
-  
-          }
-          else{
-            dispatch(
-              replaceDroppedItem({
-                parentId: null,
-                column: null,
-                draggedNodeId: droppedData.id,
-                targetNodeId: id,
-              }) 
-            );
-          }
-        } //else if widgetOrElement=== 'element' or 'column'
-
-        dispatch(setSmallGapInTop(null));
-        dispatch(setHoverColumnInCC(null));
-        dispatch(setHoverParentInCC(null));
-        dispatch(setPaddingTopInCC(null));
-      } //dropInPaddingTop
-
-      const enterInPaddingTop = (e)=>{
-        e.stopPropagation();
-        console.log("enterInTop called");
-        setPaddingTop(true);
-      }
-      const leaveFromPaddingTop = (e)=>{
-        e.stopPropagation();
-        console.log("leaveFromTop called");
-        setPaddingTop(null);
-      }
-
+      
     // ****************************************************************************************
     const handleRightClick = (e, columnKey, childId = null) => {
       e.preventDefault();
@@ -522,11 +470,16 @@ const ColumnThree = ({ handleDelete, id }) => {
       
 
   return (
-    <div 
+    <div
+
+    onDragStart={handleDragStart}
+    onDragEnd={handleDragEnd}
+    onDragOver={handleDragOver}
+
     ref={threeColumnRef}
     className={`relative grid gap-1 group bg-transparent transition-all duration-300 p-2
      
-      ${activeWidgetId===id ? 'border-2 border-blue-500': ""}
+      ${activeParentId===id || activeWidgetId==id? 'border-2 border-blue-500': ""}
       sm:grid-cols-1
       md:grid-cols-3
       lg:grid-cols-3
@@ -535,6 +488,7 @@ const ColumnThree = ({ handleDelete, id }) => {
 
       onClick={(e) => {
         e.stopPropagation();
+        console.log("ColumnThree - activeWidgetId:", activeWidgetId, "activeParentId:", activeParentId);
         dispatch(setActiveWidgetId(id));
         dispatch(setActiveWidgetName("3-column"));
         dispatch(setActiveEditor("sectionEditor"));
@@ -544,48 +498,15 @@ const ColumnThree = ({ handleDelete, id }) => {
         ...styleWithBackground, border: currentStyles.borderType, backgroundRepeat: "no-repeat", 
         backgroundPosition: "center", backgroundSize: "cover", borderRadius: currentStyles.borderRadius,
         ...(view === "mobile" ? { padding: "30px", display: "flex", flexDirection: "column" } : {}),
-        // ...(paddingTop
-        //   ? { 
-        //       paddingTop: "50px",  
-        //       position: "relative",
-        //     } 
-        //   : { paddingTop: "" }
-        // )
+
       }}
 
-      // onDragOver={(e)=>{
-      //   e.stopPropagation();
-      //   onDragOver(e);
-      // }}
 
-      onDrop={dropInPaddingTop}
-      onDragEnter={enterInPaddingTop}
-      onDragLeave={leaveFromPaddingTop}
       
     >
 
-      {/* Add this div for border only on extra padding */}
-      {/* {paddingTop && (
-        <div 
-          style={{
-            position: "absolute",
-            top: "-5px",  // ✅ Moves above the element
-            left: 0,
-            width: "100%",
-            height: "50px",  // ✅ Applies only to paddingTop
-            backgroundColor: "rgba(173, 216, 230, 0.3)", // ✅ Background only for extra padding
-            borderTop: "2px dashed rgba(30, 144, 255, 0.8)",  
-            borderLeft: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderRight: "2px dashed rgba(30, 144, 255, 0.8)",
-            borderBottom: "2px dashed rgba(30, 144, 255, 0.8)",  // ✅ No bottom border to avoid confusion
-            pointerEvents: "none",  // ✅ Prevents interactions
-            zIndex: 10,  // ✅ Ensures it stays above
-          }}
-        />
-      )} */}
-
       {/* Trapezoid Icon Section */}
-      {(activeWidgetId === id) && (
+      {(activeWidgetId === id || activeParentId==id) && (
         <div
           className="absolute -top-[21px] left-[50%] transform -translate-x-1/2 bg-blue-400 flex items-center justify-center"
           style={{
@@ -615,10 +536,10 @@ const ColumnThree = ({ handleDelete, id }) => {
               onClick={(e) => e.stopPropagation()}
               draggable
               onDragStart={onDragStart}
-              onDragEnd={()=>{
-                dispatch(setSmallGapInTop(null));
-                setPaddingTop(null);
-              }}
+              // onDragEnd={()=>{
+              //   dispatch(setSmallGapInTop(null));
+              //   setPaddingTop(null);
+              // }}
             >
               <PiDotsSixBold size={16} />
             </button>
@@ -717,37 +638,63 @@ const ColumnThree = ({ handleDelete, id }) => {
       
       {/* Column A */}
       <div
-      ref={columnARef}
-        onDrop={handleDrop("columnA")}
+        ref={columnARef}
+        onDrop={handleDrop("childrenA")}
         onDragOver={handleDragOver}
-        onDragEnter={()=>handleDragEnter("columnA", columnARef)} 
+        onDragEnter={(e)=>handleDragEnter(e, "childrenA", columnARef)} 
         onDragLeave={(e)=>handleDragLeave(e, columnARef)}
         className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${(dragState.isDragging && dragState.column === "columnA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                    ${(dragState.isDragging && dragState.column === "childrenA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
                     ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
                   `}
       >
-        {childrenA.map((child) => (
-          <div
-            key={child.id}
-            className="w-full mb-1 relative"
-            onMouseEnter={() => setHoveredChildA(child.id)} 
-            onMouseLeave={() => setHoveredChildA(null)}   
-            onClick={(e) => {
-              e.stopPropagation();
-              onclickHandler(id, child.id, "childrenA");
-            }}
-            onContextMenu={(e) => {
-              e.stopPropagation();
-              console.log("Right-clicked element in columnThree:", child.id);
-              handleRightClick(e, "childrenA", child.id); // ✅ Pass childId
-            }}
-          >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA",  parentName: "3-columns"}) : <div>Unknown Component</div>}
-            
-          </div>
+        {childrenA.map((child, index) => (
+          <React.Fragment key={child.id}>
+
+            {/* 🟣 Drop Zone Above Each Child */}
+            {dragState.column==='childrenA' && dragState.isDragging && dropIndex === index && dropPosition === "above" && (
+              <div
+                className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto"
+                onDrop={handleDrop}
+              >
+                Drop Here
+              </div>
+            )}
+
+            <div
+              key={child.id}
+              className="w-full mb-1 relative"
+              onMouseEnter={() => setHoveredChildA(child.id)} 
+              onMouseLeave={() => setHoveredChildA(null)}   
+              onClick={(e) => {
+                e.stopPropagation();
+                console.log("ColumnTwo - activeWidgetId:", activeWidgetId, "activeParentId:", activeParentId);
+                onclickHandler(id, child.id, "childrenA");
+              }}
+              onContextMenu={(e) => {
+                e.stopPropagation();
+                console.log("Right-clicked element in columnThree:", child.id);
+                handleRightClick(e, "childrenA", child.id); // ✅ Pass childId
+              }}
+              id={`element-${child.id}`}
+              onDragOver={(e) => handleDragOver(e, child.id, index)}
+            >
+              {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenA",  parentName: "3-columns"}) : <div>Unknown Component</div>}
+              
+            </div>
+
+            {/* 🔵 Drop Zone Below Each Child */}
+            {dragState.column==='childrenA' && dragState.isDragging && dropIndex === index + 1 && dropPosition === "below" && (
+                <div
+                  className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto"
+                  onDrop={handleDrop}
+                >
+                  Drop Here
+                </div>
+              )}
+          </React.Fragment>
         ))}
         {childrenA.length === 0 && 
           <>
@@ -759,13 +706,13 @@ const ColumnThree = ({ handleDelete, id }) => {
       {/* Column B */}
       <div
       ref={columnBRef}
-        onDrop={handleDrop("columnB")}
+        onDrop={handleDrop("childrenB")}
         onDragOver={handleDragOver}
-        onDragEnter={()=>handleDragEnter("columnB", columnBRef)} 
+        onDragEnter={(e)=>handleDragEnter(e, "childrenB", columnBRef)} 
         onDragLeave={(e)=>handleDragLeave(e, columnBRef)}
         className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${(dragState.isDragging && dragState.column === "columnB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                    ${(dragState.isDragging && dragState.column === "childrenB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
                     ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
                     
@@ -773,25 +720,50 @@ const ColumnThree = ({ handleDelete, id }) => {
                   `}
       >
   
-        {childrenB.map((child) => (
-          <div
-            key={child.id}
-            className="w-full mb-1 relative"
-            onMouseEnter={() => setHoveredChildB(child.id)} 
-            onMouseLeave={() => setHoveredChildB(null)}   
-            onClick={(e) => {
-              e.stopPropagation();
-              onclickHandler(id, child.id, "childrenB");
-            }}
-            onContextMenu={(e) => {
-              e.stopPropagation();
-              console.log("Right-clicked element in columnThree:", child.id);
-              handleRightClick(e, "childrenB", child.id); // ✅ Pass childId
-            }}
-          >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB",  parentName: "3-columns" }) : <div>Unknown Component</div>}
-            
-          </div>
+        {childrenB.map((child, index) => (
+          <React.Fragment key={child.id}>
+
+            {/* 🟣 Drop Zone Above Each Child */}
+            {dragState.column==='childrenB' && dragState.isDragging && dropIndex === index && dropPosition === "above" && (
+              <div
+                className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto"
+                onDrop={handleDrop}
+              >
+                Drop Here
+              </div>
+            )}
+
+            <div
+              key={child.id}
+              className="w-full mb-1 relative"
+              onMouseEnter={() => setHoveredChildB(child.id)} 
+              onMouseLeave={() => setHoveredChildB(null)}   
+              onClick={(e) => {
+                e.stopPropagation();
+                onclickHandler(id, child.id, "childrenB");
+              }}
+              onContextMenu={(e) => {
+                e.stopPropagation();
+                console.log("Right-clicked element in columnThree:", child.id);
+                handleRightClick(e, "childrenB", child.id); // ✅ Pass childId
+              }}
+              id={`element-${child.id}`}
+              onDragOver={(e) => handleDragOver(e, child.id, index)}
+            >
+              {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenB",  parentName: "3-columns" }) : <div>Unknown Component</div>}
+              
+            </div>
+
+            {/* 🔵 Drop Zone Below Each Child */}
+            {dragState.column==='childrenB' && dragState.isDragging && dropIndex === index + 1 && dropPosition === "below" && (
+                <div
+                  className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto"
+                  onDrop={handleDrop}
+                >
+                  Drop Here
+                </div>
+              )}
+          </React.Fragment>
         ))}
         {childrenB.length === 0 && <>
             <p className="text-gray-400">Column B</p>
@@ -802,13 +774,13 @@ const ColumnThree = ({ handleDelete, id }) => {
       {/* Column C */}
       <div
         ref={columnCRef}
-        onDrop={handleDrop("columnC")}
+        onDrop={handleDrop("childrenC")}
         onDragOver={handleDragOver}
-        onDragEnter={()=>handleDragEnter("columnC", columnCRef)} 
+        onDragEnter={(e)=>handleDragEnter(e, "childrenC", columnCRef)} 
         onDragLeave={(e)=>handleDragLeave(e, columnCRef)}
         className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500
                     ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${(dragState.isDragging && dragState.column === "columnC") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+                    ${(dragState.isDragging && dragState.column === "childrenC") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
                     ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
                     ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
                     
@@ -816,25 +788,50 @@ const ColumnThree = ({ handleDelete, id }) => {
                   `}
       >
       
-        {childrenC.map((child) => (
-          <div
-            key={child.id}
-            className="w-full mb-1 relative"
-            onMouseEnter={() => setHoveredChildC(child.id)} 
-            onMouseLeave={() => setHoveredChildC(null)}   
-            onClick={(e) => {
-              e.stopPropagation();
-              onclickHandler(id, child.id, "childrenC");
-            }}
-            onContextMenu={(e) => {
-              e.stopPropagation();
-              console.log("Right-clicked element in columnThree:", child.id);
-              handleRightClick(e, "childrenC", child.id); // ✅ Pass childId
-            }}
-          >
-            {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenC",  parentName: "3-columns"}) : <div>Unknown Component</div>}
-            
-          </div>
+        {childrenC.map((child, index) => (
+          <React.Fragment key={child.id}>
+
+            {/* 🟣 Drop Zone Above Each Child */}
+            {dragState.column==='childrenC' && dragState.isDragging && dropIndex === index && dropPosition === "above" && (
+              <div
+                className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto"
+                onDrop={handleDrop}
+              >
+                Drop Here
+              </div>
+            )}
+
+            <div
+              key={child.id}
+              className="w-full mb-1 relative"
+              onMouseEnter={() => setHoveredChildC(child.id)} 
+              onMouseLeave={() => setHoveredChildC(null)}   
+              onClick={(e) => {
+                e.stopPropagation();
+                onclickHandler(id, child.id, "childrenC");
+              }}
+              onContextMenu={(e) => {
+                e.stopPropagation();
+                console.log("Right-clicked element in columnThree:", child.id);
+                handleRightClick(e, "childrenC", child.id); // ✅ Pass childId
+              }}
+              id={`element-${child.id}`}
+              onDragOver={(e) => handleDragOver(e, child.id, index)}
+            >
+              {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: "childrenC",  parentName: "3-columns"}) : <div>Unknown Component</div>}
+              
+            </div>
+
+            {/* 🔵 Drop Zone Below Each Child */}
+            {dragState.column==='childrenC' && dragState.isDragging && dropIndex === index + 1 && dropPosition === "below" && (
+                <div
+                  className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto"
+                  onDrop={handleDrop}
+                >
+                  Drop Here
+                </div>
+              )}
+          </React.Fragment>
         ))}
         {childrenC.length === 0 && <>
             <p className="text-gray-400">Column C</p>

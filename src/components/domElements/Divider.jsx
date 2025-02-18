@@ -3,31 +3,15 @@ import { setActiveWidgetName } from "../../redux/cardDragableSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
 import { useDispatch, useSelector } from "react-redux";
 
-import { AiOutlineDrag } from "react-icons/ai";
-import { replaceDroppedItem } from "../../redux/cardDragableSlice";
-
 import { setActiveWidgetId } from "../../redux/cardDragableSlice";
 import { setActiveParentId } from "../../redux/cardDragableSlice";
 import { setActiveColumn } from "../../redux/cardDragableSlice";
-import { updateElementStyles } from "../../redux/cardDragableSlice";
-
-
-import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
-import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
-import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
-import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
-import { addElementAtLocationInCC } from "../../redux/cardDragableSlice";
 
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
-import { addElementAtLocation } from "../../redux/cardDragableSlice";
-import { deleteDroppedItemById } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
-import { setActiveRightClick } from "../../redux/cardDragableSlice";
-import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
+
 
 import { PiDotsSixBold } from "react-icons/pi";
-import { FiEdit } from "react-icons/fi";
-import { RxCross2 } from "react-icons/rx";
 
 import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
 import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
@@ -39,7 +23,6 @@ const Divider = ({ id, parentId, column, parentName}) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hovered element
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const dividerRef = useRef(null); // Ref to handle divider element
-  const [extraGap, setExtraGap] = useState(null);
 
   const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
 
@@ -101,287 +84,52 @@ const Divider = ({ id, parentId, column, parentName}) => {
     }, []);
     // *****************************************************************************
     // element exchange position through ui
-      const onDragStart = (e) => {
-        console.log("onDragStart called in Text");
-        e.stopPropagation();
-        e.dataTransfer.setData(
-          "text/plain",
-          JSON.stringify({
-            id,
-            name: "Divider",
-            styles: currentStyles,
-            type: "widget",
-            content: null,
-            parentId: parentId || null,
-            column: column || null,
-          })
-        );
+    const onDragStart = (e) => {
+      console.log("onDragStart called in Text");
+      e.stopPropagation();
+      e.dataTransfer.setData(
+        "text/plain",
+        JSON.stringify({
+          id,
+          name: "Divider",
+          styles: currentStyles,
+          type: "widget",
+          content: null,
+          parentId: parentId || null,
+          column: column || null,
+        })
+      );
 
-        // Create drag preview
-        const dragPreview = document.createElement("div");
-        dragPreview.style.fontSize = "16px"; // Font size for readability
-        dragPreview.style.fontWeight = "bold"; // Bold text for visibility
-        dragPreview.style.color = "#1d4ed8"; // Text color
-        dragPreview.style.lineHeight = "1"; // Ensure proper line height
-        dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
-        dragPreview.style.width = "100px"; // Allow text to determine width
-        dragPreview.style.height = "20px"; // Automatically adjust height
-        dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
-        dragPreview.innerText = "Divider"; // Set the plain text for the drag preview
-        document.body.appendChild(dragPreview);
+      // Create drag preview
+      const dragPreview = document.createElement("div");
+      dragPreview.style.fontSize = "16px"; // Font size for readability
+      dragPreview.style.fontWeight = "bold"; // Bold text for visibility
+      dragPreview.style.color = "#1d4ed8"; // Text color
+      dragPreview.style.lineHeight = "1"; // Ensure proper line height
+      dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
+      dragPreview.style.width = "100px"; // Allow text to determine width
+      dragPreview.style.height = "20px"; // Automatically adjust height
+      dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
+      dragPreview.innerText = "Divider"; // Set the plain text for the drag preview
+      document.body.appendChild(dragPreview);
 
-        // Set the custom drag image
-        e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
+      // Set the custom drag image
+      e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
 
-        // Cleanup after drag starts
-        setTimeout(() => {
-          document.body.removeChild(dragPreview);
-        }, 0);
+      // Cleanup after drag starts
+      setTimeout(() => {
+        document.body.removeChild(dragPreview);
+      }, 0);
 
-        dispatch(setWidgetOrElement("element"));
-        dispatch(setSmallGapInTop(true));
+      dispatch(setWidgetOrElement("element"));
+      dispatch(setSmallGapInTop(true));
 
-        setTimeout(() => {
-          dispatch(setPaddingBottom(true)); 
-          dispatch(setPaddingTopInCC(true)); 
-        }, 100); // Small delay ensures drag operation completes first
-      };
+      setTimeout(() => {
+        dispatch(setPaddingBottom(true)); 
+        dispatch(setPaddingTopInCC(true)); 
+      }, 100); // Small delay ensures drag operation completes first
+    };
 
-      //******************************************************************************** */ 
-      
-      
-      const onDrop = (e) => {
-          e.stopPropagation();
-      
-          // for changing position from the ui
-          const draggedName = e.dataTransfer.getData("text/plain");
-          console.log("droppedData from the ui: ", draggedName);
-          const restrictedWidgets = ["Text", "TextArea", "Button", "Image", "Divider", "Space", "SocialMedia"];
-          if (restrictedWidgets.includes(draggedName)) {
-            alert("Please drop it in an black space.");
-            return;
-          }
-      
-          // for droped widgets from left panel
-          const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-          console.log("droppedData: ", droppedData);
-      
-          setExtraGap(null);
-          console.log("parentName in text: ",parentName);
-      
-          if(widgetOrElement && widgetOrElement === "element"){
-                          console.log("IF PART CALLED");
-                                      
-                          if(parentId === droppedData.parentId && column===droppedData.column){
-                            // customCollumns as parent is same.
-                            console.log("parentName: ",parentName);
-                            if(parentName === 'customColumns'){
-                              console.log("parentName === customColumns");
-                              dispatch(
-                                replaceDroppedItemInCC({
-                                  parentId: parentId || null,
-                                  column: column || null,
-                                  draggedNodeId: droppedData.id,
-                                  targetNodeId: id,
-                                }) 
-                              );
-                            }
-                            else if(parentName==='widgetSection'){
-                              console.log("parentName === widgetSection");
-                              dispatch(
-                                replaceDroppedItemInWS({
-                                  parentId: parentId || null,
-                                  column: column || null,
-                                  draggedNodeId: droppedData.id,
-                                  targetNodeId: id,
-                                }) 
-                              );
-                            }
-                            else{
-                              // 1-column, or 2-columns or 3-columns is same as parent
-                              console.log("parentName === normal section")
-                              dispatch(
-                                replaceDroppedItem({
-                                  parentId: parentId || null,
-                                  column: column || null,
-                                  draggedNodeId: droppedData.id,
-                                  targetNodeId: id,
-                                }) 
-                              );
-                            }
-                          }
-                          else{
-                            // dragable parent not same, but current parent is "customClumns"
-                            if(parentName === 'customColumns'){
-                                console.log("dragable parent not same, but current parent is customClumns");
-                                dispatch(
-                                  addElementAtLocationInCC({
-                                    draggedNodeId: Date.now(), 
-                                    draggedName: droppedData.name, 
-                                    dragableType: droppedData.type,
-                                    styles: droppedData.styles, 
-                                    content: droppedData.content, 
-                                    
-                                    targetParentId: parentId, 
-                                    targetColumn: column, 
-                                    targetNodeId: id, 
-                                  })
-                                )
-                          
-                                dispatch(deleteDroppedItemById(
-                                  {
-                                    parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
-                                    childId: droppedData.parentId ?  droppedData.id : null, 
-                                    columnName: droppedData.column ? droppedData.column : null}
-                                ));
-                            }
-                            else if(parentName === 'widgetSection'){
-                              console.log("dragable parent not same, but current parent is widgetSection");
-                              dispatch(
-                                addElementAtLocationInWS({
-                                  draggedNodeId: Date.now(), 
-                                  draggedName: droppedData.name, 
-                                  dragableType: droppedData.type,
-                                  styles: droppedData.styles, 
-                                  content: droppedData.content, 
-                                  
-                                  targetParentId: parentId, 
-                                  targetColumn: column, 
-                                  targetNodeId: id, 
-                                })
-                              )
-                        
-                              dispatch(deleteDroppedItemById(
-                                {
-                                  parentId: droppedData.parentId ? droppedData.parentId : droppedData.id, 
-                                  childId: droppedData.parentId ?  droppedData.id : null, 
-                                  columnName: droppedData.column ? droppedData.column : null}
-                              ));
-                            }
-                            // dragable parent not same, but parent is "1-column or 2-columns or 3-columns"
-                            else{
-                              console.log("IF PART CALLED 3");
-                              console.log("dragable parent not same, but parent is: 1-column or 2-columns or 3-columns")
-                              dispatch(
-                                addElementAtLocation({
-                                  draggedNodeId: Date.now(), 
-                                  draggedName: droppedData.name, 
-                                  dragableType: droppedData.type,
-                                  styles: droppedData.styles, 
-                                  content: droppedData.content, 
-                                  
-                                  targetParentId: parentId, 
-                                  targetColumn: column, 
-                                  targetNodeId: id, 
-                                })
-                              )
-                    
-                              dispatch(deleteDroppedItemById(
-                                {
-                                  parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-                                  childId: droppedData.parentId ? droppedData.id : null, 
-                                  columnName: droppedData.column ? droppedData.column : null }
-                              ));
-                    
-                            }
-                          }
-                    
-          }
-          // columns droping on element
-          else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
-            // nothing to do
-          }
-          else{
-            // for droped widgets from left panel
-              console.log("parentName: ",parentName);
-              if(parentName==='widgetSection'){
-                dispatch(
-                  addElementAtLocationInWS({
-                    draggedNodeId: Date.now(), 
-                    draggedName: droppedData.name, 
-                    dragableType: droppedData.type,
-                    styles: droppedData.styles, 
-                    content: droppedData.content, 
-                    
-                    targetParentId: parentId, 
-                    targetColumn: column, 
-                    targetNodeId: id, 
-                  })
-                )
-              }
-              else if(parentName==='customColumns'){
-                dispatch(
-                  addElementAtLocationInCC({
-                    draggedNodeId: Date.now(), 
-                    draggedName: droppedData.name, 
-                    dragableType: droppedData.type,
-                    styles: droppedData.styles, 
-                    content: droppedData.content, 
-                    
-                    targetParentId: parentId, 
-                    targetColumn: column, 
-                    targetNodeId: id, 
-                  })
-                )
-              }
-              else{
-                dispatch(
-                  addElementAtLocation({
-                    draggedNodeId: Date.now(), 
-                    draggedName: droppedData.name, 
-                    dragableType: droppedData.type,
-                    
-                    targetParentId: parentId, 
-                    targetColumn: column, 
-                    targetNodeId: id, 
-                  })
-                )
-              }
-            
-          }
-
-          // initialize the application
-          dispatch(setActiveWidgetId(null));
-          dispatch(setActiveParentId(null));
-          dispatch(setActiveColumn(null));
-      
-          dispatch(setColumnOneExtraPadding(false));
-          dispatch(setColumnTwoExtraPadding(false));
-          dispatch(setColumnThreeExtraPadding(false));
-          dispatch(setWrapperExtraPadding(false));
-
-          dispatch(setHoverParentInCC(null));
-          dispatch(setHoverColumnInCC(null));
-          dispatch(setPaddingTopInCC(null));
-          dispatch(setPaddingBottom(null));
-      
-        };
-      
-      const onDragEnterHandle = () => {
-        console.log("onDragEnterHandle called in Button");
-      
-        // Add padding if not already active
-        if (!extraGap) {
-          setExtraGap(true);
-        }
-      };
-      
-      const onDragOver = (e) => {
-        e.preventDefault(); // Prevent default to allow dropping
-        console.log("onDragOver called in Button");
-      
-        // Ensure padding is added immediately when dragging over
-        if (!extraGap) {
-          setExtraGap(true);
-        }
-      };
-      
-      const onDragLeaveHandle = () => {
-        console.log("onDragLeaveHandle called in Button");
-      
-        // Remove padding when dragging out
-        setExtraGap(null);
-      };
     // ****************************************************************************************
     const handleRightClick = () =>{
       dispatch(setActiveWidgetId(id));
@@ -408,12 +156,6 @@ const Divider = ({ id, parentId, column, parentName}) => {
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
       onClick={onClickHandle}
-      
-      onDrop={onDrop}
-      
-      onDragOver={onDragOver}
-      onDragEnter={onDragEnterHandle}
-      onDragLeave={onDragLeaveHandle}
     >
 
       {/* 🔹 Small Rectangular Box in the Top-Right Corner */}
@@ -427,7 +169,6 @@ const Divider = ({ id, parentId, column, parentName}) => {
         onDragStart={onDragStart}
         onDragEnd={()=>{
           dispatch(setSmallGapInTop(null));
-          setExtraGap(null);
 
           dispatch(setHoverParentInCC(null));
           dispatch(setHoverColumnInCC(null));

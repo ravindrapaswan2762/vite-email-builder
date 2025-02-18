@@ -33,6 +33,7 @@ const TextEditOption = () => {
 
   // Memoized selectedElement to ensure stability
   const selectedElement = useMemo(() => findElementById(droppedItems, activeWidgetId) || {}, [droppedItems, activeWidgetId]);
+  console.log("selectedElement: ", selectedElement);
 
   const [fields, setFields] = useState({
     height: "",
@@ -56,6 +57,13 @@ const TextEditOption = () => {
 
   useEffect(() => {
     if (selectedElement.styles) {
+
+      const fontWeightMap = {
+        normal: "400",
+        bold: "700",
+        bolder: "900",
+      };
+
       const newFields = {
         height: selectedElement.styles.height || "",
         paddingTop: selectedElement.styles.paddingTop || "",
@@ -69,7 +77,7 @@ const TextEditOption = () => {
         lineHeight: selectedElement.styles.lineHeight || "",
         letterSpacing: selectedElement.styles.letterSpacing || "",
         textDecoration: selectedElement.styles.textDecoration || "none",
-        fontWeight: selectedElement.styles.fontWeight || "700",
+        fontWeight: fontWeightMap[selectedElement.styles.fontWeight] || selectedElement.styles.fontWeight || "400",
         textAlign: selectedElement.styles.textAlign || "left",
         fontStyle: selectedElement.styles.fontStyle || "normal",
         className: selectedElement.styles.className || "",
@@ -94,7 +102,7 @@ const TextEditOption = () => {
         lineHeight: "",
         letterSpacing: "",
         textDecoration: "none",
-        fontWeight: "700",
+        fontWeight: "400",
         textAlign: "left",
         fontStyle: "normal",
         className: "",
@@ -115,6 +123,14 @@ const TextEditOption = () => {
       updatedValue = value && !value.includes("px") ? `${value}px` : value;
     }
 
+    // Convert fontWeight back to named values if necessary
+    const fontWeightReverseMap = {
+      "400": "normal",
+      "700": "bold",
+      "900": "bolder",
+    };
+    const finalValue = name === "fontWeight" ? fontWeightReverseMap[value] || value : updatedValue;
+
     setFields((prev) => ({
       ...prev,
       [name]: updatedValue,
@@ -123,7 +139,7 @@ const TextEditOption = () => {
     dispatch(
       updateElementStyles({
         id: activeWidgetId,
-        styles: { [name]: updatedValue },
+        styles: { [name]: finalValue },
         ...(activeParentId && { parentId: activeParentId }),
         ...(activeColumn && { column: activeColumn }),
       })

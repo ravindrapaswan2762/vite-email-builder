@@ -249,7 +249,7 @@
 
 
 
-// // Helper function to generate inline styles in JSX-friendly format
+// Helper function to generate inline styles in JSX-friendly format
 // export const generateInlineStyles = (styles) => {
 //   return Object.entries(styles).reduce((acc, [key, value]) => {
 //     acc[key] = `${value}`; // Ensures all values are stored as strings for JSX
@@ -459,7 +459,7 @@
 
 
 
-// Helper function to generate inline styles in JSX object format
+// // Helper function to generate inline styles in JSX object format
 export const generateInlineStyles = (styles) => {
   return Object.entries(styles).reduce((acc, [key, value]) => {
     acc[key] = `${value}`; // Ensures all values are stored as strings for JSX
@@ -632,24 +632,28 @@ export const generateSourceCode = (items) => {
 
         case "3-columns":
           html = `
-            <div className="relative grid grid-cols-3 gap-1 border p-1 rounded-md bg-white shadow-md hover:shadow-lg transition-all duration-300"
-                  style={{ ${inlineStylesString} }}>
-              ${children
-                .map((child, index) => {
-                  const childStyles = JSON.stringify(generateInlineStyles(child.styles))
-                    .replace(/"([^"]+)":/g, "$1:")
-                    .replace(/"/g, "'")
-                    .slice(1, -1); // Fix for JSX format
-        
-                  return `
-                    <div className="border border-dashed p-4 bg-gray-50 rounded-md text-center hover:bg-gray-200 min-h-[150px]"
-                          style={{ ${childStyles} }}>
-                      <p className="text-gray-500 font-medium mb-2">Column ${index + 1}</p>
-                      ${generateSourceCode([child])}
-                    </div>
-                  `;
-                })
-                .join("")}
+            {/*  Main Parent Wrapper */}
+            <div className="relative grid gap-1 group bg-transparent transition-all duration-300"
+                style={{ ${JSON.stringify(inlineStyles).slice(1, -1)} }}>
+
+              {/*  Column A */}
+              <div className="rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500"
+                  style={{ ${JSON.stringify(generateInlineStyles(item.childrenA?.[0]?.styles || {})).slice(1, -1)} }}>
+                ${item.childrenA?.map((child) => generateSourceCode([child])).join("") || ``}
+              </div>
+
+              {/*  Column B */}
+              <div className="rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500"
+                  style={{ ${JSON.stringify(generateInlineStyles(item.childrenB?.[0]?.styles || {})).slice(1, -1)} }}>
+                ${item.childrenB?.map((child) => generateSourceCode([child])).join("") || ``}
+              </div>
+
+              {/*  Column C */}
+              <div className="rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500"
+                  style={{ ${JSON.stringify(generateInlineStyles(item.childrenC?.[0]?.styles || {})).slice(1, -1)} }}>
+                ${item.childrenC?.map((child) => generateSourceCode([child])).join("") || ``}
+              </div>
+
             </div>
           `;
           break;

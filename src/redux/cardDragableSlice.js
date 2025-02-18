@@ -12,6 +12,7 @@ const initialState = {
 
   widgetOrElement: null,
   activeRightClick: null,
+  elementDragging: null,
 };
 
 
@@ -50,6 +51,11 @@ const cardDragableSlice = createSlice({
     setActiveColumn: (state, action) => {
       console.log("seted activeColumn: ", action.payload);
       state.activeColumn = action.payload;
+    },
+
+    setElementDragging: (state, action) =>{
+      console.log("seted setIsDragging: ", action.payload);
+      state.elementDragging = action.payload;
     },
 
     setDroppedItems: (state, action) => {
@@ -690,7 +696,8 @@ const cardDragableSlice = createSlice({
     },
 
     setWidgetOrElement: (state, action) =>{
-      console.log("setWidgetOrElement called: ", action.payload);
+      // console.log("setWidgetOrElement called: ", action.payload);
+      console.log("Updated widgetOrElement in action :@$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", action.payload);
       state.widgetOrElement = action.payload;
     },
 
@@ -1492,6 +1499,8 @@ const cardDragableSlice = createSlice({
 
 
     // *******************************************
+
+    //insertElementAtDropIndex is hadling this case too.
     replaceDroppedItemByIndex: (state, action) => {
       const { draggedItemId, targetIndex } = action.payload;
     
@@ -1526,6 +1535,135 @@ const cardDragableSlice = createSlice({
     
       console.log("✅ Updated droppedItems (index-based insert): ", JSON.parse(JSON.stringify(state.droppedItems)));
     },
+
+    insertElementAtDropIndex: (state, action) => {
+      const {
+        id,      
+        name,   
+        type,
+        parentId,   
+        column,
+        styles,
+        content,
+        dropIndex,
+      } = action.payload;
+    
+      console.log("insertElementAtDropIndex called: ", action.payload);
+    
+      if (!parentId) {
+        console.warn("Parent ID is missing for insertion.");
+        return;
+      }
+    
+      // Find the parent container
+      const parentContainer = state.droppedItems.find((item) => item.id === parentId);
+      if (!parentContainer) {
+        console.warn("Parent container not found.");
+        return;
+      }
+    
+      // Determine the correct column for insertion
+      let columnKey = column;
+      
+      if (!columnKey) {
+        if (parentContainer.type === "1-column") columnKey = "children";
+        else if (parentContainer.type === "2-columns") columnKey = ["childrenA", "childrenB"].includes(column) ? column : "childrenA";  // ✅ Ensure valid column
+        else if (parentContainer.type === "3-columns") columnKey = ["childrenA", "childrenB", "childrenC"].includes(column) ? column : "childrenA";  // ✅ Ensure valid column
+        else if (parentContainer.type === "customColumns" || parentContainer.type === "widgetSection") {
+          columnKey = Object.keys(parentContainer).find((key) => key.startsWith("children")) || "childrenA";
+        }
+      }
+    
+      // Ensure columnKey exists in the parentContainer
+      if (!parentContainer[columnKey]) {
+        parentContainer[columnKey] = [];
+      }
+    
+      // Create new dragged element object
+      const newElement = { id, name, type, styles, content };
+    
+      // Insert the new element at `dropIndex`
+      if (typeof dropIndex === "number" && dropIndex >= 0 && dropIndex <= parentContainer[columnKey].length) {
+        parentContainer[columnKey].splice(dropIndex, 0, newElement);
+        console.log(`✅ Inserted at index ${dropIndex} in ${columnKey} within parent ${parentId}`);
+      } else {
+        parentContainer[columnKey].push(newElement);
+        console.log(`✅ Inserted at last index in ${columnKey}`);
+      }
+    
+      console.log("✅ Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    },
+
+    insertElementAtDropIndexInCC: (state, action) => {
+      const {
+        id,
+        name,
+        type,
+        parentId,
+        column,
+        styles,
+        content,
+        dropIndex,
+      } = action.payload;
+    
+      console.log("insertElementAtDropIndex called: ", action.payload);
+    
+      if (!parentId) {
+        console.warn("Parent ID is missing for insertion.");
+        return;
+      }
+    
+      // Find the parent container
+      const parentContainer = state.droppedItems.find((item) => item.id === parentId);
+      if (!parentContainer) {
+        console.warn("Parent container not found.");
+        return;
+      }
+    
+      // Determine the correct column for insertion
+      let columnKey = column;
+    
+      if (!columnKey) {
+        if (parentContainer.type === "1-column") columnKey = "children";
+        else if (parentContainer.type === "2-columns") columnKey = ["childrenA", "childrenB"].includes(column) ? column : "childrenA";
+        else if (parentContainer.type === "3-columns") columnKey = ["childrenA", "childrenB", "childrenC"].includes(column) ? column : "childrenA";
+        else if (parentContainer.type === "customColumns" || parentContainer.type === "widgetSection") {
+          columnKey = Object.keys(parentContainer).find((key) => key.startsWith("children")) || "childrenA";
+        }
+      }
+    
+      // Ensure columnKey exists in the parentContainer
+      if (!parentContainer[columnKey]) {
+        parentContainer[columnKey] = [{ children: [] }]; // ✅ Ensure it has a children array
+      }
+    
+      // Extract the correct children array
+      let columnChildren = parentContainer[columnKey][0].children;
+    
+      // Check if element with same ID already exists
+      const existingIndex = columnChildren.findIndex((item) => item.id === id);
+    
+      if (existingIndex !== -1) {
+        // 🔄 Update existing element
+        columnChildren[existingIndex] = { id, name, type, styles, content };
+        console.log(`✅ Updated existing element in ${columnKey} at index ${existingIndex}`);
+      } else {
+        // ➕ Insert new element at `dropIndex`
+        const newElement = { id, name, type, styles, content };
+        
+        if (typeof dropIndex === "number" && dropIndex >= 0 && dropIndex <= columnChildren.length) {
+          columnChildren.splice(dropIndex, 0, newElement);
+          console.log(`✅ Inserted at index ${dropIndex} in ${columnKey} within parent ${parentId}`);
+        } else {
+          columnChildren.push(newElement);
+          console.log(`✅ Inserted at last index in ${columnKey}`);
+        }
+      }
+    
+      console.log("✅ Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
+    }
+    
+    
     
     
     
@@ -1540,7 +1678,8 @@ export const {
   setActiveWidgetId, 
   setShowDropingArea, 
   setActiveWidgetName, 
-  setDroppedItems, 
+  setDroppedItems,
+  setElementDragging, 
   deleteDroppedItemById, 
   updateElementStyles,
   setActiveParentId,
@@ -1575,6 +1714,9 @@ export const {
 
   //
   replaceDroppedItemByIndex,
+  insertElementAtDropIndex,
+  insertElementAtDropIndexInCC,
+  
   
 } = cardDragableSlice.actions;
 
