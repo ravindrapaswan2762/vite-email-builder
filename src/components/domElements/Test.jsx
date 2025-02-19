@@ -504,189 +504,41 @@
 
 
 
-
-import React, { useState, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  setActiveWidgetId,
-  insertElementAtDropIndex,
-  deleteDroppedItemById,
-} from "../../redux/cardDragableSlice";
-import { setActiveBorders } from "../../redux/activeBorderSlice";
-import Text from "./Text";
-import Image from "./Image";
-import Button from "./Button";
-import TextArea from "./TextArea";
-import Divider from "./Divider";
-import SocialMedia from "./SocialMedia";
-import Space from "./Space";
-
-const ColumnOne = ({ id }) => {
-  const dispatch = useDispatch();
-  const { activeWidgetId, droppedItems } = useSelector((state) => state.cardDragable);
-
-  const oneColumnRef = useRef(null);
-
-  const [dropIndex, setDropIndex] = useState(null);
-  const [dropPosition, setDropPosition] = useState(null);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const parent = droppedItems.find((item) => item.id === id);
-  const children = parent?.children || [];
-
-  const handleDragStart = () => setIsDragging(true);
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-    setDropIndex(null);
-    setDropPosition(null);
-  };
-
-  const handleDragOver = (e, targetId, index) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log("handleDragOver called: ",index);
-
-    const targetElement = document.getElementById(`element-${targetId}`);
-    if (targetElement) {
-      const { top, height } = targetElement.getBoundingClientRect();
-      const cursorY = e.clientY;
-      const edgeThreshold = height * 0.1;
-
-      if (cursorY < top + edgeThreshold) {
-        setDropIndex(index);
-        setDropPosition("above");
-      } else if (cursorY > top + height - edgeThreshold) {
-        setDropIndex(index);
-        setDropPosition("below");
-      }
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    if (dropIndex === null) return;
-
-    let finalDropIndex = dropIndex;
-    if (dropPosition === "below") finalDropIndex += 1;
-
-    const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-
-    dispatch(
-      insertElementAtDropIndex({
-        id: Date.now(),
-        name: droppedData.name,
-        type: droppedData.type,
-        parentId: id,
-        column: "children",
-        styles: droppedData.styles || {},
-        content: droppedData.content || "",
-        dropIndex: finalDropIndex,
-      })
-    );
-
-    dispatch(
-      deleteDroppedItemById({
-        parentId: droppedData.parentId || droppedData.id,
-        childId: droppedData.parentId ? droppedData.id : null,
-        columnName: droppedData.column || null,
-      })
-    );
-
-    setDropIndex(null);
-    setDropPosition(null);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    if (!e.relatedTarget || !e.relatedTarget.classList.contains("drop-zone")) {
-      setDropIndex(null);
-      setDropPosition(null);
-    }
-  };
-
-  return (
-    <div
-      ref={oneColumnRef}
-      className={`text-center min-h-[150px] relative group transition-all duration-300 p-2 ${
-        activeWidgetId === id ? "border-2 border-blue-500" : ""
-      }`}
-      onDrop={handleDrop}
-      onDragOver={(e) => e.preventDefault()}
-      onDragLeave={handleDragLeave}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+{popup.visible && (
+  <div
+  
+  className="absolute z-20 bg-white shadow-md border border-gray-200 rounded-lg transition-all duration-300"
+  style={{
+    top: popup.y,
+    left: popup.x,
+    minWidth: "120px", // Compact size
+    padding: "8px", // Slight padding for spacing
+  }}
+>
+  {/* Popup Actions */}
+  <div className="flex flex-col items-start gap-2">
+    {/* Duplicate Button */}
+    <button
+      className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
+      onClick={(e) => {
+        e.stopPropagation();
+        handlePopupDuplicate(popup.childId); // Call the duplicate function
+      }}
     >
-      {/* 🟠 Drop Zone Above the First Child (Always Visible While Dragging) */}
-      {(isDragging || children.length === 0) && (
-        <div
-          className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto mb-2"
-          onDragOver={(e) => handleDragOver(e, null, 0)}
-          onDrop={handleDrop}
-        >
-          Drop Here
-        </div>
-      )}
+      <span className="text-sm text-gray-600">🔄 Duplicate</span>
+    </button>
 
-      {children.length > 0 ? (
-        children.map((child, index) => (
-          <div
-            key={child.id}
-            className="relative group w-full rounded-md"
-            id={`element-${child.id}`}
-            onDragOver={(e) => handleDragOver(e, child.id, index)}
-          >
-            {/* 🟠 Drop Zone Above */}
-            {(isDragging || dropIndex === index) && dropPosition === "above" && (
-              <div
-                className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto"
-                onDrop={handleDrop}
-              >
-                Drop Here
-              </div>
-            )}
+    {/* Delete Button */}
+    <button
+      className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
+      onClick={(e) => {
+        e.stopPropagation();
+        handlePopupDelete(popup.childId); // Call the delete function
+      }}
+    >
+      <span className="text-sm text-gray-600">🗑 Delete</span>
+    </button>
+  </div>
+</div>
 
-            {/* 🔥 Render Dropped Element */}
-            {child.name === "Text" ? <Text id={child.id} /> : null}
-            {child.name === "Image" ? <Image id={child.id} /> : null}
-            {child.name === "Button" ? <Button id={child.id} /> : null}
-            {child.name === "TextArea" ? <TextArea id={child.id} /> : null}
-            {child.name === "Divider" ? <Divider id={child.id} /> : null}
-            {child.name === "SocialMedia" ? <SocialMedia id={child.id} /> : null}
-            {child.name === "Space" ? <Space id={child.id} /> : null}
-
-            {/* 🔵 Drop Zone Below */}
-            {(isDragging || dropIndex === index) && dropPosition === "below" && (
-              <div
-                className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto"
-                onDrop={handleDrop}
-              >
-                Drop Here
-              </div>
-            )}
-
-            
-          </div>
-        ))
-      ) : null}
-
-      {/* 🔵 Drop Zone After Last Child (Always Visible While Dragging) */}
-      {(isDragging || children.length === 0) && (
-        <div
-          className="drop-zone border-2 border-dashed border-blue-500 bg-blue-200 h-8 rounded-md flex justify-center items-center text-blue-700 font-semibold transition-all pointer-events-auto mt-2"
-          onDragOver={(e) => handleDragOver(e, null, children.length)}
-          onDrop={handleDrop}
-        >
-          Drop Here
-        </div>
-      )}
-
-
-    </div>
-  );
-};
-
-export default ColumnOne;
+)}

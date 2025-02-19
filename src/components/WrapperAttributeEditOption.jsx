@@ -6,6 +6,10 @@ import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 const WrapperAttributeEditOption = () => {
   const dispatch = useDispatch();
 
+  const [dimensionOpen, setDimensionOpen] = useState(true);
+  const [backgroundOpen, setBackgroundOpen] = useState(true);
+  const [borderOpen, setBorderOpen] = useState(true);
+
   // ✅ Fetch stored wrapper attributes from Redux
   const wrapperAttributes = useSelector((state) => state.attributes.wrapperAttributes);
 
@@ -57,13 +61,16 @@ const WrapperAttributeEditOption = () => {
 
       {/* Dimension Section */}
       <div className="p-4 m-1 bg-gray-100 rounded-lg">
-        <div className="flex items-center justify-between cursor-pointer">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setDimensionOpen(!dimensionOpen)}
+        >
           <h3 className="text-md font-bold text-gray-700">Dimension</h3>
-          <button className="text-gray-500 focus:outline-none">
-            <FiChevronDown />
-          </button>
+          {dimensionOpen ? <FiChevronDown /> : <FiChevronRight />}
         </div>
-        <div className="mt-3 space-y-4">
+
+        {dimensionOpen && (
+          <div className="mt-3 space-y-4">
           <h4 className="text-sm font-bold text-gray-600">Padding</h4>
           <div className="grid grid-cols-2 gap-4">
             {["Top", "Left", "Bottom", "Right"].map((direction) => (
@@ -82,17 +89,21 @@ const WrapperAttributeEditOption = () => {
             ))}
           </div>
         </div>
+        )}
       </div>
 
       {/* Background Section */}
       <div className="p-4 m-1 bg-gray-100 rounded-lg">
-        <div className="flex items-center justify-between cursor-pointer">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setBackgroundOpen(!backgroundOpen)}
+        >
           <h3 className="text-md font-bold text-gray-700">Background</h3>
-          <button className="text-gray-500 focus:outline-none">
-            <FiChevronDown />
-          </button>
+          {backgroundOpen ? <FiChevronDown /> : <FiChevronRight />}
         </div>
-        <div className="mt-3 space-y-4">
+
+        {backgroundOpen && (
+          <div className="mt-3 space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-600 mb-1">Background Image</label>
             <input
@@ -149,17 +160,21 @@ const WrapperAttributeEditOption = () => {
             />
           </div>
         </div>
+        )}
       </div>
 
       {/* Border Section */}
       <div className="p-4 m-1 bg-gray-100 rounded-lg">
-        <div className="flex items-center justify-between cursor-pointer">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setBorderOpen(!borderOpen)}
+        >
           <h3 className="text-md font-bold text-gray-700">Border</h3>
-          <button className="text-gray-500 focus:outline-none">
-            <FiChevronDown />
-          </button>
+          {borderOpen ? <FiChevronDown /> : <FiChevronRight />}
         </div>
-        <div className="mt-3 space-y-4">
+
+        {borderOpen && (
+          <div className="mt-3 space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-600 mb-1">Border Type</label>
             <input
@@ -181,6 +196,7 @@ const WrapperAttributeEditOption = () => {
             />
           </div>
         </div>
+        )}
       </div>
     </div>
   );

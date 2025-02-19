@@ -54,7 +54,7 @@ const cardDragableSlice = createSlice({
     },
 
     setElementDragging: (state, action) =>{
-      console.log("seted setIsDragging: ", action.payload);
+      console.log("seted setIsDragging RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR: ", action.payload);
       state.elementDragging = action.payload;
     },
 
@@ -767,50 +767,7 @@ const cardDragableSlice = createSlice({
       });
     },
     
-    // addElementWithSection: (state, action) => {
-    //   const { id, name, columnCount, parentId, styles, childId, childName, childType, childStyle, childContent } = action.payload;
-    
-    //   console.log("addElementWithSection called:::: ", action.payload);
-    
-    //   if (name !== "widgetSection" || columnCount < 1) {
-    //     console.warn("Invalid name or columnCount for widget section");
-    //     return;
-    //   }
-    
-    //   const newItem = { id, name, columnCount, parentId, styles };
-    
-    //   console.log(`Creating widgetSection with ${columnCount} columns`);
-    
-    //   newItem.childrenA = [
-    //     {
-    //       id: `${id}-childrenA`, // Unique ID for tracking childrenA
-    //       styles: { width: `${(100 / columnCount).toFixed(2)}%` }, // Dynamic width
-    //       children: [], // Placeholder for elements to be added next
-    //     },
-    //   ];
-    
-    //   state.activeWidgetId = id;
-    
-    //   state.droppedItems.push(newItem);
-    
-    //   console.log("✅ Updated droppedItems: ", JSON.parse(JSON.stringify(state.droppedItems)));
 
-    //   // 🔹 Now, add the child element inside `childrenA -> children`
-    //   const parentSection = state.droppedItems.find((item) => item.id === id);
-
-    //   if (parentSection && parentSection.childrenA) {
-    //     parentSection.childrenA[0].children.push({
-    //       id: childId,
-    //       name: childName,
-    //       type: childType,
-    //       styles: childStyle || {},
-    //       content: childContent || "",
-    //     });
-    
-    //     console.log("✅ Child Added Inside Section: ", JSON.parse(JSON.stringify(parentSection)));
-    //   }
-    // },
-    
     addElementWithSection: (state, action) => {
       const {
         id,
@@ -845,7 +802,7 @@ const cardDragableSlice = createSlice({
         },
       ];
     
-      state.activeWidgetId = id;
+      // state.activeWidgetId = id;
     
       // ✅ **Insert `newItem` at the correct index in `droppedItems`**
       if (dropIndex !== undefined && dropIndex >= 0 && dropIndex <= state.droppedItems.length) {

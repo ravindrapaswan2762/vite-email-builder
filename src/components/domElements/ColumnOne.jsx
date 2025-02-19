@@ -17,7 +17,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setDroppedItems, deleteDroppedItemById, setActiveParentId, setActiveWidgetId} from "../../redux/cardDragableSlice";
 import { setActiveBorders } from "../../redux/activeBorderSlice";
 
-import { AiOutlineDrag } from "react-icons/ai";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 
 import { setColumnOneExtraPadding } from "../../redux/condtionalCssSlice";
@@ -25,21 +24,16 @@ import { setColumnTwoExtraPadding } from "../../redux/condtionalCssSlice";
 import { setColumnThreeExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWrapperExtraPadding } from "../../redux/condtionalCssSlice";
 import { setWidgetOrElement } from "../../redux/cardDragableSlice";
-import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { setSmallGapInTop } from "../../redux/condtionalCssSlice";
-import { MdOutlineInsertDriveFile, MdDragIndicator } from "react-icons/md";
 import { PiDotsSixBold } from "react-icons/pi";
 import { FiEdit } from "react-icons/fi";
 import { setActiveRightClick } from "../../redux/cardDragableSlice";
-import { duplicateCustomColumn } from "../../redux/cardDragableSlice";
 import { duplicateElementInNormalColumn } from "../../redux/cardDragableSlice";
-import { addElementWithSection_AtSpecificLocation } from "../../redux/cardDragableSlice";
 
-import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
 import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
-import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
 import { insertElementAtDropIndex } from "../../redux/cardDragableSlice";
 import { setElementDragging } from "../../redux/cardDragableSlice";
+import { FiCopy, FiTrash2 } from "react-icons/fi"; // Modern icons
 
 
 
@@ -527,76 +521,48 @@ const ColumnOne = ({ handleDelete, id }) => {
       )}
 
 
+
       {popup.visible && (
         <div
-        
-        className="absolute z-20 bg-white shadow-md border border-gray-200 rounded-lg transition-all duration-300"
-        style={{
-          top: popup.y,
-          left: popup.x,
-          minWidth: "120px", // Compact size
-          padding: "8px", // Slight padding for spacing
-        }}
-      >
-        {/* Popup Actions */}
-        <div className="flex flex-col items-start gap-2">
-          {/* Duplicate Button */}
-          <button
-            className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePopupDuplicate(popup.childId); // Call the duplicate function
-            }}
-          >
-            <span className="flex items-center justify-center w-6 h-6 bg-blue-50 text-blue-500 rounded-md shadow-sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m4 10h-2m-6-6v6m0 0l-2-2m2 2l2-2"
-                />
-              </svg>
-            </span>
-            <span className="text-sm text-gray-600">🔄 Duplicate</span>
-          </button>
-      
-          {/* Delete Button */}
-          <button
-            className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePopupDelete(popup.childId); // Call the delete function
-            }}
-          >
-            <span className="flex items-center justify-center w-6 h-6 bg-red-50 text-red-500 rounded-md shadow-sm">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 13h6m2 0a2 2 0 100-4H7a2 2 0 100 4zm-6 6h12a2 2 0 002-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-            </span>
-            <span className="text-sm text-gray-600">🗑 Delete</span>
-          </button>
+          className="absolute z-50 bg-white shadow-xl border border-gray-300 rounded-lg transition-all duration-200 transform scale-95 opacity-0 animate-fadeIn"
+          style={{
+            top: popup.y,
+            left: popup.x,
+            minWidth: "160px",
+            padding: "8px",
+            boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+          }}
+        >
+          {/* Popup Actions */}
+          <div className="flex flex-col">
+            {/* Duplicate Button */}
+            <button
+              className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-gray-100 transition-all duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePopupDuplicate(popup.childId);
+              }}
+            >
+              <FiCopy className="text-gray-600 text-lg" /> 
+              <span className="text-sm text-gray-700 font-medium">Duplicate</span>
+            </button>
+
+            {/* Delete Button */}
+            <button
+              className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-red-100 transition-all duration-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePopupDelete(popup.childId);
+              }}
+            >
+              <FiTrash2 className="text-red-500 text-lg" />
+              <span className="text-sm text-red-600 font-medium">Delete</span>
+            </button>
+          </div>
         </div>
-      </div>
-      
       )}
+
+
 
 
 

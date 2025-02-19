@@ -24,10 +24,7 @@ import { FiEdit } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
 
 import { deleteCustomColumn } from "../../redux/cardDragableSlice";
-import { setElementInCustomColumns } from "../../redux/cardDragableSlice";
-import { replaceDroppedItemInCC } from "../../redux/cardDragableSlice";
 import { setElementPaddingTop } from "../../redux/condtionalCssSlice";
-import { addElementAtLocation } from "../../redux/cardDragableSlice";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 import { setPaddingBottom } from "../../redux/condtionalCssSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
@@ -38,6 +35,7 @@ import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
 import { addElementWithSection_AtSpecificLocation } from "../../redux/cardDragableSlice";
 import { insertElementAtDropIndexInCC } from "../../redux/cardDragableSlice";
 import { setElementDragging } from "../../redux/cardDragableSlice";
+import { FiCopy, FiTrash2 } from "react-icons/fi"; // Modern icons
 
 // Component Mapping
 const componentMap = {
@@ -125,7 +123,7 @@ const WidgetSection = ({ id }) => {
     const handleDragLeave = (e, ref) => {
       e.preventDefault();
       if (ref.current && !ref.current.contains(e.relatedTarget)) {
-        setHoverColumn({parentId: hoverColumn.parentId, column: hoverColumn.column, isDragging: false});
+        setHoverColumn({parentId: null, column: null, isDragging: null});
         setDropIndex(null);
         setDropPosition(null);
       }
@@ -438,8 +436,9 @@ const handleDrop = (columnKey) => (e) => {
   e.stopPropagation();
 
   setHoverColumn({parentId: null, column: null});
-  dispatch(setElementPaddingTop(null));
   dispatch(setElementDragging(null));
+  dispatch(setWidgetOrElement(null));
+
 
   // Prefill content and styles based on activeWidgetName
   let content = null;
@@ -631,9 +630,6 @@ const handleLeave = (e, ref, column)=>{
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver} 
 
-      onDrop={dropInPaddingTop}
-      onDragEnter={enterInPaddingTop}
-      onDragLeave={leaveFromPaddingTop}
       ref={customColumnRef}
       className={`relative group bg-transparent pt-1 pb-1
         ${activeParentId===id || activeWidgetId==id? 'border-2 border-blue-500': ""}
@@ -735,10 +731,10 @@ const handleLeave = (e, ref, column)=>{
 
         
                 key={column.data.id}
-                className={`relative w-full h-full bg-transparent
-                  ${(activeWidgetId==id || activeParentId==id) && activeColumn===column.key   ? "border border-dashed border-pink-500" : ""}
+                className={`relative w-full
+                  ${(activeWidgetId==id || activeParentId==id) && activeColumn===column.key   ? "border border-pink-500" : ""}
 
-                  ${hoverColumn.parentId===id && hoverColumn.column===column.key ? "border border-dashed border-pink-500" : ""} 
+                  ${hoverColumn.parentId===id && hoverColumn.column===column.key ? "border border-pink-500 bg-blue-100" : ""} 
 
 
                   ${localColumns.some(col => col.data.children.length > 0) ? 'h-auto' : 'h-[100px]'}
@@ -835,73 +831,42 @@ const handleLeave = (e, ref, column)=>{
           {/* ***************************************************************************************************************** popup.visible */}
           {popup.visible && (
             <div
-            
-            className="absolute z-20 bg-white shadow-md border border-gray-200 rounded-lg transition-all duration-300"
-            style={{
-              top: popup.y,
-              left: popup.x,
-              minWidth: "120px", // Compact size
-              padding: "8px", // Slight padding for spacing
-            }}
-          >
-            {/* Popup Actions */}
-            <div className="flex flex-col items-start gap-2">
-              {/* Duplicate Button */}
-              <button
-                className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePopupDuplicate(popup.childId); // Call the duplicate function
-                }}
-              >
-                <span className="flex items-center justify-center w-6 h-6 bg-blue-50 text-blue-500 rounded-md shadow-sm">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m4 10h-2m-6-6v6m0 0l-2-2m2 2l2-2"
-                    />
-                  </svg>
-                </span>
-                <span className="text-sm text-gray-600">Duplicate</span>
-              </button>
-          
-              {/* Delete Button */}
-              <button
-                className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePopupDelete(popup.childId); // Call the delete function
-                }}
-              >
-                <span className="flex items-center justify-center w-6 h-6 bg-red-50 text-red-500 rounded-md shadow-sm">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 13h6m2 0a2 2 0 100-4H7a2 2 0 100 4zm-6 6h12a2 2 0 002-2V9a2 2 0 00-2-2H7a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  </svg>
-                </span>
-                <span className="text-sm text-gray-600">Delete</span>
-              </button>
+              className="absolute z-50 bg-white shadow-xl border border-gray-300 rounded-lg transition-all duration-200 transform scale-95 opacity-0 animate-fadeIn"
+              style={{
+                top: popup.y,
+                left: popup.x,
+                minWidth: "160px",
+                padding: "8px",
+                boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.15)",
+              }}
+            >
+              {/* Popup Actions */}
+              <div className="flex flex-col">
+                {/* Duplicate Button */}
+                <button
+                  className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-gray-100 transition-all duration-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePopupDuplicate(popup.childId);
+                  }}
+                >
+                  <FiCopy className="text-gray-600 text-lg" /> 
+                  <span className="text-sm text-gray-700 font-medium">Duplicate</span>
+                </button>
+        
+                {/* Delete Button */}
+                <button
+                  className="flex items-center gap-3 px-3 py-2 w-full text-left rounded-md hover:bg-red-100 transition-all duration-200"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePopupDelete(popup.childId);
+                  }}
+                >
+                  <FiTrash2 className="text-red-500 text-lg" />
+                  <span className="text-sm text-red-600 font-medium">Delete</span>
+                </button>
+              </div>
             </div>
-          </div>
-          
           )}
 
     </div>

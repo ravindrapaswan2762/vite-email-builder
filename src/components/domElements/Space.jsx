@@ -14,6 +14,7 @@ import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
 import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
 import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
 import { setPaddingBottom } from "../../redux/condtionalCssSlice";
+import { setElementDragging } from "../../redux/cardDragableSlice";
 
 import { PiDotsSixBold } from "react-icons/pi";
 
@@ -22,7 +23,7 @@ const Space = ({ id, parentId, column, parentName}) => {
   const [isFocused, setIsFocused] = useState(false); // Track focus state
   const containerRef = useRef(null); // Ref for detecting outside clicks
 
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement, elementDragging} = useSelector((state) => state.cardDragable);
   const dispatch = useDispatch();
 
   // Recursive function to find the styles based on activeWidgetId
@@ -97,23 +98,28 @@ const Space = ({ id, parentId, column, parentName}) => {
 
         // Create drag preview
         const dragPreview = document.createElement("div");
-        dragPreview.style.fontSize = "16px"; // Font size for readability
-        dragPreview.style.fontWeight = "bold"; // Bold text for visibility
-        dragPreview.style.color = "#1d4ed8"; // Text color
-        dragPreview.style.lineHeight = "1"; // Ensure proper line height
-        dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
-        dragPreview.style.width = "100px"; // Allow text to determine width
-        dragPreview.style.height = "20px"; // Automatically adjust height
-        dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
-        dragPreview.innerText = "Space"; // Set the plain text for the drag preview
-        document.body.appendChild(dragPreview);
-
-        // Set the custom drag image
+        dragPreview.style.fontSize = "16px";
+        dragPreview.style.fontWeight = "bold";
+        dragPreview.style.color = "#1d4ed8";
+        dragPreview.style.lineHeight = "1";
+        dragPreview.style.whiteSpace = "nowrap";
+        dragPreview.style.padding = "6px 10px"; // Padding for better visibility
+        dragPreview.style.borderRadius = "6px"; // Rounded corners
+        dragPreview.style.background = "rgba(255, 255, 255, 0.9)"; // Background color with opacity
+        dragPreview.style.border = "1px solid #1d4ed8"; // Border styling
+        dragPreview.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)"; // Soft shadow effect
+        dragPreview.style.position = "absolute";
+        dragPreview.style.top = "0px"; 
+        dragPreview.style.left = "0px"; 
+        dragPreview.innerText = 'Space'
+    
+    
+        document.body.appendChild(dragPreview); // Temporarily add (required for setDragImage)
         e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
-
-        // Cleanup after drag starts
+        dispatch(setElementDragging(true));
+    
         setTimeout(() => {
-          document.body.removeChild(dragPreview);
+            document.body.removeChild(dragPreview); // Remove preview from DOM after drag starts
         }, 0);
 
         dispatch(setWidgetOrElement("element"));
@@ -139,14 +145,9 @@ const Space = ({ id, parentId, column, parentName}) => {
       onContextMenu={handleRightClick}
       ref={containerRef}
       className={`relative w-full h-[22px] transition-all duration-300
-        ${
-          isFocused
-            ? "border-2 border-blue-500 bg-gray-100"
-            : hoveredElement
-            ? "border-dashed border border-blue-500"
-            : ""
-          } 
-          ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
+        ${!elementDragging && isFocused ? "border-2 border-blue-500 bg-gray-100" : ""}
+        ${!elementDragging && activeWidgetId === id ? "border-2 border-blue-500" : ""}
+        ${!elementDragging && hoveredElement ? "border border-blue-500" : ""}
 
       `}
 
@@ -173,6 +174,7 @@ const Space = ({ id, parentId, column, parentName}) => {
             dispatch(setHoverColumnInCC(null));
             dispatch(setPaddingTopInCC(null));
             dispatch(setPaddingBottom(null));
+            dispatch(setElementDragging(null));
           }}
         >
           <PiDotsSixBold size={12} className="text-black" />

@@ -37,6 +37,7 @@ import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
 import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
 import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
 import { setPaddingBottom } from "../../redux/condtionalCssSlice";
+import { setElementDragging } from "../../redux/cardDragableSlice";
 
 
 const Text = ({ id, parentId, column, parentName}) => {
@@ -46,7 +47,7 @@ const Text = ({ id, parentId, column, parentName}) => {
   // const [extraGap, setExtraGap] = useState(null);
   const inputRef = useRef(null); // Ref to handle input element for dynamic resizing
 
-  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId, activeColumn, widgetOrElement, elementDragging} = useSelector((state) => state.cardDragable);
 
     // const {textExtraPadding} = useSelector((state) => state.coditionalCssSlice);
 
@@ -180,7 +181,7 @@ const Text = ({ id, parentId, column, parentName}) => {
   // *****************************************************************************
   // element exchange position through ui
   const onDragStart = (e) => {
-    console.log("onDragStart called in Text");
+    console.log("onDragStart called in Text: #####################################");
     e.stopPropagation();
     e.dataTransfer.setData(
       "text/plain",
@@ -196,25 +197,30 @@ const Text = ({ id, parentId, column, parentName}) => {
 
     );
 
-    // Create drag preview
+    // ✅ Create Drag Preview (But Don't Append to Body)
     const dragPreview = document.createElement("div");
-    dragPreview.style.fontSize = "16px"; // Font size for readability
-    dragPreview.style.fontWeight = "bold"; // Bold text for visibility
-    dragPreview.style.color = "#1d4ed8"; // Text color
-    dragPreview.style.lineHeight = "1"; // Ensure proper line height
-    dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
-    dragPreview.style.width = "100px"; // Allow text to determine width
-    dragPreview.style.height = "20px"; // Automatically adjust height
-    dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
-    dragPreview.innerText = "Heading"; // Set the plain text for the drag preview
-    document.body.appendChild(dragPreview);
+    dragPreview.style.fontSize = "16px";
+    dragPreview.style.fontWeight = "bold";
+    dragPreview.style.color = "#1d4ed8";
+    dragPreview.style.lineHeight = "1";
+    dragPreview.style.whiteSpace = "nowrap";
+    dragPreview.style.padding = "6px 10px"; // Padding for better visibility
+    dragPreview.style.borderRadius = "6px"; // Rounded corners
+    dragPreview.style.background = "rgba(255, 255, 255, 0.9)"; // Background color with opacity
+    dragPreview.style.border = "1px solid #1d4ed8"; // Border styling
+    dragPreview.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)"; // Soft shadow effect
+    dragPreview.style.position = "absolute";
+    dragPreview.style.top = "0px"; 
+    dragPreview.style.left = "0px"; 
+    dragPreview.innerText = 'Heading'
 
-    // Set the custom drag image
+
+    document.body.appendChild(dragPreview); // Temporarily add (required for setDragImage)
     e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
+    dispatch(setElementDragging(true));
 
-    // Cleanup after drag starts
     setTimeout(() => {
-      document.body.removeChild(dragPreview);
+        document.body.removeChild(dragPreview); // Remove preview from DOM after drag starts
     }, 0);
 
 
@@ -481,14 +487,10 @@ const Text = ({ id, parentId, column, parentName}) => {
   return (
     <div
       style={{ position: "relative" }}
-      className={`group ${
-        isFocused
-          ? "border-2 border-blue-500 bg-gray-100"
-          : hoveredElement
-          ? "border-dashed border border-blue-500"
-          : ""
-        } 
-         ${activeWidgetId===id ? 'border-2 border-blue-500': ""}
+      className={`group bg-transparent
+        ${!elementDragging && isFocused ? "border-2 border-blue-500 bg-gray-100" : ""}
+        ${!elementDragging && activeWidgetId === id ? "border-2 border-blue-500" : ""}
+        ${!elementDragging && hoveredElement ? "border border-blue-500" : ""}
                         
       `}
                         
@@ -533,6 +535,7 @@ const Text = ({ id, parentId, column, parentName}) => {
           draggable
           onDragStart={onDragStart}
           onDragEnd={()=>{
+            console.log("onDragEnd called in Text: ###############################################################")
             dispatch(setSmallGapInTop(null));
             // setExtraGap(null);
 
@@ -541,6 +544,7 @@ const Text = ({ id, parentId, column, parentName}) => {
             dispatch(setPaddingTopInCC(null));
             dispatch(setPaddingBottom(null));
             dispatch(setWidgetOrElement(null));
+            dispatch(setElementDragging(null));
           }}
         >
           <PiDotsSixBold size={12} className="text-black" />
@@ -550,16 +554,14 @@ const Text = ({ id, parentId, column, parentName}) => {
 
 
       {/* Input Field */}
+      <div className="">
       <input
         onContextMenu={handleRightClick}
         ref={inputRef}
         onClick={onClickHandle}
         onChange={onChangeHandle}
         type="text"
-        className={`p-2 w-full transition-all duration-300 ${
-          isFocused ? "border rounded border-gray-300" : ""
-        }  focus:outline-none focus:ring-0 bg-transparent
-        `}
+        className={`p-2 w-full transition-all duration-300 focus:outline-none focus:ring-0 bg-transparent`}
         placeholder="Text Field"
         value={val}
         style={{
@@ -589,6 +591,7 @@ const Text = ({ id, parentId, column, parentName}) => {
 
         }} // Apply dynamic styles
       />
+      </div>
       
     </div>
   );

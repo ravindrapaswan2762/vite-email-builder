@@ -110,25 +110,28 @@ const Button = ({ id, parentId, column, parentName}) => {
 
         // Create drag preview
         const dragPreview = document.createElement("div");
-        dragPreview.style.fontSize = "16px"; // Font size for readability
-        dragPreview.style.fontWeight = "bold"; // Bold text for visibility
-        dragPreview.style.color = "#1d4ed8"; // Text color
-        dragPreview.style.lineHeight = "1"; // Ensure proper line height
-        dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
-        dragPreview.style.width = "100px"; // Allow text to determine width
-        dragPreview.style.height = "20px"; // Automatically adjust height
-        dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
-        dragPreview.innerText = "Button"; // Set the plain text for the drag preview
-        document.body.appendChild(dragPreview);
-
-        // Set the custom drag image
+        dragPreview.style.fontSize = "16px";
+        dragPreview.style.fontWeight = "bold";
+        dragPreview.style.color = "#1d4ed8";
+        dragPreview.style.lineHeight = "1";
+        dragPreview.style.whiteSpace = "nowrap";
+        dragPreview.style.padding = "6px 10px"; // Padding for better visibility
+        dragPreview.style.borderRadius = "6px"; // Rounded corners
+        dragPreview.style.background = "rgba(255, 255, 255, 0.9)"; // Background color with opacity
+        dragPreview.style.border = "1px solid #1d4ed8"; // Border styling
+        dragPreview.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)"; // Soft shadow effect
+        dragPreview.style.position = "absolute";
+        dragPreview.style.top = "0px"; 
+        dragPreview.style.left = "0px"; 
+        dragPreview.innerText = 'Button'
+    
+    
+        document.body.appendChild(dragPreview); // Temporarily add (required for setDragImage)
         e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
-
         dispatch(setElementDragging(true));
-
-        // Cleanup after drag starts
+    
         setTimeout(() => {
-          document.body.removeChild(dragPreview);
+            document.body.removeChild(dragPreview); // Remove preview from DOM after drag starts
         }, 0);
 
         dispatch(setWidgetOrElement("element"));
@@ -155,15 +158,23 @@ const Button = ({ id, parentId, column, parentName}) => {
     onMouseUp={()=>{
       dispatch(setWidgetOrElement(null));
     }}
+      // className={`flex justify-center w-full relative
+      //   ${
+      //     isFocused
+      //       ? "border-2 border-blue-500 bg-gray-100"
+      //       : elementDragging ? "" : hoveredElement ? "border-dashed border border-blue-500"
+      //       : ""
+      //     } 
+      //     ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
+      // `}
       className={`flex justify-center w-full relative
-        ${
-          isFocused
-            ? "border-2 border-blue-500 bg-gray-100"
-            : elementDragging ? "" : hoveredElement ? "border-dashed border border-blue-500"
-            : ""
-          } 
-          ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
+        ${!elementDragging && isFocused ? "border-2 border-blue-500 bg-gray-100" : ""}
+        ${!elementDragging && activeWidgetId === id ? "border-2 border-blue-500" : ""}
+        ${!elementDragging && hoveredElement ? "border border-blue-500" : ""}
       `}
+      
+      
+      
       style={{backgroundColor: `${currentStyles.backgroundColor || "transparent"}` }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -205,6 +216,7 @@ const Button = ({ id, parentId, column, parentName}) => {
             dispatch(setPaddingTopInCC(null));
             dispatch(setPaddingBottom(null));
             dispatch(setWidgetOrElement(null));
+            dispatch(setElementDragging(null));
             
           }}
           

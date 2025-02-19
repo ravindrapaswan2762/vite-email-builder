@@ -19,11 +19,11 @@ import { setHoverColumnInCC } from "../../redux/condtionalCssSlice";
 import { setHoverParentInCC } from "../../redux/condtionalCssSlice";
 import { setPaddingTopInCC } from "../../redux/condtionalCssSlice";
 import { setPaddingBottom } from "../../redux/condtionalCssSlice";
-
+import { setElementDragging } from "../../redux/cardDragableSlice";
 
 const Image = ({ id, parentId, column, parentName}) => {
 
-  const { activeWidgetId, droppedItems, activeParentId , activeColumn, widgetOrElement } = useSelector((state) => state.cardDragable);
+  const { activeWidgetId, droppedItems, activeParentId , activeColumn, widgetOrElement,elementDragging } = useSelector((state) => state.cardDragable);
 
   const [imageSrc, setImageSrc] = useState(""); // State for the image source
   const [hoveredElement, setHoveredElement] = useState(false); // State for hover
@@ -122,23 +122,28 @@ const Image = ({ id, parentId, column, parentName}) => {
 
     // Create drag preview
     const dragPreview = document.createElement("div");
-    dragPreview.style.fontSize = "16px"; // Font size for readability
-    dragPreview.style.fontWeight = "bold"; // Bold text for visibility
-    dragPreview.style.color = "#1d4ed8"; // Text color
-    dragPreview.style.lineHeight = "1"; // Ensure proper line height
-    dragPreview.style.whiteSpace = "nowrap"; // Prevent wrapping of text
-    dragPreview.style.width = "100px"; // Allow text to determine width
-    dragPreview.style.height = "20px"; // Automatically adjust height
-    dragPreview.style.opacity = "1"; // Fully opaque for clear visibility
-    dragPreview.innerText = "Image"; // Set the plain text for the drag preview
-    document.body.appendChild(dragPreview);
+    dragPreview.style.fontSize = "16px";
+    dragPreview.style.fontWeight = "bold";
+    dragPreview.style.color = "#1d4ed8";
+    dragPreview.style.lineHeight = "1";
+    dragPreview.style.whiteSpace = "nowrap";
+    dragPreview.style.padding = "6px 10px"; // Padding for better visibility
+    dragPreview.style.borderRadius = "6px"; // Rounded corners
+    dragPreview.style.background = "rgba(255, 255, 255, 0.9)"; // Background color with opacity
+    dragPreview.style.border = "1px solid #1d4ed8"; // Border styling
+    dragPreview.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)"; // Soft shadow effect
+    dragPreview.style.position = "absolute";
+    dragPreview.style.top = "0px"; 
+    dragPreview.style.left = "0px"; 
+    dragPreview.innerText = 'Image'
 
-    // Set the custom drag image
+
+    document.body.appendChild(dragPreview); // Temporarily add (required for setDragImage)
     e.dataTransfer.setDragImage(dragPreview, dragPreview.offsetWidth / 2, dragPreview.offsetHeight / 2);
+    dispatch(setElementDragging(true));
 
-    // Cleanup after drag starts
     setTimeout(() => {
-      document.body.removeChild(dragPreview);
+        document.body.removeChild(dragPreview); // Remove preview from DOM after drag starts
     }, 0);
 
     dispatch(setWidgetOrElement("element"));
@@ -158,6 +163,8 @@ const Image = ({ id, parentId, column, parentName}) => {
 
     setIsFocused(true);
   }
+
+  console.log("parentName: oooooooooooooooooooooooooooooooooooooooooooooooooooooooooo",parentName);
     
 
   return (
@@ -170,14 +177,9 @@ const Image = ({ id, parentId, column, parentName}) => {
       // Removed "flex items-center justify-center" so the image can span the full width
       className={`relative rounded-md text-center w-full h-auto relative overflow-hidden bg-transparent mb-1
           
-        ${
-          isFocused
-            ? "border-2 border-blue-500 bg-gray-100"
-            : hoveredElement
-            ? "border-dashed border border-blue-500"
-            : ""
-          } 
-          ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
+        ${!elementDragging && isFocused ? "border-2 border-blue-500 bg-gray-100" : ""}
+        ${!elementDragging && activeWidgetId === id ? "border-2 border-blue-500" : ""}
+        ${!elementDragging && hoveredElement ? "border border-blue-500" : ""}
 
         `}
       onMouseEnter={onMouseEnterHandler}
@@ -210,6 +212,7 @@ const Image = ({ id, parentId, column, parentName}) => {
                 dispatch(setHoverColumnInCC(null));
                 dispatch(setPaddingTopInCC(null));
                 dispatch(setPaddingBottom(null));
+                dispatch(setElementDragging(null));
               }}
             >
               <PiDotsSixBold size={12} className="text-black" />
@@ -295,7 +298,9 @@ const Image = ({ id, parentId, column, parentName}) => {
             onContextMenu={handleRightClick}
             src={placeholderImage}
             alt="Placeholder"
-            className="w-full h-auto object-contain rounded opacity-90 transition-all duration-300"
+            className={`w-full rounded opacity-90 transition-all duration-300 
+              ${parentName==='widgetSection' || parentName==='1-column' ? 'h-[400px] object-cover' : 'h-auto object-contain'}
+            `}
             style={{
               ...currentStyles, 
               }}

@@ -544,6 +544,7 @@ import { setPaddingBottom } from "../redux/condtionalCssSlice";
 
 import { addElementWithSection } from "../redux/cardDragableSlice";
 import { replaceDroppedItemByIndex } from "../redux/cardDragableSlice";
+import { setElementDragging } from "../redux/cardDragableSlice";
 
 const WrapperAttribute = () => {
   const { activeWidgetName, droppedItems, activeWidgetId, widgetOrElement } = useSelector(
@@ -710,6 +711,8 @@ const WrapperAttribute = () => {
     e.stopPropagation();
 
     dispatch(setWidgetOrElement(null));
+    dispatch(setElementDragging(null));
+    
 
     if (!activeWidgetName) return;
     if (view === "tablet" || view === "mobile") return;
@@ -746,7 +749,6 @@ const WrapperAttribute = () => {
           id: Date.now(),
           name: "widgetSection",
           columnCount: 1,
-          parentId: null,
           styles: {},
           dropIndex: finalDropIndex, // ✅ Insert at correct index
         })
@@ -758,6 +760,8 @@ const WrapperAttribute = () => {
             childId: droppedData.parentId ? droppedData.id : null, 
             columnName: droppedData.column ? droppedData.column : null }
         ));
+
+        dispatch(setActiveEditor(activeWidgetName));
     }
     else if(widgetOrElement==='column'){
       console.log("draggedIndex################################################################################## : ",draggedIndex);
@@ -769,6 +773,7 @@ const WrapperAttribute = () => {
           targetIndex: dropIndex
         })
       );
+      dispatch(setActiveEditor('sectionEditor'));
     }
     else{
       // for widgets
@@ -783,11 +788,11 @@ const WrapperAttribute = () => {
           id: Date.now(),
           name: "widgetSection",
           columnCount: 1,
-          parentId: null,
           styles: {},
           dropIndex: finalDropIndex, // ✅ Insert at correct index
         })
       );
+      dispatch(setActiveEditor('sectionEditor'));
     }
 
     //************************************ */
@@ -796,7 +801,6 @@ const WrapperAttribute = () => {
     setDropIndex(null);
     setDropPosition(null);
 
-    dispatch(setActiveEditor(activeWidgetName));
     dispatch(setActiveWidgetName(activeWidgetName));
     dispatch(setActiveWidgetId(activeWidgetId));
     dispatch(setWrapperExtraPadding(false));
@@ -867,7 +871,6 @@ const WrapperAttribute = () => {
       <React.Fragment key={item.id}>
         {/* 🟠 Drop Zone Above the Element (Appears if Cursor is in the Upper Half) */}
         {dropIndex === index && dropPosition === "above" && (
-          
           <div
             className="drop-zone border-2 border-dashed border-blue-500 bg-blue-100 h-10 rounded-md flex justify-center items-center text-blue-500 font-semibold transition-all pointer-events-auto"
             onDragOver={(e) => handleDragOver(e, item.id, index)}
@@ -902,12 +905,34 @@ const WrapperAttribute = () => {
             onDrop={handleDrop}
             onDragLeave={handleDragLeave}
           >
-            
           </div>
         )}
       </React.Fragment>
     );
   };
+
+  const onDragLeave = (e, ref) =>{
+    e.preventDefault();
+    e.stopPropagation();
+
+    setDragCounter((prev) => {
+      const newCount = prev - 1;
+      if (newCount <= 0) {
+        setWrapperStyles((prevStyles) => ({
+          ...prevStyles,
+          paddingBottom: wrapperAttributes?.dimensions?.padding?.bottom
+            ? `${wrapperAttributes.dimensions.padding.bottom}px`
+            : "0px", // ✅ Reset only when all dragged items leave
+        }));
+      }
+      if (ref.current && !ref.current.contains(e.relatedTarget)) {
+        setDropIndex(null);
+        setDropPosition(null);
+        console.log("wrapperRef called: @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
+      }
+      return newCount;
+    });
+  }
 
   return (
     <>
@@ -1005,6 +1030,7 @@ const WrapperAttribute = () => {
       ) 
     : (
         <div
+            ref={wrapperRef}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
 
@@ -1026,24 +1052,7 @@ const WrapperAttribute = () => {
               }
             }}
 
-            onDragLeave={(e)=>{
-              e.preventDefault();
-              e.stopPropagation();
-
-              setDragCounter((prev) => {
-                const newCount = prev - 1;
-                if (newCount <= 0) {
-                  dispatch(setWrapperExtraPadding(false));
-                  setWrapperStyles((prevStyles) => ({
-                    ...prevStyles,
-                    paddingBottom: wrapperAttributes?.dimensions?.padding?.bottom
-                      ? `${wrapperAttributes.dimensions.padding.bottom}px`
-                      : "0px", // ✅ Reset only when all dragged items leave
-                  }));
-                }
-                return newCount;
-              });
-            }}
+            onDragLeave={(e)=>onDragLeave(e, wrapperRef)}
             // added onclick
             onClick={(e)=>{
               e.stopPropagation();
@@ -1051,11 +1060,7 @@ const WrapperAttribute = () => {
               dispatch(setActiveEditor("wrapperAttribute"));
               console.log("wrapper clicked!");
             }}
-            className={`w-[600px] min-h-[250px] rounded-lg p-1 mb-[300px] absolute transition-all h-auto
-                          
-              `}
-
-            ref={wrapperRef}
+            className={`w-[600px] min-h-[250px] rounded-lg p-1 mb-[300px] absolute transition-all h-auto`}
             style={{...wrapperStyles}}
            
           >
