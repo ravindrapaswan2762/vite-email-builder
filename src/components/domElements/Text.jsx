@@ -487,7 +487,7 @@ const Text = ({ id, parentId, column, parentName}) => {
   return (
     <div
       style={{ position: "relative" }}
-      className={`group bg-transparent
+      className={`group bg-transparent pt-0.5 pb-0.5
         ${!elementDragging && isFocused ? "border-2 border-blue-500 bg-gray-100" : ""}
         ${!elementDragging && activeWidgetId === id ? "border-2 border-blue-500" : ""}
         ${!elementDragging && hoveredElement ? "border border-blue-500" : ""}

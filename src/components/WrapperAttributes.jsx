@@ -713,8 +713,6 @@ const WrapperAttribute = () => {
     dispatch(setWidgetOrElement(null));
     dispatch(setElementDragging(null));
     
-
-    if (!activeWidgetName) return;
     if (view === "tablet" || view === "mobile") return;
     // if (draggedIndex === null || dropIndex === null || draggedIndex === dropIndex) {
     //   return;

@@ -22,7 +22,7 @@ import { setElementDragging } from "../../redux/cardDragableSlice";
 
 
 // Icons (Replace these with your actual logo images or imports)
-import { FaFacebook, FaGoogle, FaTwitter } from "react-icons/fa"; // Example using FontAwesome icons
+import { FaFacebook, FaInstagram, FaWhatsapp, FaYoutube} from "react-icons/fa"; // Example using FontAwesome icons
 
 const SocialMedia = ({ id, parentId, column, parentName}) => {
   const [hoveredElement, setHoveredElement] = useState(false); // Track hover state
@@ -52,9 +52,11 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
   };
 
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
+  console.log("currentStyles: ", currentStyles);
 
   const onClickHandle = (e) => {
-    e.stopPropagation();    
+    e.stopPropagation();   
+    console.log("droppedItems: ",droppedItems); 
     dispatch(setActiveWidgetName("SocialMedia"));
     dispatch(setActiveEditor("SocialMedia"));
     dispatch(setActiveWidgetId(id));
@@ -160,7 +162,15 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
     
         setIsFocused(true);
       }
-    
+
+      const flexDirection = currentStyles.mode === "vertical" ? "column" : "row";
+      const justifyContent =
+            currentStyles.align === "left"
+              ? "flex-start"
+              : currentStyles.align === "right"
+              ? "flex-end"
+              : "center";
+
     
 
   return (
@@ -174,10 +184,22 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
                   ${!elementDragging && activeWidgetId === id ? "border-2 border-blue-500" : ""}
                   ${!elementDragging && hoveredElement ? "border border-blue-500" : ""}
         `}
-
-      style={{...currentStyles, 
-        ...(view === "Desktop" ? {display: "flex", flexDirection: "column" } : {}),
-        
+      style={{
+        ...currentStyles,
+        ...(view === "Desktop" ? { display: "flex" } : {}),
+        flexDirection: flexDirection,
+    
+        // ✅ Updated logic for vertical mode
+        justifyContent: currentStyles.mode === "vertical" ? "center"
+          : (currentStyles.align === "left" ? "flex-start"
+            : currentStyles.align === "right" ? "flex-end" : "center"),
+    
+        alignItems: currentStyles.mode === "vertical"
+          ? (currentStyles.align === "left" ? "flex-start"
+            : currentStyles.align === "right" ? "flex-end" : "center")
+          : "center",
+    
+        width: "100%",
       }}
       onMouseEnter={onMouseEnterHandler}
       onMouseLeave={onMouseLeaveHandler}
@@ -211,15 +233,65 @@ const SocialMedia = ({ id, parentId, column, parentName}) => {
         )}
       
 
-      <div className="flex items-center justify-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
-        <FaFacebook className="text-xl text-blue-600" />
-      </div>
-      <div className="flex items-center justify-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
-        <FaGoogle className="text-xl text-red-600" />
-      </div>
-      <div className="flex items-center justify-center gap-2 cursor-pointer" onClick={()=>dispatch(setActiveBorders(true))}>
-        <FaTwitter className="text-xl text-blue-400" />
-      </div>
+      <div
+          className="flex items-center gap-3 cursor-pointer w-full"
+          style={{
+            ...(view === "Desktop" ? { display: "flex" } : {}),
+            flexDirection: flexDirection,
+            display: "flex",
+            width: "100%",
+            gap: "15px",
+        
+            ...(currentStyles.mode === "vertical"
+              ? {
+                  justifyContent: "center",
+                  alignItems: currentStyles.align === "left"
+                    ? "flex-start"
+                    : currentStyles.align === "right"
+                    ? "flex-end"
+                    : "center",
+                }
+              : {
+                  justifyContent: currentStyles.align === "left"
+                    ? "flex-start"
+                    : currentStyles.align === "right"
+                    ? "flex-end"
+                    : "center",
+                  alignItems: "center",
+                }),
+          }}
+          
+        >
+          <div
+            className="cursor-pointer"
+            onClick={() => dispatch(setActiveBorders(true))}
+          >
+            <FaFacebook className="w-6 h-6 text-[#1877F2]" />
+          </div>
+
+          <div
+            className="cursor-pointer"
+            onClick={() => dispatch(setActiveBorders(true))}
+          >
+            <FaInstagram className="w-6 h-6 text-[#E4405F]" />
+          </div>
+
+          <div
+            className="cursor-pointer"
+            onClick={() => dispatch(setActiveBorders(true))}
+          >
+            <FaWhatsapp className="w-6 h-6 text-[#25D366]" />
+          </div>
+
+          <div
+            className="cursor-pointer"
+            onClick={() => dispatch(setActiveBorders(true))}
+          >
+            <FaYoutube className="w-6 h-6 text-[#FF0000]" />
+          </div>
+        </div>
+
+
     </div>
 
   );

@@ -149,11 +149,8 @@ const ColumnThree = ({ handleDelete, id }) => {
     e.preventDefault();
     e.stopPropagation();
 
-    dispatch(setWidgetOrElement(null));
     setDragState({ isDragging: false, column: null });
     dispatch(setElementDragging(null));
-
-    if (!activeWidgetName) return;
 
     // Prefill content and styles based on activeWidgetName
     let content = null;
@@ -218,6 +215,8 @@ const ColumnThree = ({ handleDelete, id }) => {
     else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
       return;
     }
+
+    dispatch(setWidgetOrElement(null));
 
     dispatch(setActiveWidgetId(null));
     dispatch(setActiveParentId(null));
@@ -470,7 +469,7 @@ const ColumnThree = ({ handleDelete, id }) => {
     onDragOver={handleDragOver}
 
     ref={threeColumnRef}
-    className={`relative grid gap-1 group bg-transparent transition-all duration-300 p-2
+    className={`relative grid gap-1 group bg-transparent transition-all duration-300 pt-1 pb-1
      
       ${activeParentId===id || activeWidgetId==id? 'border-2 border-blue-500': ""}
       sm:grid-cols-1
@@ -605,11 +604,10 @@ const ColumnThree = ({ handleDelete, id }) => {
         onDragOver={handleDragOver}
         onDragEnter={(e)=>handleDragEnter(e, "childrenA", columnARef)} 
         onDragLeave={(e)=>handleDragLeave(e, columnARef)}
-        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500
-                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${(dragState.isDragging && dragState.column === "childrenA") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-                    ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
-                    ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
+        className={`rounded-md text-center min-h-[150px] hover:border hover:border-pink-400 pt-1 pb-1
+                    ${activeBorders ? 'border border-pink-200' : ''}
+                    ${(dragState.isDragging && dragState.column === "childrenA") ? "bg-blue-100 border-pink-400" : ""}
+                    ${(activeWidgetId==id) ? "border border-pink-400" : ""}
                   `}
       >
         {childrenA.map((child, index) => (
@@ -672,12 +670,10 @@ const ColumnThree = ({ handleDelete, id }) => {
         onDragOver={handleDragOver}
         onDragEnter={(e)=>handleDragEnter(e, "childrenB", columnBRef)} 
         onDragLeave={(e)=>handleDragLeave(e, columnBRef)}
-        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500
-                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${(dragState.isDragging && dragState.column === "childrenB") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
-                    ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
-                    ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
-                    
+        className={`rounded-md text-center min-h-[150px] hover:border hover:border-pink-400 pt-1 pb-1
+                    ${activeBorders ? 'border border-pink-200' : ''}
+                    ${(dragState.isDragging && dragState.column === "childrenB") ? "bg-blue-100 border-pink-400" : ""}
+                    ${(activeWidgetId==id) ? "border-2 border-pink-500" : ""}
 
                   `}
       >
@@ -740,12 +736,10 @@ const ColumnThree = ({ handleDelete, id }) => {
         onDragOver={handleDragOver}
         onDragEnter={(e)=>handleDragEnter(e, "childrenC", columnCRef)} 
         onDragLeave={(e)=>handleDragLeave(e, columnCRef)}
-        className={`p-1 rounded-md text-center min-h-[150px] hover:border-2 hover:border-dashed hover:border-blue-500
-                    ${activeBorders ? 'border-2 border-dashed border-blue-200' : 'bg-transparent'}
-                    ${(dragState.isDragging && dragState.column === "childrenC") ? "bg-blue-100 border-blue-400" : "bg-transparent"}
+        className={`rounded-md text-center min-h-[150px] hover:border hover:border-pink-500 pt-1 pb-1
+                    ${activeBorders ? 'border border-pink-200' : ''}
+                    ${(dragState.isDragging && dragState.column === "childrenC") ? "bg-blue-100 border-pink-400" : "bg-transparent"}
                     ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
-                    ${columnThreeExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
-                    
 
                   `}
       >

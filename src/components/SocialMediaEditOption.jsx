@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { useDispatch, useSelector } from "react-redux";
 import { updateElementStyles } from "../redux/cardDragableSlice";
 import { useMemo } from "react";
+import { FiChevronDown, FiChevronRight, FiTrash2, FiPlusCircle } from "react-icons/fi";
 
 const SocialMediaEditOption = () => {
   const [isSettingOpen, setIsSettingOpen] = useState(true);
@@ -61,7 +61,13 @@ const SocialMediaEditOption = () => {
     textPaddingLeft: "0px",
     textPaddingRight: "4px",
     className: "",
-    socialItems: [{ id: 1, icon: "", content: "Facebook", link: "#" }],
+
+    socialItems: [
+      { id: Date.now()+10, iconUrl: "Default Url", iconName: "Facebook", redirectUrl: "" },
+      { id: Date.now()+20, iconUrl: "Default Url", iconName: "Instagram", redirectUrl: "" },
+      { id: Date.now()+30, iconUrl: "Default Url", iconName: "WhatsApp", redirectUrl: "" },
+      { id: Date.now()+40, iconUrl: "Default Url", iconName: "YouTube", redirectUrl: "" },
+    ],
   });
 
   useEffect(() => {
@@ -92,7 +98,7 @@ const SocialMediaEditOption = () => {
         textPaddingLeft: selectedElement.styles.textPaddingLeft || "0px",
         textPaddingRight: selectedElement.styles.textPaddingRight || "4px",
         className: selectedElement.styles.className || "",
-        socialItems: selectedElement.styles.socialItems || [{ id: 1, icon: "", content: "Facebook", link: "#" }],
+        socialItems: selectedElement.styles.socialItems || fields.socialItems,
       };
   
       // Only update fields if there's a meaningful difference
@@ -127,7 +133,7 @@ const SocialMediaEditOption = () => {
         textPaddingLeft: "0px",
         textPaddingRight: "4px",
         className: "",
-        socialItems: [{ id: 1, icon: "", content: "Facebook", link: "#" }],
+        socialItems: fields.socialItems,
       };
   
       // Only reset fields if they are different
@@ -155,6 +161,7 @@ const SocialMediaEditOption = () => {
       [name]: updatedValue,
     }));
 
+    console.log("Updated Social Items:", updatedValue);
     dispatch(
       updateElementStyles({
         id: activeWidgetId,
@@ -165,54 +172,73 @@ const SocialMediaEditOption = () => {
     );
   };
 
-  const handleSocialItemChange = (index, key, value) => {
-    const updatedItems = fields.socialItems.map((item, i) =>
-      i === index ? { ...item, [key]: value } : item
-    );
 
+  const handleSocialItemChange = (index, key, value) => {
+    const updatedItems = [...fields.socialItems]; // Create a new array
+    updatedItems[index] = { ...updatedItems[index], [key]: value }; // Update specific item
+  
     setFields((prev) => ({
       ...prev,
       socialItems: updatedItems,
     }));
-
+  
+    console.log("Updated Social Items:", updatedItems);
     dispatch(
       updateElementStyles({
         id: activeWidgetId,
-        styles: { socialItems: updatedItems },
+        styles: { ...selectedElement.styles, socialItems: updatedItems }, // Ensure full styles object is updated
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
       })
     );
   };
+  
 
   const addSocialItem = () => {
-    const newSocialItem = { id: Date.now(), icon: "", content: "", link: "" };
-    setFields((prev) => ({
-      ...prev,
-      socialItems: [...prev.socialItems, newSocialItem],
-    }));
-
-    dispatch(
-      updateElementStyles({
-        id: activeWidgetId,
-        styles: { socialItems: [...fields.socialItems, newSocialItem] },
-      })
-    );
-  };
-
-  const removeSocialItem = (index) => {
-    const updatedItems = fields.socialItems.filter((_, i) => i !== index);
-
+    const newSocialItem = { id: Date.now(), iconUrl: "Default Url", iconName: "Facebook", redirectUrl: "" }
+    const updatedItems = [...fields.socialItems, newSocialItem]; // Create new array
+  
     setFields((prev) => ({
       ...prev,
       socialItems: updatedItems,
     }));
-
+   
+    console.log("Updated Social Items:", updatedItems);
     dispatch(
       updateElementStyles({
         id: activeWidgetId,
-        styles: { socialItems: updatedItems },
+        styles: { ...selectedElement.styles, socialItems: updatedItems },
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
       })
     );
   };
+  
+
+  const removeSocialItem = (id) => {
+    // Filter out the item with the matching id
+    const updatedItems = fields.socialItems.filter((item) => item.id !== id);
+  
+    // Update local state
+    setFields((prev) => ({
+      ...prev,
+      socialItems: updatedItems,
+    }));
+  
+    console.log("Updated Social Items:", updatedItems);
+  
+    // Dispatch the updated social items list to Redux
+    dispatch(
+      updateElementStyles({
+        id: activeWidgetId,
+        styles: { ...selectedElement.styles, socialItems: updatedItems },
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
+  };
+  
+  
 
   return (
     <div className="w-full max-w-md p-6 bg-white border rounded-lg shadow-lg h-screen overflow-y-auto">
@@ -267,99 +293,11 @@ const SocialMediaEditOption = () => {
                 ))}
               </div>
             </div>
-          </div>
-        )}
-      </div>
 
-      {/* Typography Section */}
-      <div className="p-4 m-1 bg-gray-100 rounded-lg">
-        <div
-          className="flex items-center justify-between cursor-pointer"
-          onClick={() => setIsTypographyOpen(!isTypographyOpen)}
-        >
-          <h3 className="text-md font-bold text-gray-700">Typography</h3>
-          <button className="text-gray-500 focus:outline-none">
-            {isTypographyOpen ? <FiChevronDown /> : <FiChevronRight />}
-          </button>
-        </div>
-        {isTypographyOpen && (
-          <div className="mt-3 space-y-4">
-            <div>
-              <label className="block text-sm font-bold text-gray-600 mb-1">Font Family</label>
-              <input
-                type="text"
-                name="fontFamily"
-                value={fields.fontFamily}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-600 mb-1">Font Size (px)</label>
-                <input
-                  type="number"
-                  name="fontSize"
-                  value={fields.fontSize.replace("px", "")}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-600 mb-1">Line Height</label>
-                <input
-                  type="text"
-                  name="lineHeight"
-                  value={fields.lineHeight.replace("px", "")}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-600 mb-1">Font Weight</label>
-                <select
-                  name="fontWeight"
-                  value={fields.fontWeight}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  <option value="normal">Normal</option>
-                  <option value="bold">Bold</option>
-                  <option value="bolder">Bolder</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-600 mb-1">Text Decoration</label>
-                <select
-                  name="textDecoration"
-                  value={fields.textDecoration}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  <option value="none">None</option>
-                  <option value="underline">Underline</option>
-                  <option value="line-through">Line Through</option>
-                </select>
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-bold text-gray-600 mb-1">Font Style</label>
-                <select
-                  name="fontStyle"
-                  value={fields.fontStyle}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                >
-                  <option value="normal">Normal</option>
-                  <option value="italic">Italic</option>
-                </select>
-              </div>
               <div>
                 <label className="block text-sm font-bold text-gray-600 mb-1">Color</label>
-                <input
+                <input 
                   type="color"
                   name="color"
                   value={fields.color}
@@ -382,70 +320,84 @@ const SocialMediaEditOption = () => {
         )}
       </div>
 
-      {/* Social Items Section */}
+      {/* Social Items */}
       <div className="p-4 m-1 bg-gray-100 rounded-lg">
+        {/* Header Section with Expand/Collapse */}
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex items-center justify-between cursor-pointer px-2 rounded-md transition"
           onClick={() => setIsSocialItemOpen(!isSocialItemOpen)}
         >
-          <h3 className="text-md font-bold text-gray-700">Social Items</h3>
+          <h3 className="text-md font-semibold text-gray-700">Social Items</h3>
           <button className="text-gray-500 focus:outline-none">
-            {isSocialItemOpen ? <FiChevronDown /> : <FiChevronRight />}
+            {isSocialItemOpen ? <FiChevronDown size={18} /> : <FiChevronRight size={18} />}
           </button>
         </div>
+
         {isSocialItemOpen && (
           <div className="mt-3 space-y-4">
             {fields.socialItems.map((item, index) => (
-              <div
-                key={item.id}
-                className="p-2 border rounded-md bg-white shadow-sm"
-              >
-                <div className="grid grid-cols-2 gap-4 mb-2">
+              <div key={item.id} className="p-4 border rounded-lg bg-white shadow-md relative transition">
+                <div className="absolute top-2 right-2">
+                  <button
+                    // onClick={() => removeSocialItem(item.id)}
+                    className="text-red-500 hover:text-red-700 transition"
+                    title="Remove"
+                  >
+                    <FiTrash2 size={18} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600">Icon URL</label>
+                    <input
+                      type="text"
+                      placeholder="Paste Icon URL"
+                      // value={item.iconUrl}
+                      value={'Dedault Url'}
+                      onChange={(e) => handleSocialItemChange(index, "iconUrl", e.target.value)}
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-300 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600">Icon Name</label>
+                    <input
+                      type="text"
+                      placeholder="Enter Icon Name"
+                      // value={item.iconName}
+                      value={index===0? 'Facebook' : index===1? 'Instagram' : index===2? 'WhatsApp': index===3? 'YouTube' : ''}
+                      onChange={(e) => handleSocialItemChange(index, "iconName", e.target.value)}
+                      className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-300 text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600">Redirect URL</label>
                   <input
                     type="text"
-                    placeholder="Icon URL"
-                    value={item.icon}
-                    onChange={(e) =>
-                      handleSocialItemChange(index, "icon", e.target.value)
-                    }
-                    className="w-full p-2 border rounded-lg focus:outline-none"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Content Name"
-                    value={item.content}
-                    onChange={(e) =>
-                      handleSocialItemChange(index, "content", e.target.value)
-                    }
-                    className="w-full p-2 border rounded-lg focus:outline-none"
+                    placeholder="Enter Redirect Url"
+                    value={item.redirectUrl}
+                    onChange={(e) => handleSocialItemChange(index, "redirectUrl", e.target.value)}
+                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-300 text-sm"
                   />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Link URL"
-                  value={item.link}
-                  onChange={(e) =>
-                    handleSocialItemChange(index, "link", e.target.value)
-                  }
-                  className="w-full p-2 border rounded-lg focus:outline-none"
-                />
-                <button
-                  onClick={() => removeSocialItem(index)}
-                  className="text-red-500 hover:text-red-700 mt-2"
-                >
-                  &times; Remove
-                </button>
               </div>
             ))}
+
+            {/* Add New Social Item Button */}
             <button
               onClick={addSocialItem}
-              className="text-blue-500 hover:underline"
+              className="flex items-center space-x-2 text-blue-500 hover:underline hover:text-blue-700 transition"
             >
-              + Add Item
+              <FiPlusCircle size={18} />
+              <span>Add New Item</span>
             </button>
           </div>
         )}
       </div>
+
 
       {/* Dimension Section */}
       <div className="p-4 m-1 bg-gray-100 rounded-lg">
@@ -480,6 +432,7 @@ const SocialMediaEditOption = () => {
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
               />
             </div>
+            <hr className="border border-gray-300 my-4" />
             <div>
               <label className="block text-sm font-bold text-gray-600 mb-1">Padding</label>
               <div className="grid grid-cols-2 gap-4">
@@ -499,6 +452,7 @@ const SocialMediaEditOption = () => {
                 ))}
               </div>
             </div>
+            <hr className="border border-gray-300 my-4" />
             <div>
               <label className="block text-sm font-bold text-gray-600 mb-1">Icon Padding</label>
               <div className="grid grid-cols-2 gap-4">
@@ -518,25 +472,7 @@ const SocialMediaEditOption = () => {
                 ))}
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-600 mb-1">Text Padding</label>
-              <div className="grid grid-cols-2 gap-4">
-                {["Top", "Bottom", "Left", "Right"].map((direction) => (
-                  <div key={direction}>
-                    <label className="block text-sm font-bold text-gray-600">
-                      {direction} (px)
-                    </label>
-                    <input
-                      type="number"
-                      name={`textPadding${direction}`}
-                      value={fields[`textPadding${direction}`]?.replace("px", "")}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+            
           </div>
         )}
       </div>

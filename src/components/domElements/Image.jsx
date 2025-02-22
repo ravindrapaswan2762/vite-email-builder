@@ -299,7 +299,7 @@ const Image = ({ id, parentId, column, parentName}) => {
             src={placeholderImage}
             alt="Placeholder"
             className={`w-full rounded opacity-90 transition-all duration-300 
-              ${parentName==='widgetSection' || parentName==='1-column' ? 'h-[400px] object-cover' : 'h-auto object-contain'}
+             
             `}
             style={{
               ...currentStyles, 

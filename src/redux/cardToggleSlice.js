@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  selectedEditor: "",
+  selectedEditor: "GoogleMap",
   isColumnPopedUp: false,
 };
 

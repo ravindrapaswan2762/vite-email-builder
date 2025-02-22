@@ -8,6 +8,8 @@ import { IoShareSocialOutline } from "react-icons/io5";
 import { BsTextareaResize } from "react-icons/bs";
 import { MdSpaceBar } from "react-icons/md";
 import { CiImageOn } from "react-icons/ci";
+import { CiYoutube } from "react-icons/ci";
+import { IoLocationOutline } from "react-icons/io5";
 
 import Widget from "./Widget";
 import { blue } from "@mui/material/colors";
@@ -22,44 +24,24 @@ const Sidebar = () => {
     { id: uuidv4(), name: "Divider", icon: MdOutlineHorizontalRule },
     { id: uuidv4(), name: "Space", icon: MdSpaceBar },
     { id: uuidv4(), name: "SocialMedia", icon: IoShareSocialOutline },
+    { id: uuidv4(), name: "VideoPlayer", icon: CiYoutube },
+    { id: uuidv4(), name: "GoogleMap", icon: IoLocationOutline },
   ];
 
   return (
-    // <div
-    //   className="w-full max-w-xs border rounded-lg p-4 bg-gray-50 shadow-lg grid grid-cols-2 h-screen overflow-y-auto"
-    //   style={{ height: "auto" }}
-    // >
-    //   <h3 className="col-span-2 text-lg font-semibold text-gray-800 text-center">
-    //     Widgets
-    //   </h3>
-    //   {widgets.map((widget) => (
-    //     <Widget key={widget.id} id={widget.id} name={widget.name} icon={widget.icon} />
-    //   ))}
-    // </div>
-
 
     <div
       style={{
-
         display: "flex",
         flexDirection: "row",
         flexWrap: "wrap",
-        
         width: "100%",
-        // Tailwind `max-w-xs` is roughly 20rem (320px)
         maxWidth: "20rem",
-        // Tailwind `border` => 1px solid default border color (#e5e7eb)
         border: "1px solid #e5e7eb",
-        // Tailwind `rounded-lg` => border-radius: 0.5rem
         borderRadius: "0.5rem",
-        // Tailwind `p-4` => padding: 1rem
         padding: "1rem",
-        // Tailwind `bg-gray-50` => background-color: #f9fafb
         backgroundColor: "#f9fafb",
-        // Tailwind `shadow-lg` => approximate large box-shadow
-        boxShadow:
-          "0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)",
-  
+        boxShadow:"0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)",
         height: "auto",
         overflowY: "auto",
       }}

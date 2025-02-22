@@ -18,6 +18,8 @@ import SectionEditOption from './SectionEditOption';
 import SocialMediaEditOption from './SocialMediaEditOption';
 import DividerEditOption from './DividerEditOption';
 import SpacerEditOption from './SpacerEditOption';
+import VideoEditor from "../editors/VideoEditor";
+import GoogleMapEditor from '../editors/GoogleMapEditor';
 
 import PageAttribute from './PageAttribute';
 import TreeView from './TreeView';
@@ -28,7 +30,7 @@ const Builder = () => {
   
   const {activeLeftTab, activeRightTab} = useSelector( (state) => state.navbar);
 
-  console.log("selectedCard in builder: ", selectedEditor)
+  console.log("selectedEditor in builder: ", selectedEditor)
 
   const renderEditor = () => {
     switch (selectedEditor) {
@@ -52,6 +54,10 @@ const Builder = () => {
         return <SpacerEditOption />;
       case 'SocialMedia':
         return <SocialMediaEditOption />;
+      case 'VideoPlayer':
+        return <VideoEditor />;
+      case 'GoogleMap':
+        return <GoogleMapEditor />;
       default:
         return <PageAttributes />;
     }

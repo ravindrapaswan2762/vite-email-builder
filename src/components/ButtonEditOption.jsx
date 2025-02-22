@@ -178,14 +178,6 @@ const ButtonEditOption = () => {
       [name]: updatedValue,
     }));
 
-    // Dispatch updated styles to Redux
-    // dispatch(
-    //   updateElementStyles({
-    //     id: activeWidgetId,
-    //     styles: { [name]: updatedValue },
-    //   })
-    // );
-
     dispatch(
       updateElementStyles({
         id: activeWidgetId,

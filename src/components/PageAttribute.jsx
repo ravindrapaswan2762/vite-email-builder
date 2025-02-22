@@ -22,6 +22,9 @@ import { setHoverParentInCC } from "../redux/condtionalCssSlice";
 import { setPaddingTopInCC } from "../redux/condtionalCssSlice";
 import { setPaddingBottom } from "../redux/condtionalCssSlice";
 
+import VideoPlayer from "./VideoPlayer";
+import VideoEditor from "../editors/VideoEditor";
+
 
 const PageAttribute = () => {
 
@@ -66,6 +69,7 @@ const PageAttribute = () => {
       {/* WrapperAttribute Component */}
       <WrapperAttribute />
 
+      {/* <VideoPlayer videoUrl="https://www.youtube.com/watch?v=XHOmBV4js_E" /> */}
     </div>
   );
 };

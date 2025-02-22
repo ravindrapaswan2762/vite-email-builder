@@ -6,6 +6,8 @@ import TextArea from "./TextArea";
 import Divider from "./Divider";
 import SocialMedia from "./SocialMedia";
 import Space from "./Space";
+import VideoPlayer from "../VideoPlayer";
+import GoogleMap from "../GoogleMap";
 
 import { useSelector, useDispatch } from "react-redux";
 import { PiDotsSixVerticalBold } from "react-icons/pi";
@@ -24,7 +26,6 @@ import { FiEdit } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
 
 import { deleteCustomColumn } from "../../redux/cardDragableSlice";
-import { setElementPaddingTop } from "../../redux/condtionalCssSlice";
 import { replaceDroppedItem } from "../../redux/cardDragableSlice";
 import { setPaddingBottom } from "../../redux/condtionalCssSlice";
 import { setActiveEditor } from "../../redux/cardToggleSlice";
@@ -46,6 +47,9 @@ const componentMap = {
   Divider: (props) => <Divider {...props} />,
   SocialMedia: (props) => <SocialMedia {...props} />,
   Space: (props) => <Space {...props} />,
+  VideoPlayer: (props) => <VideoPlayer {...props} />,
+  GoogleMap: (props) => <GoogleMap {...props} />,
+
 };
 
 
@@ -383,7 +387,6 @@ const WidgetSection = ({ id }) => {
     return null; // Return null if no matching widgetId is found
   };
   const currentStyles = findStylesById(droppedItems, activeWidgetId) || {};
-  console.log("currentStyles in widgetSection: ",currentStyles);
 
   // ****************************************************************************
 
@@ -760,7 +763,10 @@ const handleLeave = (e, ref, column)=>{
                 {!column.data.children?.length && (
                   <p className="text-gray-500 text-center">{`${column.key.replace("children", "")}`}</p>
                 )}
-
+                
+                {column.data.children?.map((child, index) => {
+                  console.log("child: ",child);
+                })}
                 {/* Render Dropped Items */}
                 {column.data.children?.map((child, index) => (
                   <React.Fragment key={child.id}>
@@ -785,7 +791,13 @@ const handleLeave = (e, ref, column)=>{
                       id={`element-${child.id}`}
                       onDragOver={(e) => handleDragOver(e, child.id, index)}
                     >
-                      {componentMap[child.name] ? componentMap[child.name]({ id: child.id, parentId: id, column: column.key,  parentName: "widgetSection" }) : <div>Unknown Component</div>}
+                      {componentMap[child.name] ? componentMap[child.name]({
+                         id: child.id, 
+                         parentId: id, 
+                         column: column.key,  
+                         parentName: "widgetSection",
+                         ...(child.name === "Image" && { columnCount: child.columnCount })
+                      }) : <div>Unknown Component</div>}
                     </div>
 
                     {/* 🔵 Drop Zone Below Each Child */}

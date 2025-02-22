@@ -105,11 +105,7 @@ const ColumnOne = ({ handleDelete, id }) => {
     // e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    dispatch(setWidgetOrElement(null));
     dispatch(setElementDragging(null));
-
-
-    if (!activeWidgetName) return;
 
     const defaultContent =
             activeWidgetName === "Text"
@@ -170,6 +166,8 @@ const ColumnOne = ({ handleDelete, id }) => {
     else if(['1-column', '2-columns', '3-columns'].includes(droppedData?.name)){
       return;
     }
+
+    dispatch(setWidgetOrElement(null));
 
     dispatch(setActiveWidgetId(null));
     dispatch(setActiveParentId(null));
@@ -438,7 +436,7 @@ const ColumnOne = ({ handleDelete, id }) => {
       onMouseEnter={() => setHoveredColumn(true)}
       onMouseLeave={() => setHoveredColumn(false)}
    
-      className={`text-center min-h-[150px] relative group transition-all duration-300 p-2
+      className={`text-center min-h-[150px] relative group transition-all duration-300 pt-1 pb-1
         
         ${activeParentId===id || activeWidgetId==id? 'border-2 border-blue-500': ""}
       `}
@@ -569,11 +567,10 @@ const ColumnOne = ({ handleDelete, id }) => {
 
       <div 
           ref={columnRef}
-          className={`rounded-md text-center hover:border-2 hover:border-dashed hover:border-blue-500 min-h-[150px] p-1
-          ${activeBorders ? 'border-2 border-dashed border-blue-200' : ''} 
-          ${isDragging ? "bg-blue-100 border-blue-400" : ""}
-          ${(activeWidgetId==id) ? "border-2 border-blue-500" : ""}
-          ${columnOneExtraPadding ? "pb-[100px] border-2 border-dasshed-500" : ""}
+          className={`rounded-md text-center hover:border hover:border-pink-400 min-h-[150px] pt-1 pb-1
+          ${activeBorders ? 'border border-pink-200' : ''} 
+          ${isDragging ? "bg-blue-100 border border-pink-400" : "bg-transparent"}
+          ${(activeWidgetId==id) ? "border border-pink-400" : ""}
           `}
           onDrop={handleDrop}
           onDragEnter={(e) => handleDragEnter(e, null)}

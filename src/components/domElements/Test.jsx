@@ -1,544 +1,572 @@
+import React, { useState, useEffect } from "react";
+import { FiChevronDown, FiChevronRight } from "react-icons/fi";
+import { useDispatch, useSelector } from "react-redux";
+import { updateElementStyles } from "../redux/cardDragableSlice";
+import { useMemo } from "react";
 
+const SocialMediaEditOption = () => {
+  const [isSettingOpen, setIsSettingOpen] = useState(true);
+  const [isTypographyOpen, setIsTypographyOpen] = useState(true);
+  const [isSocialItemOpen, setIsSocialItemOpen] = useState(true);
+  const [isDimensionOpen, setIsDimensionOpen] = useState(true);
+  const [isExtraOpen, setIsExtraOpen] = useState(true);
 
-// import React, { useEffect, useState } from "react";
-// import { useSelector, useDispatch } from "react-redux";
-// import { setDroppedItems, deleteDroppedItemById } from "../redux/cardDragableSlice";
-// import { setActiveWidgetName, setActiveWidgetId } from "../redux/cardDragableSlice";
-// import { setActiveColumn, setActiveParentId } from "../redux/cardDragableSlice";
-// import { setActiveEditor, setColumnPopUp } from "../redux/cardToggleSlice";
-// import { FiGrid } from "react-icons/fi"; // Updated Icon
+  const dispatch = useDispatch();
+  const { activeWidgetId,activeParentId, activeColumn, droppedItems } = useSelector((state) => state.cardDragable);
 
-// import Text from "./domElements/Text";
-// import TextArea from "./domElements/TextArea";
-// import Image from "./domElements/Image";
-// import ColumnOne from "./domElements/ColumnOne";
-// import ColumnTwo from "./domElements/ColumnTwo";
-// import ColumnThree from "./domElements/ColumnThree";
-// import CustomColumns from "./domElements/CustomColumns";
-// import Button from "./domElements/Button";
-// import Divider from "./domElements/Divider";
-// import Space from "./domElements/Space";
-// import SocialMedia from "./domElements/SocialMedia";
-// import WidgetSection from "./domElements/WidgetSection";
+  // Find the currently selected element from Redux state recursively
+  const findElementById = (items, widgetId) => {
+    for (const item of items) {
+      if (item.id === widgetId) {
+        return item;
+      }
+      // Check for nested children
+      const nestedKeys = Object.keys(item).filter((key) => key.startsWith("children"));
+      for (const key of nestedKeys) {
+        const found = findElementById(item[key], widgetId);
+        if (found) {
+          return found;
+        }
+      }
+    }
+    return null;
+  }
 
-// import { RxCross2 } from "react-icons/rx";
-// import { generateSourceCode } from "./generateSourceCode";
+  // Memoized selectedElement to ensure stability
+  const selectedElement = useMemo(() => findElementById(droppedItems, activeWidgetId) || {}, [droppedItems, activeWidgetId]);
 
-// import { data } from "./domElements/data";
-// import { saveState } from "../redux/cardDragableSlice";
+  const [fields, setFields] = useState({
+    mode: "horizontal",
+    align: "center",
+    fontFamily: "",
+    fontSize: "13px",
+    fontWeight: "normal",
+    lineHeight: "22px",
+    color: "#333333",
+    backgroundColor: "#ffffff",
+    textDecoration: "none",
+    fontStyle: "normal",
+    iconWidth: "20px",
+    borderRadius: "3px",
+    paddingTop: "10px",
+    paddingBottom: "10px",
+    paddingLeft: "25px",
+    paddingRight: "25px",
+    iconPaddingTop: "4px",
+    iconPaddingBottom: "4px",
+    iconPaddingLeft: "4px",
+    iconPaddingRight: "4px",
+    textPaddingTop: "4px",
+    textPaddingBottom: "4px",
+    textPaddingLeft: "0px",
+    textPaddingRight: "4px",
+    className: "",
+    socialItems: [{ id: 1, icon: "", content: "Facebook", link: "#" }],
+  });
 
-// import StructurePopup from "./StructurePopup";
-// import { useRef } from "react";
-// import { setWrapperExtraPadding } from "../redux/condtionalCssSlice";
-// import { PiCircleNotchFill } from "react-icons/pi";
-// import { replaceDroppedItem } from "../redux/cardDragableSlice";
-// import { replaceElementInlast } from "../redux/cardDragableSlice";
-
-// import { setHoverColumnInCC } from "../redux/condtionalCssSlice";
-// import { setHoverParentInCC } from "../redux/condtionalCssSlice";
-// import { setPaddingTopInCC } from "../redux/condtionalCssSlice";
-// import { setPaddingBottom } from "../redux/condtionalCssSlice";
-
-// import { addElementWithSection } from "../redux/cardDragableSlice";
-// import { updateWrapperAttribute } from "../redux/attributesSlice";
-
-
-
-
-// const WrapperAttribute = () => {
-
-//   const { activeWidgetName, droppedItems, activeWidgetId, activeParentId, activeColumn, widgetOrElement} = useSelector((state) => state.cardDragable);
-//   const {wrapperExtraPadding} = useSelector((state) => state.coditionalCssSlice);
-
-//   const {view} = useSelector( (state) => state.navbar );
-//   const wrapperAttributes = useSelector((state) => state.attributes.wrapperAttributes);
-
-
-//   const dispatch = useDispatch();
-//   const [sourceCode, setSourceCode] = useState("");
-//   const [showPopup, setShowPopup] = useState(false);
-//   const [isHovered, setIsHovered] = useState(false); // ✅ Track hover state
-//   const [dragCounter, setDragCounter] = useState(0); 
-
-//   const wrapperRef = useRef();
-
-//   useEffect(() => {
-//     renderWidget(activeWidgetName);
-//   }, [activeWidgetName]);
-
-//   const handleDrop = (e) => {
-    
-//     setDragCounter(0);
-//     dispatch(setWrapperExtraPadding(null));
-//     setWrapperStyles((prevStyles) => ({
-//       ...prevStyles,
-//       paddingBottom: wrapperAttributes?.dimensions?.padding?.bottom
-//         ? `${wrapperAttributes.dimensions.padding.bottom}px`
-//         : "0px", // ✅ Reset only when all dragged items leave
-//     }));
-
-//     if (view === "tablet" || view === "mobile") return;
-
-//     e.preventDefault();
-//     e.stopPropagation();
-
-//     // if (!activeWidgetName) return;
-
-//     const droppedData = JSON.parse(e.dataTransfer.getData("text/plain"));
-//     // console.log("droppedData in wrapperAttribute: ", droppedData);
-
-//     const defaultContent =
-//             activeWidgetName === "Text"
-//               ? "Design Beautiful Emails."
-//               : activeWidgetName === "TextArea"
-//               ? "Craft professional emails effortlessly with our drag-and-drop builder. Perfect for newsletters, promotions, and campaigns."
-//               : null; // Default to null if no specific content is needed
-      
-//     if(widgetOrElement === 'element'){
-//       dispatch(
-//         addElementWithSection({
-//           childId: Date.now() + Math.floor(Math.random() * 1000),
-//           childName: droppedData.name,
-//           childType: droppedData.type,
-//           childStyle: droppedData.styles,
-//           childContent: droppedData.content,
-
-//           id: Date.now(),
-//           name: "widgetSection",
-//           columnCount: 1,
-//           parentId: null,
-//           styles: {}
-//         })
-//       );
-
-//         dispatch(deleteDroppedItemById(
-//           {
-//             parentId: droppedData.parentId ? droppedData.parentId: droppedData.id, 
-//             childId: droppedData.parentId ? droppedData.id : null, 
-//             columnName: droppedData.column ? droppedData.column : null }
-//         ));
-//     }
-//     else if(droppedData.dragableName && droppedData.dragableName === 'dragableColumn'){
-//       // console.log("dragableColumn if else called: ",droppedData.id);
-//       dispatch(replaceElementInlast(droppedData.id));
-//     }
-//     else{
-//       // dispatch(
-//       //   setDroppedItems({
-//       //     id: Date.now(),
-//       //     name: activeWidgetName,
-//       //     type: activeWidgetName.includes("column") ? activeWidgetName : "widget",
-//       //     parentId: null,
-//       //     content: defaultContent,
-//       //     styles: activeWidgetName === 'Text' ? {textAlign: "center", fontWeight: "700", fontSize: "20px"} : {},
-//       //     isActive: null,
-//       //     dropedInWrapper: true,
-//       //     columnCount: 1,
-//       //   })
-//       // );
-
-//       dispatch(
-//         addElementWithSection({
-//           childId: Date.now() + Math.floor(Math.random() * 1000),
-//           childName: droppedData.name,
-//           childType: droppedData.type,
-//           childStyle: droppedData.styles,
-//           childContent: droppedData.content,
-
-//           id: Date.now(),
-//           name: "widgetSection",
-//           columnCount: 1,
-//           parentId: null,
-//           styles: {}
-//         })
-//       );
-//     }
-
-//     dispatch(setActiveEditor(activeWidgetName));
-//     dispatch(setActiveWidgetName(activeWidgetName));
-//     dispatch(setActiveWidgetId(activeWidgetId));
-//     dispatch(setWrapperExtraPadding(false));
-
-//     dispatch(setHoverParentInCC(null));
-//     dispatch(setHoverColumnInCC(null));
-//     dispatch(setPaddingTopInCC(null));
-//     dispatch(setPaddingBottom(null));
-
-
-
-//   };
-
-//   // **********************************************************************
-//     const togglePopup = (e) => {
-//       // e.stopPropagation(); // Prevent triggering the parent's onClick
-//       setShowPopup(!showPopup);
-//       dispatch(setColumnPopUp(!showPopup)); // Update column popup state
-//     };
-//     const handleAddStructure = (structureType) => {
-//       setShowPopup(false); // Close the popup
-//     };
-//   // *********************************************************************
-//     const onClickOutside = () => {
-//       dispatch(setWrapperExtraPadding(false));
-      
-//     };
-//     useEffect(() => {
-//       const handleClickOutside = (event) => {
-//         if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
-//           onClickOutside(); // Call the function when clicking outside
-//         }
-//       };
+  useEffect(() => {
+    if (selectedElement.styles) {
+      const newFields = {
+        mode: selectedElement.styles.mode || "horizontal",
+        align: selectedElement.styles.align || "center",
+        fontFamily: selectedElement.styles.fontFamily || "",
+        fontSize: selectedElement.styles.fontSize || "13px",
+        fontWeight: selectedElement.styles.fontWeight || "normal",
+        lineHeight: selectedElement.styles.lineHeight || "22px",
+        color: selectedElement.styles.color || "#333333",
+        backgroundColor: selectedElement.styles.backgroundColor || "#ffffff",
+        textDecoration: selectedElement.styles.textDecoration || "none",
+        fontStyle: selectedElement.styles.fontStyle || "normal",
+        iconWidth: selectedElement.styles.iconWidth || "20px",
+        borderRadius: selectedElement.styles.borderRadius || "3px",
+        paddingTop: selectedElement.styles.paddingTop || "10px",
+        paddingBottom: selectedElement.styles.paddingBottom || "10px",
+        paddingLeft: selectedElement.styles.paddingLeft || "25px",
+        paddingRight: selectedElement.styles.paddingRight || "25px",
+        iconPaddingTop: selectedElement.styles.iconPaddingTop || "4px",
+        iconPaddingBottom: selectedElement.styles.iconPaddingBottom || "4px",
+        iconPaddingLeft: selectedElement.styles.iconPaddingLeft || "4px",
+        iconPaddingRight: selectedElement.styles.iconPaddingRight || "4px",
+        textPaddingTop: selectedElement.styles.textPaddingTop || "4px",
+        textPaddingBottom: selectedElement.styles.textPaddingBottom || "4px",
+        textPaddingLeft: selectedElement.styles.textPaddingLeft || "0px",
+        textPaddingRight: selectedElement.styles.textPaddingRight || "4px",
+        className: selectedElement.styles.className || "",
+        socialItems: selectedElement.styles.socialItems || [{ id: 1, icon: "", content: "Facebook", link: "#" }],
+      };
   
-//       document.addEventListener("mousedown", handleClickOutside);
-//       return () => {
-//         document.removeEventListener("mousedown", handleClickOutside);
-//       };
-//     }, []);
-//     // *****************************************************************************
-
-//   // Render widgets with delete functionality
-//   const renderWidget = (id, name) => {
-
-//     // console.log(`renderWidget id: ${id}, name: ${name}`);
-//     let WidgetComponent;
-//     let additionalStyles = {};
-
-//     // console.log("name in renderWidget: ",name);
+      // Only update fields if there's a meaningful difference
+      if (JSON.stringify(fields) !== JSON.stringify(newFields)) {
+        setFields(newFields);
+      }
+    } else {
+      // Reset fields to default values when no styles are found
+      const defaultFields = {
+        mode: "horizontal",
+        align: "center",
+        fontFamily: "",
+        fontSize: "13px",
+        fontWeight: "normal",
+        lineHeight: "22px",
+        color: "#333333",
+        backgroundColor: "#ffffff",
+        textDecoration: "none",
+        fontStyle: "normal",
+        iconWidth: "20px",
+        borderRadius: "3px",
+        paddingTop: "10px",
+        paddingBottom: "10px",
+        paddingLeft: "25px",
+        paddingRight: "25px",
+        iconPaddingTop: "4px",
+        iconPaddingBottom: "4px",
+        iconPaddingLeft: "4px",
+        iconPaddingRight: "4px",
+        textPaddingTop: "4px",
+        textPaddingBottom: "4px",
+        textPaddingLeft: "0px",
+        textPaddingRight: "4px",
+        className: "",
+        socialItems: [{ id: 1, icon: "", content: "Facebook", link: "#" }],
+      };
   
-//     switch (name) {
-//       case "Text":
-//         WidgetComponent = <Text id={id} />;
-//         break;
-//       case "TextArea":
-//         WidgetComponent = <TextArea id={id} />;
-//         break;
-//       case "Button":
-//         WidgetComponent = <Button id={id} />;
-//         break;
-//       case "Image":
-//         WidgetComponent = <Image id={id} />;
-//         break;
-//       case "Divider":
-//         WidgetComponent = <Divider id={id} />;
-//         break;
-//       case "SocialMedia":
-//         WidgetComponent = <SocialMedia id={id} />;
-//         break;
-//       case "Space":
-//         WidgetComponent = <Space id={id} />;
-//         break;
-//       case "1-column":
-//         WidgetComponent = <ColumnOne id={id} />;
-//         additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 1-column
-//         break;
-//       case "2-columns":
-//         WidgetComponent = <ColumnTwo id={id} />;
-//         additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 2-columns
-//         break;
-//       case "3-columns":
-//         WidgetComponent = <ColumnThree id={id} />;
-//         additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 3-columns
-//         break;
-//       case "customColumns":
-//         WidgetComponent = <CustomColumns id={id} />;
-//         additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 2-columns
-//         break;
-//       case "widgetSection":
-//         WidgetComponent = <WidgetSection id={id} />;
-//         additionalStyles = { position: "absolute", top: "-1px", right: "1px" }; // Fixed position for 2-columns
-//         break;
-//       default:
-//         WidgetComponent = <div className="text-gray-500">Unknown Widget</div>;
-//     }
-  
-//     return (
-//       <div key={id} className="relative group"
-//       onClick={(e) => {
-//         e.stopPropagation();
-//         dispatch(setActiveColumn(null));
-//         dispatch(setActiveParentId(null));
-//         // console.log("WrapperAttributes called");
-//       }}
-//       >
-//         {WidgetComponent}
-//       </div>
-//     );
-//   };
-
-//   const [wrapperStyles, setWrapperStyles] = useState({
-//     paddingTop: `${wrapperAttributes.dimensions.padding.top}px`,
-//     paddingLeft: `${wrapperAttributes.dimensions.padding.left}px`,
-//     paddingBottom: `${wrapperAttributes.dimensions.padding.bottom}px`,
-//     paddingRight: `${wrapperAttributes.dimensions.padding.right}px`,
-//     backgroundImage: wrapperAttributes.background.image ? `url(${wrapperAttributes.background.image})` : "none",
-//     backgroundColor: wrapperAttributes.background.color,
-//     backgroundRepeat: wrapperAttributes.background.repeat,
-//     backgroundSize: wrapperAttributes.background.size,
-//     border: wrapperAttributes.border.type,
-//     borderRadius: wrapperAttributes.border.radius,
-//   });
-
-//   useEffect(() => {
-//     console.log("wrapperAttributes in ui: ", wrapperAttributes);
-    
-//     setWrapperStyles((prevStyles) => ({
-//       ...prevStyles,
-//       paddingTop: `${wrapperAttributes.dimensions.padding.top}px`,
-//       paddingLeft: `${wrapperAttributes.dimensions.padding.left}px`,
-//       paddingBottom: `${wrapperAttributes.dimensions.padding.bottom}px`,
-//       paddingRight: `${wrapperAttributes.dimensions.padding.right}px`,
-//       backgroundImage: wrapperAttributes.background.image ? `url(${wrapperAttributes.background.image})` : "none",
-//       backgroundColor: wrapperAttributes.background.color,
-//       backgroundRepeat: wrapperAttributes.background.repeat,
-//       backgroundSize: wrapperAttributes.background.size,
-//       border: wrapperAttributes.border.type,
-//       borderRadius: wrapperAttributes.border.radius,
-//     }));
-//   }, [wrapperAttributes]);
-
-//   const handleMouseEnter = () => {
-//     setWrapperStyles((prevStyles) => ({
-//       ...prevStyles,
-//       border: "2px solid rgb(64, 132, 221)", // Apply hover effect
-//     }));
-//   };
-  
-//   const handleMouseLeave = () => {
-//     setWrapperStyles((prevStyles) => ({
-//       ...prevStyles,
-//       border: wrapperAttributes.border.type, // Restore original border
-//     }));
-
-//   };
-  
-
+      // Only reset fields if they are different
+      if (JSON.stringify(fields) !== JSON.stringify(defaultFields)) {
+        setFields(defaultFields);
+      }
+    }
+  }, [selectedElement.styles]);
   
   
-//   return (
-//     <>
-//       {
-//     view === 'tablet' 
-//   ? (
-//       <div className="flex justify-center items-center mt-[30px]">
-//         <div
-//           onDragOver={(e) => {
-//             if (view === "tablet" || view === "mobile") return; // Prevent interaction
-//             e.preventDefault();
-//           }}
 
-//           onDrop={handleDrop}
-//           onDragEnter={() => {
-//             // console.log(
-//             //   "wrapperExtraPadding*****************: ",
-//             //   wrapperExtraPadding
-//             // );
-//             dispatch(setWrapperExtraPadding(true));
-//           }}
-//           className={`relative w-[668px] max-w-[668px] min-h-[850px] bg-gray-100 rounded-[30px] border-4 border-black shadow-lg overflow-hidden`}
-//           style={{
-//             boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
-//           }}
-//           ref={wrapperRef}
-//         >
-//           {/* App Bar */}
-//           <div className="absolute inset-0 h-[45px] bg-gray-500 flex items-center justify-center text-black font-bold text-xl z-20">
-//           <PiCircleNotchFill />
-//           </div>
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
 
-//           {/* Scrollable Content */}
-//           <div
-//             className="absolute top-[45px] w-full h-[calc(100%-45px)] overflow-y-scroll bg-gray-100 px-4"
-//             style={{
-//               scrollBehavior: "smooth",
-//               scrollbarWidth: "none", // Hides scrollbar in Firefox
-//               msOverflowStyle: "none", // Hides scrollbar in IE/Edge
-//             }}
-//           >
-//             {/* Hides scrollbar for webkit browsers */}
-//             <style>{`
-//               ::-webkit-scrollbar {
-//                 display: none;
-//               }
-//             `}</style>
+    const updatedValue =
+      name.includes("padding") ||
+      ["iconWidth", "borderRadius", "fontSize", "lineHeight"].includes(name)
+        ? value && !value.includes("px")
+          ? `${value}px`
+          : value
+        : value;
 
-//             {/* Render Dropped Items */}
-//             <div className="w-full">
-//               {droppedItems.map((item) => renderWidget(item.id, item.name))}
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//       ) 
-//   : view === 'mobile' 
-//     ? (
-//       <div className="flex justify-center items-center mt-[50px]">
-//         <div
-          
-//           className={`relative w-[375px] min-h-[700px] bg-gray-100 mx-auto rounded-[50px] border-4 border-black shadow-lg overflow-hidden`}
-          
-//         >
-//           {/* Mobile App Bar */}
-//           <div className="absolute inset-0 h-[50px] bg-gray-500 flex items-center justify-center font-bold text-lg z-20 text-black">
-//             <PiCircleNotchFill />
-//           </div>
+    setFields((prev) => ({
+      ...prev,
+      [name]: updatedValue,
+    }));
 
-//           {/* Scrollable Content */}
-//           <div
-//             className="absolute top-[50px] w-full h-[calc(100%-50px)] overflow-y-scroll bg-gray-100"
-//             style={{
-//               scrollBehavior: "smooth",
-//               scrollbarWidth: "none", // Hides scrollbar in Firefox
-//               msOverflowStyle: "none", // Hides scrollbar in IE/Edge
-//             }}
-//           >
-//             {/* Hides scrollbar for webkit browsers */}
-//             <style>{`
-//               ::-webkit-scrollbar {
-//                 display: none;
-//               }
-//             `}</style>
+    dispatch(
+      updateElementStyles({
+        id: activeWidgetId,
+        styles: { [name]: updatedValue },
+        ...(activeParentId && { parentId: activeParentId }),
+        ...(activeColumn && { column: activeColumn }),
+      })
+    );
+  };
 
-//             {/* Render Dropped Items */}
-//             <div className="w-full">
-//               {droppedItems.map((item) => renderWidget(item.id, item.name))}
-//             </div>
+  const handleSocialItemChange = (index, key, value) => {
+    const updatedItems = fields.socialItems.map((item, i) =>
+      i === index ? { ...item, [key]: value } : item
+    );
 
-//           </div>
+    setFields((prev) => ({
+      ...prev,
+      socialItems: updatedItems,
+    }));
 
-//         </div>
-//       </div>
-//       ) 
-//     : (
-//         <div
-//             onMouseEnter={handleMouseEnter}
-//             onMouseLeave={handleMouseLeave}
+    dispatch(
+      updateElementStyles({
+        id: activeWidgetId,
+        styles: { socialItems: updatedItems },
+      })
+    );
+  };
 
-//             onDragOver={(e) => e.preventDefault()}
-//             onDrop={handleDrop}
-//             onDragEnter={(e)=>{
-//               e.preventDefault();
-//               e.stopPropagation();
-            
-//               setDragCounter((prev) => prev + 1); // Increment drag counter
-            
-//               if (dragCounter === 0) {
-//                 dispatch(setWrapperExtraPadding(true));
-//                 setWrapperStyles((prevStyles) => ({
-//                   ...prevStyles,
-//                   paddingBottom: "100px", // ✅ Set padding only on first entry
-//                 }));
-//               }
-//             }}
-//             onDragLeave={(e)=>{
-//               e.preventDefault();
-//               e.stopPropagation();
+  const addSocialItem = () => {
+    const newSocialItem = { id: Date.now(), icon: "", content: "", link: "" };
+    setFields((prev) => ({
+      ...prev,
+      socialItems: [...prev.socialItems, newSocialItem],
+    }));
 
-//               setDragCounter((prev) => {
-//                 const newCount = prev - 1;
-//                 if (newCount <= 0) {
-//                   dispatch(setWrapperExtraPadding(false));
-//                   setWrapperStyles((prevStyles) => ({
-//                     ...prevStyles,
-//                     paddingBottom: wrapperAttributes?.dimensions?.padding?.bottom
-//                       ? `${wrapperAttributes.dimensions.padding.bottom}px`
-//                       : "0px", // ✅ Reset only when all dragged items leave
-//                   }));
-//                 }
-//                 return newCount;
-//               });
-//             }}
-//             // added onclick
-//             onClick={(e)=>{
-//               e.stopPropagation();
-//               e.preventDefault();
-//               dispatch(setActiveEditor("wrapperAttribute"));
-//               console.log("wrapper clicked!");
-//             }}
-//             className={`w-[600px] min-h-[250px] rounded-lg p-1 mb-[300px] absolute transition-all h-auto
-                          
-//               `}
+    dispatch(
+      updateElementStyles({
+        id: activeWidgetId,
+        styles: { socialItems: [...fields.socialItems, newSocialItem] },
+      })
+    );
+  };
 
-//             ref={wrapperRef}
-//             style={{...wrapperStyles}}
-           
-//           >
-//             {/* Render Dropped Items */}
-//             {droppedItems.map((item) => {
-//               if(item){
-//                 return renderWidget(item.id, item.name);
-//               }
-//               else{
-//                 return;
-//               }
-//             } )}
+  const removeSocialItem = (index) => {
+    const updatedItems = fields.socialItems.filter((_, i) => i !== index);
 
-//             {/* Structure Popup */}
-//             {showPopup && (
-//               <StructurePopup onClose={togglePopup} onAdd={handleAddStructure} />
-//             )}
+    setFields((prev) => ({
+      ...prev,
+      socialItems: updatedItems,
+    }));
 
-//             {/* Add Button */}
-//             <div
-//               className="absolute left-1/2 transform -translate-x-1/2 mt-4"
-//               style={{ bottom: "-55px" }} // Adjust this value to control spacing from the bottom of the parent div
-//             >
-//               <button
-//                 className="bg-blue-500 text-white p-3 rounded-full shadow-md hover:bg-blue-600 transition duration-200 flex items-center"
-//                 onClick={togglePopup} // Handle click and prevent propagation
-//               >
-//                 <FiGrid className="text-2xl" /> {/* Column popup Icon */}
-//               </button>
-//             </div>
-//         </div>
-//       )
+    dispatch(
+      updateElementStyles({
+        id: activeWidgetId,
+        styles: { socialItems: updatedItems },
+      })
+    );
+  };
 
-//   }
+  return (
+    <div className="w-full max-w-md p-6 bg-white border rounded-lg shadow-lg h-screen overflow-y-auto">
+      <h2 className="text-lg font-bold text-gray-800 mb-4">Social Attributes</h2>
 
-//     </>
-//   )
-  
-// };
+      {/* Setting Section */}
+      <div className="p-4 m-1 bg-gray-100 rounded-lg">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsSettingOpen(!isSettingOpen)}
+        >
+          <h3 className="text-md font-bold text-gray-700">Setting</h3>
+          <button className="text-gray-500 focus:outline-none">
+            {isSettingOpen ? <FiChevronDown /> : <FiChevronRight />}
+          </button>
+        </div>
+        {isSettingOpen && (
+          <div className="mt-3 space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Mode</label>
+              <div className="flex space-x-4">
+                {["vertical", "horizontal"].map((mode) => (
+                  <label key={mode} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="mode"
+                      value={mode}
+                      checked={fields.mode === mode}
+                      onChange={handleInputChange}
+                      className="form-radio"
+                    />
+                    <span className="text-sm text-gray-600">{mode}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Align</label>
+              <div className="flex space-x-4">
+                {["left", "center", "right"].map((align) => (
+                  <label key={align} className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="align"
+                      value={align}
+                      checked={fields.align === align}
+                      onChange={handleInputChange}
+                      className="form-radio"
+                    />
+                    <span className="text-sm text-gray-600">{align}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
-// export default WrapperAttribute;
+      {/* Typography Section */}
+      <div className="p-4 m-1 bg-gray-100 rounded-lg">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsTypographyOpen(!isTypographyOpen)}
+        >
+          <h3 className="text-md font-bold text-gray-700">Typography</h3>
+          <button className="text-gray-500 focus:outline-none">
+            {isTypographyOpen ? <FiChevronDown /> : <FiChevronRight />}
+          </button>
+        </div>
+        {isTypographyOpen && (
+          <div className="mt-3 space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Font Family</label>
+              <input
+                type="text"
+                name="fontFamily"
+                value={fields.fontFamily}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-1">Font Size (px)</label>
+                <input
+                  type="number"
+                  name="fontSize"
+                  value={fields.fontSize.replace("px", "")}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-1">Line Height</label>
+                <input
+                  type="text"
+                  name="lineHeight"
+                  value={fields.lineHeight.replace("px", "")}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-1">Font Weight</label>
+                <select
+                  name="fontWeight"
+                  value={fields.fontWeight}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="bold">Bold</option>
+                  <option value="bolder">Bolder</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-1">Text Decoration</label>
+                <select
+                  name="textDecoration"
+                  value={fields.textDecoration}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                  <option value="none">None</option>
+                  <option value="underline">Underline</option>
+                  <option value="line-through">Line Through</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-1">Font Style</label>
+                <select
+                  name="fontStyle"
+                  value={fields.fontStyle}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                >
+                  <option value="normal">Normal</option>
+                  <option value="italic">Italic</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-600 mb-1">Color</label>
+                <input
+                  type="color"
+                  name="color"
+                  value={fields.color}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Background Color</label>
+              <input
+                type="color"
+                name="backgroundColor"
+                value={fields.backgroundColor}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+          </div>
+        )}
+      </div>
 
+      {/* Social Items Section */}
+      <div className="p-4 m-1 bg-gray-100 rounded-lg">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsSocialItemOpen(!isSocialItemOpen)}
+        >
+          <h3 className="text-md font-bold text-gray-700">Social Items</h3>
+          <button className="text-gray-500 focus:outline-none">
+            {isSocialItemOpen ? <FiChevronDown /> : <FiChevronRight />}
+          </button>
+        </div>
+        {isSocialItemOpen && (
+          <div className="mt-3 space-y-4">
+            {fields.socialItems.map((item, index) => (
+              <div
+                key={item.id}
+                className="p-2 border rounded-md bg-white shadow-sm"
+              >
+                <div className="grid grid-cols-2 gap-4 mb-2">
+                  <input
+                    type="text"
+                    placeholder="Icon URL"
+                    value={item.icon}
+                    onChange={(e) =>
+                      handleSocialItemChange(index, "icon", e.target.value)
+                    }
+                    className="w-full p-2 border rounded-lg focus:outline-none"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Content Name"
+                    value={item.content}
+                    onChange={(e) =>
+                      handleSocialItemChange(index, "content", e.target.value)
+                    }
+                    className="w-full p-2 border rounded-lg focus:outline-none"
+                  />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Link URL"
+                  value={item.link}
+                  onChange={(e) =>
+                    handleSocialItemChange(index, "link", e.target.value)
+                  }
+                  className="w-full p-2 border rounded-lg focus:outline-none"
+                />
+                <button
+                  onClick={() => removeSocialItem(index)}
+                  className="text-red-500 hover:text-red-700 mt-2"
+                >
+                  &times; Remove
+                </button>
+              </div>
+            ))}
+            <button
+              onClick={addSocialItem}
+              className="text-blue-500 hover:underline"
+            >
+              + Add Item
+            </button>
+          </div>
+        )}
+      </div>
 
+      {/* Dimension Section */}
+      <div className="p-4 m-1 bg-gray-100 rounded-lg">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsDimensionOpen(!isDimensionOpen)}
+        >
+          <h3 className="text-md font-bold text-gray-700">Dimension</h3>
+          <button className="text-gray-500 focus:outline-none">
+            {isDimensionOpen ? <FiChevronDown /> : <FiChevronRight />}
+          </button>
+        </div>
+        {isDimensionOpen && (
+          <div className="mt-3 space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Icon Width</label>
+              <input
+                type="number"
+                name="iconWidth"
+                value={fields.iconWidth.replace("px", "")}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Border Radius</label>
+              <input
+                type="number"
+                name="borderRadius"
+                value={fields.borderRadius.replace("px", "")}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Padding</label>
+              <div className="grid grid-cols-2 gap-4">
+                {["Top", "Bottom", "Left", "Right"].map((direction) => (
+                  <div key={direction}>
+                    <label className="block text-sm font-bold text-gray-600">
+                      {direction} (px)
+                    </label>
+                    <input
+                      type="number"
+                      name={`padding${direction}`}
+                      value={fields[`padding${direction}`]?.replace("px", "")}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Icon Padding</label>
+              <div className="grid grid-cols-2 gap-4">
+                {["Top", "Bottom", "Left", "Right"].map((direction) => (
+                  <div key={direction}>
+                    <label className="block text-sm font-bold text-gray-600">
+                      {direction} (px)
+                    </label>
+                    <input
+                      type="number"
+                      name={`iconPadding${direction}`}
+                      value={fields[`iconPadding${direction}`]?.replace("px", "")}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-bold text-gray-600 mb-1">Text Padding</label>
+              <div className="grid grid-cols-2 gap-4">
+                {["Top", "Bottom", "Left", "Right"].map((direction) => (
+                  <div key={direction}>
+                    <label className="block text-sm font-bold text-gray-600">
+                      {direction} (px)
+                    </label>
+                    <input
+                      type="number"
+                      name={`textPadding${direction}`}
+                      value={fields[`textPadding${direction}`]?.replace("px", "")}
+                      onChange={handleInputChange}
+                      className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
 
+      {/* Extra Section */}
+      <div className="p-4 m-1 bg-gray-100 rounded-lg">
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setIsExtraOpen(!isExtraOpen)}
+        >
+          <h3 className="text-md font-bold text-gray-700">Extra</h3>
+          <button className="text-gray-500 focus:outline-none">
+            {isExtraOpen ? <FiChevronDown /> : <FiChevronRight />}
+          </button>
+        </div>
+        {isExtraOpen && (
+          <div className="mt-3">
+            <label className="block text-sm font-bold text-gray-600 mb-1">Class Name</label>
+            <input
+              type="text"
+              name="className"
+              value={fields.className}
+              onChange={handleInputChange}
+              className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
-{popup.visible && (
-  <div
-  
-  className="absolute z-20 bg-white shadow-md border border-gray-200 rounded-lg transition-all duration-300"
-  style={{
-    top: popup.y,
-    left: popup.x,
-    minWidth: "120px", // Compact size
-    padding: "8px", // Slight padding for spacing
-  }}
->
-  {/* Popup Actions */}
-  <div className="flex flex-col items-start gap-2">
-    {/* Duplicate Button */}
-    <button
-      className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
-      onClick={(e) => {
-        e.stopPropagation();
-        handlePopupDuplicate(popup.childId); // Call the duplicate function
-      }}
-    >
-      <span className="text-sm text-gray-600">🔄 Duplicate</span>
-    </button>
-
-    {/* Delete Button */}
-    <button
-      className="flex items-center gap-2 px-2 py-1 rounded-md hover:bg-gray-100 transition-all duration-200"
-      onClick={(e) => {
-        e.stopPropagation();
-        handlePopupDelete(popup.childId); // Call the delete function
-      }}
-    >
-      <span className="text-sm text-gray-600">🗑 Delete</span>
-    </button>
-  </div>
-</div>
-
-)}
+export default SocialMediaEditOption;
